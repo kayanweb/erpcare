@@ -1,0 +1,23 @@
+111-import PatientTransportLog from "./components/PatientTransportLog";
+112-import PatientRegistration from "./components/PatientRegistration";
+113-import EMRDashboard from "./components/EMRDashboard";
+114-import PharmacyInventory from "./components/PharmacyInventory";
+115-import BillingInsurance from "./components/BillingInsurance";
+116:import DocumentCenter from "./components/DocumentCenter";
+117-import LISRISDashboard from "./components/LISRISDashboard";
+118-import WardNurseDashboard from "./components/WardNurseDashboard";
+119-import OperatingTheaterBoard from "./components/OperatingTheaterBoard";
+120-import HospitalInformationSystem from "./components/HospitalInformationSystem";
+121-import SmartAIAssistant from "./components/SmartAIAssistant";
+--
+8563-          {activeTab === "profile" && (
+8564-            <ProfileView user={currentUser} language={language} systemUsers={systemUsers} />
+8565-          )}
+8566-
+8567-          {activeTab === "document_center" && (
+8568:            <DocumentCenter 
+8569-              language={language}
+8570-              currentUser={currentUser}
+8571-              systemUsers={systemUsers}
+8572-            />
+8573-          )}
