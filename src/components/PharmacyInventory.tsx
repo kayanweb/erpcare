@@ -139,6 +139,7 @@ export default function PharmacyInventory({ language }: Props) {
   };
 
   const handleAddMedication = () => {
+    console.log("handleAddMedication triggered");
     if (!medNameAr || !medNameEn) {
       toast.error(isAr ? "يرجى تعبئة جميع الحقول المطلوبة!" : "Please fill in all required fields!");
       return;

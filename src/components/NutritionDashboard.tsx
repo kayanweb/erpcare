@@ -67,10 +67,10 @@ export default function NutritionDashboard({ language }: Props) {
                          <span className="text-xs font-bold text-indigo-600">{order.status}</span>
                       </td>
                       <td className="px-4 py-3 flex gap-2 justify-center flex-wrap">
-                         <button onClick={() => toast.info("Meal is being prepared")} className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                         <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Meal is being prepared", titleAr: "Meal is being prepared", type: "form" } }))} className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                            <ChefHat className="w-3 h-3" /> {isAr ? "تجهيز" : "Prepare"}
                          </button>
-                         <button onClick={() => toast.success("Meal marked as delivered")} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                         <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Meal marked as delivered", titleAr: "Meal marked as delivered", type: "form" } }))} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                            <Utensils className="w-3 h-3" /> {isAr ? "توزيع" : "Deliver"}
                          </button>
                       </td>

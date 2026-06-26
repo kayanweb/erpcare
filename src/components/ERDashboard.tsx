@@ -317,10 +317,10 @@ export default function ERDashboard({ language }: { language: "ar" | "en" }) {
                {isAr ? "تقرير الإنعاش" : "Resuscitation Report"}
              </button>
           </div>
-          <button onClick={() => toast.error("Code Blue Activated! Emergency Team Notified.")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center gap-2 transition whitespace-nowrap animate-pulse">
+          <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Code Blue Activated! Emergency Team Notified.", titleAr: "Code Blue Activated! Emergency Team Notified.", type: "form" } }))} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center gap-2 transition whitespace-nowrap animate-pulse">
             <Activity className="h-4 w-4" /> {isAr ? "نداء الطوارئ (Code Blue)" : "Code Blue"}
           </button>
-          <button onClick={() => toast.warning("Rapid Response Team Notified.")} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center gap-2 transition whitespace-nowrap">
+          <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Rapid Response Team Notified.", titleAr: "Rapid Response Team Notified.", type: "form" } }))} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center gap-2 transition whitespace-nowrap">
             <AlertCircle className="h-4 w-4" /> {isAr ? "استجابة سريعة (RRT)" : "Rapid Response"}
           </button>
           <div className="relative flex-1 md:w-48">

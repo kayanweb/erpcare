@@ -25,6 +25,27 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
     { id: "P-4415", name: "Laila Mahmoud", clinic: departments[1] || "Pediatrics", apptTime: "12:30 PM", status: "Waiting" },
   ]);
 
+  const [isVisitorModalOpen, setIsVisitorModalOpen] = useState(false);
+  const [visitorForm, setVisitorForm] = useState({ name: "", destination: "" });
+
+  const handleAddVisitor = () => {
+    if (!visitorForm.name || !visitorForm.destination) {
+      toast.error(isAr ? "يرجى تعبئة الحقول المطلوبة" : "Please fill required fields");
+      return;
+    }
+    const newVisitor = {
+      id: `V-${Math.floor(Math.random() * 900) + 100}`,
+      name: visitorForm.name,
+      destination: visitorForm.destination,
+      timeIn: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: "Active"
+    };
+    setVisitors([newVisitor, ...visitors]);
+    setVisitorForm({ name: "", destination: "" });
+    setIsVisitorModalOpen(false);
+    toast.success(isAr ? "تم تسجيل الزائر بنجاح" : "Visitor registered successfully");
+  };
+
   const handlePrintPass = (name: string) => {
     toast.success(isAr ? `تم طباعة تصريح لـ ${name}` : `Printed pass for ${name}`);
   };
@@ -73,7 +94,7 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
                   <Users className="w-5 h-5 text-teal-500" />
                   {isAr ? "الزوار الحاليين" : "Active Visitors"}
                 </h3>
-                <button className="bg-teal-50 text-teal-700 hover:bg-teal-100 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition">
+                <button onClick={() => setIsVisitorModalOpen(true)} className="bg-teal-50 text-teal-700 hover:bg-teal-100 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition">
                   <Plus className="w-4 h-4" /> {isAr ? "تسجيل زائر" : "New Visitor"}
                 </button>
               </div>
@@ -168,7 +189,13 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
                           </span>
                         </td>
                         <td className="px-4 py-3 flex gap-2 justify-center">
-                           <button onClick={() => toast.success("Checked In")} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-xs font-bold transition">
+                           <button onClick={() => {
+                             if (p.status !== "Arrived") {
+                               const updated = patients.map(pt => pt.id === p.id ? { ...pt, status: "Arrived" } : pt);
+                               setPatients(updated);
+                               toast.success(isAr ? "تم تسجيل الوصول" : "Checked In");
+                             }
+                           }} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-xs font-bold transition">
                              Check-in
                            </button>
                         </td>
@@ -202,6 +229,49 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
                  </button>
                </div>
              </div>
+          </div>
+        </div>
+      )}
+
+      {isVisitorModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50">
+              <h3 className="font-bold text-slate-800 text-lg">
+                {isAr ? "تسجيل زائر جديد" : "Register New Visitor"}
+              </h3>
+              <button onClick={() => setIsVisitorModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition">
+                <span className="w-5 h-5 flex items-center justify-center font-bold">✕</span>
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">{isAr ? "اسم الزائر" : "Visitor Name"}</label>
+                <input 
+                  type="text" 
+                  value={visitorForm.name} 
+                  onChange={(e) => setVisitorForm({...visitorForm, name: e.target.value})}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">{isAr ? "الوجهة (القسم/المريض)" : "Destination (Ward/Patient)"}</label>
+                <input 
+                  type="text" 
+                  value={visitorForm.destination} 
+                  onChange={(e) => setVisitorForm({...visitorForm, destination: e.target.value})}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2 justify-end">
+              <button onClick={() => setIsVisitorModalOpen(false)} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition">
+                {isAr ? "إلغاء" : "Cancel"}
+              </button>
+              <button onClick={handleAddVisitor} className="px-6 py-2 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition">
+                {isAr ? "تسجيل والدخول" : "Register & Check-in"}
+              </button>
+            </div>
           </div>
         </div>
       )}

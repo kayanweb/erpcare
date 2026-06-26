@@ -67,13 +67,13 @@ export default function DialysisDashboard({ language }: Props) {
                            </span>
                         </td>
                         <td className="px-4 py-3 flex gap-2 justify-center flex-wrap">
-                           <button onClick={() => toast.info("Weight logged")} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Weight logged", titleAr: "Weight logged", type: "form" } }))} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                              <Scale className="w-3 h-3" /> {isAr ? "وزن" : "Weight"}
                            </button>
-                           <button onClick={() => toast.info("Complications logged")} className="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Complications logged", titleAr: "Complications logged", type: "form" } }))} className="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                              <AlertTriangle className="w-3 h-3" /> {isAr ? "مضاعفات" : "Complications"}
                            </button>
-                           <button onClick={() => toast.success("Session finished")} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Session finished", titleAr: "Session finished", type: "form" } }))} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
                              {isAr ? "إنهاء" : "End"}
                            </button>
                         </td>

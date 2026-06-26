@@ -85,16 +85,16 @@ export default function OncologyDashboard({ language }: Props) {
                         </td>
                         <td className="px-4 py-3 flex gap-2 justify-center flex-wrap">
                            {activeTab === "chemo" && (
-                             <button onClick={() => toast.info("Dose calculation opened")} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                             <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Dose calculation opened", titleAr: "Dose calculation opened", type: "form" } }))} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                                <Syringe className="w-3 h-3" /> {isAr ? "الجرعة" : "Dose"}
                              </button>
                            )}
                            {activeTab === "radio" && (
-                             <button onClick={() => toast.info("Targeting opened")} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                             <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Targeting opened", titleAr: "Targeting opened", type: "form" } }))} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                                <Crosshair className="w-3 h-3" /> {isAr ? "المنطقة" : "Target"}
                              </button>
                            )}
-                           <button onClick={() => toast.info("Side effects logged")} className="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Side effects logged", titleAr: "Side effects logged", type: "form" } }))} className="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                              <ShieldAlert className="w-3 h-3" /> {isAr ? "آثار جانبية" : "Toxicity"}
                            </button>
                         </td>

@@ -67,10 +67,10 @@ export default function PsychiatryDashboard({ language }: Props) {
                            </span>
                         </td>
                         <td className="px-4 py-3 flex gap-2 justify-center flex-wrap">
-                           <button onClick={() => toast.info("Opened Psych Assessment Form")} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Opened Psych Assessment Form", titleAr: "Opened Psych Assessment Form", type: "form" } }))} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
                              {isAr ? "تقييم أولي" : "Assessment"}
                            </button>
-                           <button onClick={() => toast.success("Session noted")} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Session noted", titleAr: "Session noted", type: "form" } }))} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
                              {isAr ? "تطور الحالة" : "Progress Note"}
                            </button>
                         </td>

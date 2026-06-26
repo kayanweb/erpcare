@@ -54,16 +54,16 @@ export default function PACUDashboard({ language }: Props) {
                   </div>
                   
                   <div className="flex flex-wrap gap-2 mt-4">
-                    <button onClick={() => toast.info("Vitals logged")} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Vitals logged", titleAr: "Vitals logged", type: "form" } }))} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                        <HeartPulse className="w-4 h-4 text-rose-500" /> {isAr ? "العلامات الحيوية" : "Vitals"}
                     </button>
-                    <button onClick={() => toast.info("Pain score updated")} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Pain score updated", titleAr: "Pain score updated", type: "form" } }))} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                        <Activity className="w-4 h-4 text-amber-500" /> {isAr ? "تقييم الألم" : "Pain Score"} ({p.painScore}/10)
                     </button>
-                    <button onClick={() => toast.info("Fluids logged")} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Fluids logged", titleAr: "Fluids logged", type: "form" } }))} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                        <Droplet className="w-4 h-4 text-blue-500" /> {isAr ? "السوائل" : "Fluids I/O"}
                     </button>
-                    <button onClick={() => toast.info("Consciousness updated")} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Consciousness updated", titleAr: "Consciousness updated", type: "form" } }))} className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                        <Brain className="w-4 h-4 text-purple-500" /> {isAr ? "مستوى الوعي" : "Consciousness"}
                     </button>
                   </div>

@@ -85,16 +85,16 @@ export default function NICUDashboard({ language }: Props) {
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-200">
-                    <button onClick={() => toast.info("Feeding logged")} className="text-[10px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Feeding logged", titleAr: "Feeding logged", type: "form" } }))} className="text-[10px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
                        <Baby className="w-3 h-3" /> {isAr ? "تغذية" : "Feed"}
                     </button>
-                    <button onClick={() => toast.info("Weight logged")} className="text-[10px] bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Weight logged", titleAr: "Weight logged", type: "form" } }))} className="text-[10px] bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
                        <Scale className="w-3 h-3" /> {isAr ? "وزن" : "Weight"}
                     </button>
-                    <button onClick={() => toast.info("Meds administered")} className="text-[10px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Meds administered", titleAr: "Meds administered", type: "form" } }))} className="text-[10px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
                        <Syringe className="w-3 h-3" /> {isAr ? "أدوية" : "Meds"}
                     </button>
-                    <button onClick={() => toast.info("PKU Test ordered")} className="text-[10px] bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "PKU Test ordered", titleAr: "PKU Test ordered", type: "form" } }))} className="text-[10px] bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-2 py-1.5 rounded transition flex items-center gap-1">
                        <Beaker className="w-3 h-3" /> {isAr ? "فحوصات (PKU)" : "Tests"}
                     </button>
                   </div>

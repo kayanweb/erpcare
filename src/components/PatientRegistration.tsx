@@ -8,6 +8,8 @@ interface Props {
   departments?: string[];
 }
 
+import { GlobalEntityLink } from "./GlobalEntityLink";
+
 export default function PatientRegistration({ language, departments = [] }: Props) {
   const isAr = language === "ar";
   const [activeSubTab, setActiveSubTab] = useState<"directory" | "register" | "appointments" | "adt" | "discharge">("directory");
@@ -138,8 +140,12 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                 <tbody className="divide-y divide-slate-100">
                   {patients.map(p => (
                     <tr key={p.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-mono font-bold text-slate-500">{p.mrn}</td>
-                      <td className="px-4 py-3 font-bold text-slate-800">{isAr ? p.nameAr : p.nameEn}</td>
+                      <td className="px-4 py-3 font-mono font-bold text-slate-500">
+                        <GlobalEntityLink entityName={p.mrn} entityId={p.id} entityType="patient" isAr={isAr} />
+                      </td>
+                      <td className="px-4 py-3 font-bold text-slate-800">
+                        <GlobalEntityLink entityName={isAr ? p.nameAr : p.nameEn} entityId={p.id} entityType="patient" isAr={isAr} className="text-slate-800 hover:text-indigo-600" />
+                      </td>
                       <td className="px-4 py-3 font-mono text-slate-600 text-xs">{p.phone}</td>
                       <td className="px-4 py-3 text-xs font-bold text-slate-600">{p.insurance}</td>
                       <td className="px-4 py-3 text-center">

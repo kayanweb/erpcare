@@ -69,10 +69,10 @@ export default function MortuaryDashboard({ language }: Props) {
                            </span>
                         </td>
                         <td className="px-4 py-3 flex gap-2 justify-center flex-wrap">
-                           <button onClick={() => toast.info("Printing Death Certificate")} className="bg-slate-100 text-slate-600 hover:bg-slate-200 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Printing Death Certificate", titleAr: "Printing Death Certificate", type: "form" } }))} className="bg-slate-100 text-slate-600 hover:bg-slate-200 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                              <Printer className="w-3 h-3" /> {isAr ? "شهادة وفاة" : "Certificate"}
                            </button>
-                           <button onClick={() => toast.success("Body handed over")} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                           <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Body handed over", titleAr: "Body handed over", type: "form" } }))} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition flex items-center gap-1">
                              <ArrowRightLeft className="w-3 h-3" /> {isAr ? "تسليم الجثة" : "Handover"}
                            </button>
                         </td>

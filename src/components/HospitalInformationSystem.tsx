@@ -64,6 +64,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 
 import { DynamicProfessionalLogo } from "./DynamicProfessionalLogo";
+import GenericActionModal from "./GenericActionModal";
 import { AiHospitalBrain } from "./AiHospitalBrain";
 import { DocumentManager } from "./DocumentManager";
 import { QueueManagement } from "./QueueManagement";
@@ -136,6 +137,7 @@ import ClinicalFormsLibrary from "./ClinicalFormsLibrary";
 import PatientJourneySimulator from "./PatientJourneySimulator";
 import ClinicalTimelinesHub from "./ClinicalTimelinesHub";
 
+import VitalsDashboard from "./VitalsDashboard";
 import PatientPortalDashboard from "./PatientPortalDashboard";
 
 interface HospitalInformationSystemProps {
@@ -446,6 +448,7 @@ export default function HospitalInformationSystem({
           labelAr: "مشرف التمريض",
           labelEn: "Nursing Supervisor",
         },
+        { id: "vitals", labelAr: "العلامات الحيوية", labelEn: "Vitals Monitor" },
       ],
     },
     {
@@ -629,7 +632,13 @@ export default function HospitalInformationSystem({
     if (subId) {
       setActiveSubTab(subId);
     } else {
-      setActiveSubTab(moduleId);
+      const module = systemModules.find((m) => m.id === moduleId);
+      if (module && module.subItems && module.subItems.length > 0) {
+        // If the module has sub-items, set active sub-tab to the first sub-item to avoid blank screens
+        setActiveSubTab(module.subItems[0].id);
+      } else {
+        setActiveSubTab(moduleId);
+      }
     }
     if (
       window.innerWidth < 768 &&
@@ -2387,6 +2396,7 @@ export default function HospitalInformationSystem({
               {activeSubTab === "nursing" && (
                 <NursingDirectorDashboard language={language} currentUser={currentUser} onNavigate={handleSmartNavigate} />
               )}
+              {activeSubTab === "vitals" && <VitalsDashboard language={language} />}
               {activeSubTab === "supervisor" && (
                 <NursingSupervisorDashboard language={language} currentUser={currentUser} onNavigate={handleSmartNavigate} />
               )}
@@ -2438,6 +2448,7 @@ export default function HospitalInformationSystem({
           </AnimatePresence>
         </div>
       </div>
+      <GenericActionModal />
     </div>
   );
 }

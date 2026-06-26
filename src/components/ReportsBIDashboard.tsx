@@ -286,10 +286,10 @@ export default function ReportsBIDashboard({ language }: Props) {
                    {isAr ? "هذه المساحة مخصصة لعرض إحصائيات الاستقصاءات السريرية والتشخيصات المعتمدة ونتائج المرضى بالكامل." : "This space is reserved for showing clinical statistics, confirmed diagnoses, and comprehensive outcomes."}
                  </p>
                  <div className="flex gap-2 justify-center">
-                   <button onClick={() => toast.success("Exporting to PDF")} className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2">
+                   <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Exporting to PDF", titleAr: "Exporting to PDF", type: "form" } }))} className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2">
                      <Download className="w-4 h-4" /> {isAr ? "تصدير PDF" : "Export PDF"}
                    </button>
-                   <button onClick={() => toast.success("Exporting to Excel")} className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2">
+                   <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Exporting to Excel", titleAr: "Exporting to Excel", type: "form" } }))} className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2">
                      <Download className="w-4 h-4" /> {isAr ? "تصدير Excel" : "Export Excel"}
                    </button>
                  </div>
@@ -331,7 +331,7 @@ export default function ReportsBIDashboard({ language }: Props) {
             {isAr ? "متابعة سندات الصرف والقبض، مرتجع الفواتير، ونسب الأطباء والضرائب التقديرية بالربط التلقائي مع الصندوق." : "Follow payments, bills, Doctor shares, tax claims and insurance approvals integrated automatically with the cashier desk."}
           </p>
           <div className="flex gap-2">
-            <button onClick={() => toast.info("Opening Ledger")} className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-4 py-2 rounded-lg font-bold text-xs transition">
+            <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Opening Ledger", titleAr: "Opening Ledger", type: "form" } }))} className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-4 py-2 rounded-lg font-bold text-xs transition">
               {isAr ? "فتح كشف الأستاذ العام" : "View General Ledger"}
             </button>
           </div>

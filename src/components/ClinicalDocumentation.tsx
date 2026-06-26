@@ -152,7 +152,7 @@ export const ClinicalDocumentation: React.FC<Props> = ({ patient, workflowId, st
             </h4>
             <div className="flex items-center gap-2">
                <button 
-                onClick={() => toast.info("Voice recognition started...")}
+                onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Voice recognition started...", titleAr: "Voice recognition started...", type: "form" } }))}
                 className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" 
                 title="Voice to Note"
                >
