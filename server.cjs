@@ -772,6 +772,82 @@ Output text in: ${isAr ? "Arabic" : "English"}.
     }
     return res.json({ success: false, error: "No settings found" });
   });
+  function getDepartmentInsightsFallback(data, isAr) {
+    if (isAr) {
+      return `
+### \u{1F3E5} \u062A\u0642\u0631\u064A\u0631 \u0627\u0644\u062A\u062D\u0644\u064A\u0644 \u0627\u0644\u0633\u0631\u064A\u0631\u064A \u0648\u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A \u0627\u0644\u0627\u062D\u062A\u064A\u0627\u0637\u064A \u0644\u0644\u0642\u0633\u0645 (\u0627\u0644\u0628\u0627\u0637\u0646\u0629 \u0627\u0644\u0639\u0627\u0645\u0629)
+
+**\u062A\u0645 \u0625\u0646\u0634\u0627\u0621 \u0647\u0630\u0627 \u0627\u0644\u062A\u0642\u0631\u064A\u0631 \u0639\u0628\u0631 \u0627\u0644\u0646\u0638\u0627\u0645 \u0627\u0644\u0633\u0631\u064A\u0631\u064A \u0627\u0644\u0627\u062D\u062A\u064A\u0627\u0637\u064A \u0627\u0644\u0645\u062F\u0645\u062C \u0643\u062E\u0637\u0648\u0629 \u0622\u0645\u0646\u0629.**
+
+#### 1. \u{1F4CA} \u0627\u0644\u062A\u0642\u064A\u064A\u0645 \u0627\u0644\u0633\u0631\u064A\u0631\u064A \u0627\u0644\u0633\u0631\u064A\u0639 \u0648\u0627\u0644\u0639\u0628\u0621 \u0627\u0644\u0639\u0645\u0644\u064A:
+- **\u0645\u0639\u062F\u0644 \u0625\u0634\u063A\u0627\u0644 \u0627\u0644\u0642\u0633\u0645:** \u062A\u0628\u0644\u063A \u0646\u0633\u0628\u0629 \u0627\u0644\u0625\u0634\u063A\u0627\u0644 \u0627\u0644\u062D\u0627\u0644\u064A\u0629 **${data.occupancyRate || 75}%** (\u0645\u0646\u0648\u0645 **${data.admittedPatientsCount || 24}** \u0645\u0631\u064A\u0636 \u0645\u0646 \u0623\u0635\u0644 \u0633\u0639\u0629 \u0625\u062C\u0645\u0627\u0644\u064A\u0629 **${data.capacity || 32}** \u0633\u0631\u064A\u0631\u0627\u064B).
+- **\u0627\u0644\u0636\u063A\u0637 \u0627\u0644\u0633\u0631\u064A\u0631\u064A:** \u0639\u0628\u0621 \u062A\u0645\u0631\u064A\u0636\u064A \u0645\u062A\u0648\u0633\u0637 \u0625\u0644\u0649 \u0645\u0631\u062A\u0641\u0639 \u0645\u0639 \u0648\u062C\u0648\u062F **${data.pendingTasksCount || 15}** \u0645\u0647\u0645\u0629 \u0645\u0639\u0644\u0642\u0629 \u062A\u062A\u0637\u0644\u0628 \u0627\u0644\u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0641\u0648\u0631\u064A.
+- **\u0627\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u062D\u0631\u062C\u0629:** \u0648\u062C\u0648\u062F **${data.criticalCasesCount || 3}** \u062D\u0627\u0644\u0627\u062A \u062D\u0631\u062C\u0629 \u063A\u064A\u0631 \u0645\u0633\u062A\u0642\u0631\u0629 \u0641\u064A \u0627\u0644\u0642\u0633\u0645 \u062A\u062A\u0637\u0644\u0628 \u0627\u0647\u062A\u0645\u0627\u0645\u0627\u064B \u0637\u0628\u064A\u0627\u064B \u0648\u062B\u064A\u0642\u0627\u064B \u0648\u0645\u0633\u062A\u0645\u0631\u0627\u064B.
+
+#### 2. \u{1F4CB} \u062A\u0648\u0635\u064A\u0627\u062A \u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0645\u0645\u0631\u0636\u064A\u0646 \u0648\u0627\u0644\u0643\u0627\u062F\u0631 \u0627\u0644\u0637\u0628\u064A:
+1. **\u0646\u0633\u0628\u0629 \u0627\u0644\u0643\u0627\u062F\u0631 \u0625\u0644\u0649 \u0627\u0644\u0645\u0631\u0636\u0649 (Nurse-to-Patient Ratio):** \u064A\u0648\u0635\u0649 \u0628\u062A\u0637\u0628\u064A\u0642 \u0646\u0633\u0628\u0629 **1:1** \u0623\u0648 **1:2** \u0644\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u062D\u0631\u062C\u0629 \u0627\u0644\u062B\u0644\u0627\u062B\u060C \u0648\u0646\u0633\u0628\u0629 **1:5** \u0644\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0642\u0631\u0629 \u0627\u0644\u0645\u062A\u0628\u0642\u064A\u0629 \u0644\u0636\u0645\u0627\u0646 \u0633\u0644\u0627\u0645\u0629 \u0627\u0644\u0645\u0631\u0636\u0649.
+2. **\u0625\u0639\u0627\u062F\u0629 \u062A\u0631\u062A\u064A\u0628 \u0623\u0648\u0644\u0648\u064A\u0627\u062A \u0627\u0644\u0645\u0647\u0627\u0645:** \u062A\u0635\u0646\u064A\u0641 \u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0639\u0644\u0642\u0629 \u0627\u0644\u0640 **${data.pendingTasksCount || 15}** \u0644\u062A\u0643\u0648\u0646 \u0645\u0647\u0627\u0645 \u0625\u0639\u0637\u0627\u0621 \u0627\u0644\u0623\u062F\u0648\u064A\u0629 \u0627\u0644\u0648\u0631\u064A\u062F\u064A\u0629 \u0648\u0641\u062D\u0635 \u0627\u0644\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u062D\u064A\u0648\u064A\u0629 \u0644\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u062D\u0631\u062C\u0629 \u0641\u064A \u0635\u062F\u0627\u0631\u0629 \u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062A\u0646\u0641\u064A\u0630 \u0627\u0644\u0641\u0648\u0631\u064A.
+
+#### 3. \u{1F6E1}\uFE0F \u062E\u0637\u0629 \u0625\u062F\u0627\u0631\u0629 \u0627\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u062D\u0631\u062C\u0629 \u0627\u0644\u0640 ${data.criticalCasesCount || 3}:
+- \u062A\u0641\u0639\u064A\u0644 \u0628\u0631\u0648\u062A\u0648\u0643\u0648\u0644 **NEWS2** \u0648\u0625\u0639\u0627\u062F\u0629 \u062A\u0642\u064A\u064A\u0645 \u0627\u0644\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u062D\u064A\u0648\u064A\u0629 \u0643\u0644 **30 \u062F\u0642\u064A\u0642\u0629** \u0628\u062F\u0648\u0646 \u0627\u0633\u062A\u062B\u0646\u0627\u0621.
+- \u0627\u0644\u062A\u062D\u0642\u0642 \u0645\u0646 \u062A\u0648\u0627\u0641\u0631 \u0639\u0631\u0628\u0629 \u0627\u0644\u0625\u0646\u0639\u0627\u0634 \u0627\u0644\u0642\u0644\u0628\u064A \u0627\u0644\u0631\u0626\u0648\u064A (Crash Cart) \u0648\u062C\u0627\u0647\u0632\u064A\u062A\u0647\u0627 \u0644\u0644\u0639\u0645\u0644 \u0627\u0644\u0641\u0648\u0631\u064A \u0641\u064A \u0627\u0644\u062C\u0646\u0627\u062D.
+- \u062A\u062C\u0647\u064A\u0632 \u062E\u0637\u0648\u0637 \u0648\u0631\u064A\u062F\u064A\u0629 \u0633\u0627\u0644\u0643\u0629 \u0648\u0636\u0645\u0627\u0646 \u062A\u0641\u0639\u064A\u0644 \u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0645\u0631\u0627\u0642\u0628\u0629 \u0627\u0644\u0645\u0633\u062A\u0645\u0631\u0629 \u0644\u0645\u0639\u062F\u0644 \u0636\u0631\u0628\u0627\u062A \u0627\u0644\u0642\u0644\u0628 \u0648\u0627\u0644\u062A\u0634\u0628\u0639 \u0628\u0627\u0644\u0623\u0643\u0633\u062C\u064A\u0646.
+
+#### 4. \u{1F6CF}\uFE0F \u0625\u062F\u0627\u0631\u0629 \u062A\u062F\u0641\u0642 \u0627\u0644\u0645\u0631\u0636\u0649 \u0648\u0633\u0639\u0629 \u0627\u0644\u0623\u0633\u0631\u0629:
+- \u064A\u0628\u0644\u063A \u0639\u062F\u062F \u0627\u0644\u0623\u0633\u0631\u0629 \u0627\u0644\u0645\u062A\u0648\u0641\u0631\u0629 **${data.availableBedsCount || 8}** \u0623\u0633\u0631\u0629. \u064A\u062C\u0628 \u0627\u0644\u062A\u0646\u0633\u064A\u0642 \u0645\u0639 \u0642\u0633\u0645 \u0627\u0644\u0637\u0648\u0627\u0631\u0626 (ER) \u0644\u062D\u062C\u0632 \u0633\u0631\u064A\u0631\u064A\u0646 \u0644\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u0637\u0627\u0631\u0626\u0629 \u0627\u0644\u0648\u0627\u0631\u062F\u0629\u060C \u0648\u0628\u062F\u0621 \u062A\u062E\u0637\u064A\u0637 \u0627\u0644\u062E\u0631\u0648\u062C \u0627\u0644\u0645\u0628\u0643\u0631 (Early Discharge) \u0644\u0644\u0645\u0631\u0636\u0649 \u0627\u0644\u0645\u0633\u062A\u0642\u0631\u064A\u0646 \u0644\u062A\u062D\u0633\u064A\u0646 \u0627\u0644\u0633\u0639\u0629 \u0627\u0644\u062A\u062F\u0648\u064A\u0631\u064A\u0629.
+`;
+    } else {
+      return `
+### \u{1F3E5} Offline Department Operational & Clinical Backup Report
+
+**This analysis has been generated via the offline system fallback protocol.**
+
+#### 1. \u{1F4CA} Operational Workload & Capacity Assessment:
+- **Department Occupancy:** The current occupancy rate is **${data.occupancyRate || 75}%** with **${data.admittedPatientsCount || 24}** occupied beds out of a maximum capacity of **${data.capacity || 32}** beds.
+- **Workload Stress:** Medium-to-High nursing workload with **${data.pendingTasksCount || 15}** outstanding clinical tasks pending resolution.
+- **Critical Care Vigilance:** **${data.criticalCasesCount || 3}** unstable critical patients currently admitted, requiring high clinical surveillance.
+
+#### 2. \u{1F4CB} Staff Allocation & Nursing Workload Guidance:
+1. **Nurse-to-Patient Ratio:** We recommend a dedicated **1:1** or **1:2** ratio for the 3 critical cases, and a **1:5** ratio for the stable general ward patients.
+2. **Task Prioritization:** Sort the **${data.pendingTasksCount || 15}** pending tasks immediately. High-alert drug administration and vital sign tracking for unstable patients must take precedence.
+
+#### 3. \u{1F6E1}\uFE0F Critical Cases Safety Action Plan:
+- Re-assess vitals for the **${data.criticalCasesCount || 3}** critical patients using the **NEWS2** framework every **30 minutes**.
+- Verify that the emergency crash cart is fully stocked, functional, and placed in proximity to the critical care rooms.
+- Establish secure intravenous access and initiate continuous cardiac/O2 saturation monitoring.
+
+#### 4. \u{1F6CF}\uFE0F Patient Flow & Discharge Coordination:
+- **${data.availableBedsCount || 8}** beds are currently vacant. Coordinate with the emergency department to preserve 2 beds for prospective acute admissions. Initiate discharge planning for clinically stable patients.
+`;
+    }
+  }
+  function getDepartmentChatFallback(data, isAr) {
+    if (isAr) {
+      return `\u0645\u0631\u062D\u0628\u0627\u064B! \u0623\u0646\u0627 \u0645\u0633\u0627\u0639\u062F \u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0633\u0631\u064A\u0631\u064A \u0627\u0644\u0645\u062F\u0645\u062C (\u0648\u0636\u0639 \u0627\u0644\u0627\u062D\u062A\u064A\u0627\u0637). 
+
+\u0628\u0646\u0627\u0621\u064B \u0639\u0644\u0649 \u0645\u0639\u0637\u064A\u0627\u062A \u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u062D\u0627\u0644\u064A\u0629:
+- **\u0627\u0644\u0645\u0631\u0636\u0649 \u0627\u0644\u0645\u0646\u0648\u0645\u064A\u0646:** ${data.stats?.admitted || 24} \u0645\u0631\u064A\u0636\u0627\u064B.
+- **\u0627\u0644\u0623\u0633\u0631\u0629 \u0627\u0644\u0634\u0627\u063A\u0631\u0629:** ${data.stats?.available || 8} \u0623\u0633\u0631\u0629.
+- **\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0639\u0644\u0642\u0629:** ${data.stats?.pending || 15} \u0645\u0647\u0645\u0629.
+- **\u0627\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u062D\u0631\u062C\u0629:** ${data.stats?.critical || 3} \u062D\u0627\u0644\u0627\u062A \u062D\u0631\u062C\u0629.
+
+\u0633\u0624\u0627\u0644\u0643 \u0647\u0648: "${data.query}"
+
+*\u0646\u0638\u0631\u0627\u064B \u0644\u0639\u062F\u0645 \u062A\u0648\u0641\u0631 \u062E\u0627\u062F\u0645 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u062D\u0627\u0644\u064A\u0627\u064B\u060C \u064A\u0631\u062C\u0649 \u0627\u0644\u0627\u0633\u062A\u0639\u0627\u0646\u0629 \u0628\u0627\u0644\u0637\u0628\u064A\u0628 \u0627\u0644\u0645\u0646\u0627\u0648\u0628 \u0623\u0648 \u0631\u0626\u064A\u0633 \u0627\u0644\u062A\u0645\u0631\u064A\u0636 \u0644\u0644\u0625\u062C\u0627\u0628\u0629 \u0627\u0644\u0633\u0631\u064A\u0631\u064A\u0629 \u0627\u0644\u062F\u0642\u064A\u0642\u0629 \u0637\u0628\u0642\u0627\u064B \u0644\u0628\u0631\u0648\u062A\u0648\u0643\u0648\u0644 \u0627\u0644\u0645\u0633\u062A\u0634\u0641\u0649.*`;
+    } else {
+      return `Hello! I am the integrated Clinical Department Assistant (Offline backup mode).
+
+Based on the current metrics of the department:
+- **Admitted Patients:** ${data.stats?.admitted || 24}
+- **Available Beds:** ${data.stats?.available || 8}
+- **Pending Tasks:** ${data.stats?.pending || 15}
+- **Critical Cases:** ${data.stats?.critical || 3}
+
+Your question: "${data.query}"
+
+*Since the live AI model is temporarily busy, please consult with the shift supervisor or attending physician in accordance with hospital policies.*`;
+    }
+  }
   app2.post("/api/ai/analyze-clinical", async (req, res) => {
     const { type, data, lang } = req.body;
     const isAr = lang === "ar";
@@ -826,6 +902,39 @@ Format the response beautifully in clean, structured Markdown.
 The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
 If in Arabic, write with professional medical terminology used in top hospitals. Ensure a compassionate, professional, and clear scientific tone.
         `;
+      } else if (type === "department_insights") {
+        targetPrompt = `
+You are an expert Chief Medical Officer and Clinical Operations Director.
+Analyze the operational and clinical state of the ${data.departmentName} department:
+- Admitted Patients: ${data.admittedPatientsCount} (Capacity: ${data.capacity || 32}, Occupancy Rate: ${data.occupancyRate || 75}%)
+- Vacant/Available Beds: ${data.availableBedsCount}
+- Pending/Outstanding Tasks: ${data.pendingTasksCount}
+- Critical Patients: ${data.criticalCasesCount}
+
+Please provide:
+1. Operational Assessment & Staff Allocation (\u0627\u0644\u062A\u0642\u064A\u064A\u0645 \u0627\u0644\u062A\u0634\u063A\u064A\u0644\u064A \u0648\u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0643\u0627\u062F\u0631): Analyze the occupancy and workload (15 tasks, 3 critical cases) and recommend nursing/physician staffing ratios.
+2. Clinical Action Plan for Critical Cases (\u062E\u0637\u0629 \u0627\u0644\u0639\u0645\u0644 \u0627\u0644\u0633\u0631\u064A\u0631\u064A\u0629 \u0644\u0644\u062D\u0627\u0644\u0627\u062A \u0627\u0644\u062D\u0631\u062C\u0629): Specific checklists and safety guidelines for managing the 3 critical patients in this department.
+3. Bed Capacity & Flow Optimization (\u062A\u062D\u0633\u064A\u0646 \u062A\u062F\u0641\u0642 \u0627\u0644\u0645\u0631\u0636\u0649 \u0648\u0633\u0639\u0629 \u0627\u0644\u0623\u0633\u0631\u0629): Strategies to optimize bed utilization, discharge planning, and coordination with the ER/ICU.
+4. Risk Management & Forecast (\u0625\u062F\u0627\u0631\u0629 \u0627\u0644\u0645\u062E\u0627\u0637\u0631 \u0648\u0627\u0644\u062A\u0646\u0628\u0624 \u0627\u0644\u0633\u0631\u064A\u0631\u064A): Identify potential operational bottlenecks or safety issues (e.g., patient safety risks, task delays, ventilator/monitor constraints) over the next 24-48 hours.
+
+Format the response in gorgeous, highly professional Markdown with clear headers, bullet points, and key terms in bold.
+The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
+        `;
+      } else if (type === "department_chat") {
+        targetPrompt = `
+You are a helpful and highly intelligent Clinical Department AI assistant. You help medical staff manage the ${data.departmentName} department.
+Here are the live metrics of the department:
+- Admitted Patients: ${data.stats?.admitted || 24}
+- Available Beds: ${data.stats?.available || 8}
+- Pending Tasks: ${data.stats?.pending || 15}
+- Critical Cases: ${data.stats?.critical || 3}
+
+Answer the user's clinical or operational question in the requested language: ${lang === "ar" ? "Arabic" : "English"}.
+User Question: "${data.query}"
+
+Provide a concise, highly practical, and clinically sound answer. Do not use generic filler text. Use medical standards where appropriate.
+If the question is in Arabic, respond in clear, professional Arabic medical terminology.
+        `;
       } else {
         targetPrompt = `
 You are a Clinical Quality and Patient Safety AI expert.
@@ -867,6 +976,10 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
         text = getNews2Fallback(data, isAr);
       } else if (type === "isbar") {
         text = getIsbarFallback(data, isAr);
+      } else if (type === "department_insights") {
+        text = getDepartmentInsightsFallback(data, isAr);
+      } else if (type === "department_chat") {
+        text = getDepartmentChatFallback(data, isAr);
       } else {
         text = isAr ? `### \u{1F4CB} \u062A\u062F\u0642\u064A\u0642 \u0633\u0631\u064A\u0631\u064A \u0627\u062D\u062A\u064A\u0627\u0637\u064A
 
