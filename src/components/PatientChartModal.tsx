@@ -52,6 +52,15 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   const [ioIntakeAmt, setIoIntakeAmt] = useState("");
   const [ioOutputAmt, setIoOutputAmt] = useState("");
 
+  // New States for Vitals, Labs, and orders
+  const [vitalsSysBP, setVitalsSysBP] = useState("120");
+  const [vitalsDiaBP, setVitalsDiaBP] = useState("80");
+  const [vitalsHR, setVitalsHR] = useState("75");
+  const [vitalsTemp, setVitalsTemp] = useState("37.0");
+  const [vitalsSpO2, setVitalsSpO2] = useState("98");
+  const [vitalsRR, setVitalsRR] = useState("16");
+  const [selectedLabReportId, setSelectedLabReportId] = useState("");
+
   const currentIntakes = currentPatient.fluidIntake || [
     { id: "in1", type: isAr ? "فموي (ماء)" : "Oral (Water)", amount: 250, date: "08:00" },
     { id: "in2", type: isAr ? "وريدي (محلول ملحي)" : "IV Fluids (Normal Saline)", amount: 500, date: "10:30" }
@@ -62,6 +71,23 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
   const ioIntakeTotal = currentIntakes.reduce((acc: number, curr: any) => acc + Number(curr.amount), 0);
   const ioOutputTotal = currentOutputs.reduce((acc: number, curr: any) => acc + Number(curr.amount), 0);
+
+  const clinicalStudies = [
+    ...((currentPatient.orders || [])
+      .filter((o: any) => o.type === "RAD" && o.status === "Completed")
+      .map((o: any) => ({
+        id: o.id,
+        type: o.name,
+        date: o.completedAt?.split(",")[0] || o.date || "2026-06-30",
+        status: "Completed",
+        size: o.name.toLowerCase().includes("x-ray") ? "1 slice" : "24 slices",
+        findings: o.findings,
+        impression: o.impression,
+        isDynamic: true
+      }))),
+    { id: "rad1", type: "CT Brain W/O Contrast", date: "2026-06-29", status: "Completed", size: "24 slices", findings: "Normal brain parenchyma. No intracranial hemorrhage, midline shift, or mass effect.", impression: "Unremarkable CT Brain." },
+    { id: "rad2", type: "Chest X-Ray Portable", date: "2026-06-28", status: "Completed", size: "1 slice", findings: "Mild bilateral basal infiltrates. Cardiomegaly is stable. Lungs are otherwise clear.", impression: "Stable chest radiograph with mild fluid retention." }
+  ];
 
   const handleSaveProgressNote = () => {
     if (!noteText.trim()) return;
@@ -1036,10 +1062,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                   {/* Left list of studies */}
                   <div className="space-y-3">
                     <h4 className="text-xs font-black text-slate-700 uppercase tracking-widest">{isAr ? "الدراسات الطبية المتاحة" : "Available Imaging Studies"}</h4>
-                    {[
-                      { id: "rad1", type: "CT Brain W/O Contrast", date: "2026-06-29", status: "Completed", size: "24 slices" },
-                      { id: "rad2", type: "Chest X-Ray Portable", date: "2026-06-28", status: "Completed", size: "1 slice" }
-                    ].map((study, idx) => (
+                    {clinicalStudies.map((study, idx) => (
                       <div 
                         key={study.id} 
                         onClick={() => setSelectedStudyIdx(idx)}
@@ -1060,7 +1083,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                       {/* Image frame */}
                       <div className="w-full max-w-sm aspect-square relative overflow-hidden flex items-center justify-center">
                         <div className="absolute inset-0 opacity-90 mix-blend-screen flex items-center justify-center" style={{ transform: `scale(${radZoom / 100})` }}>
-                          {selectedStudyIdx === 0 ? (
+                          {clinicalStudies[selectedStudyIdx]?.type?.toLowerCase()?.includes("brain") || clinicalStudies[selectedStudyIdx]?.type?.toLowerCase()?.includes("mri") || selectedStudyIdx === 0 ? (
                             <svg width="100%" height="100%" viewBox="0 0 200 200">
                               {/* Brain-like MRI cross section */}
                               <circle cx="100" cy="100" r={30 + (radSlice * 0.8)} fill="none" stroke="#f43f5e" strokeWidth="1.5" opacity={0.25} />
@@ -1083,7 +1106,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
                         {/* Labels overlay */}
                         <div className="absolute top-2 left-2 text-[9px] font-mono text-rose-400 uppercase tracking-widest font-bold">
-                          {selectedStudyIdx === 0 ? `Slice: ${radSlice}/24` : "Standard PA View"} • Zoom: {radZoom}%
+                          {clinicalStudies[selectedStudyIdx]?.size === "24 slices" ? `Slice: ${radSlice}/24` : "Standard PA View"} • Zoom: {radZoom}%
                         </div>
                         <div className="absolute bottom-2 right-2 text-[9px] font-mono text-slate-400">
                           STUDY_REF: PACS_00{selectedStudyIdx + 4}
@@ -1093,7 +1116,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
                     {/* Interactive controls */}
                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold text-slate-600">
-                      {selectedStudyIdx === 0 ? (
+                      {clinicalStudies[selectedStudyIdx]?.size === "24 slices" ? (
                         <div className="space-y-1">
                           <label className="block text-[10px] text-slate-500">{isAr ? "تصفح المقاطع (Slice)" : "Scroll Slice"}</label>
                           <input type="range" min="1" max="24" value={radSlice} onChange={(e) => setRadSlice(Number(e.target.value))} className="w-full accent-rose-600" />
@@ -1108,6 +1131,31 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                       <div className="space-y-1">
                         <label className="block text-[10px] text-slate-500">{isAr ? "التكبير (Zoom)" : "Zoom Factor"}</label>
                         <input type="range" min="80" max="180" step="10" value={radZoom} onChange={(e) => setRadZoom(Number(e.target.value))} className="w-full accent-rose-600" />
+                      </div>
+                    </div>
+
+                    {/* Diagnostic Report Findings */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mt-4 space-y-4">
+                      <h4 className="text-xs font-black text-slate-700 uppercase tracking-widest border-b border-slate-200 pb-2">
+                        {isAr ? "تقرير الأشعة التشخيصي" : "Radiology Diagnostic Report"}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                        <div className="space-y-1">
+                          <p className="font-bold text-slate-500">{isAr ? "النتائج السريرية (Findings)" : "Clinical Findings"}</p>
+                          <p className="text-slate-800 bg-white p-3 rounded-lg border border-slate-100 font-medium leading-relaxed italic">
+                            {clinicalStudies[selectedStudyIdx]?.findings || (isAr ? "لا توجد علامات حادة نشطة للنزيف أو الإزاحة." : "No acute pathology or hemorrhage identified on current radiological slices.") }
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-bold text-slate-500">{isAr ? "الخلاصة والتشخيص (Impression)" : "Diagnostic Impression"}</p>
+                          <p className="text-slate-800 bg-rose-50/50 p-3 rounded-lg border border-rose-100 font-extrabold leading-relaxed italic text-rose-900">
+                            {clinicalStudies[selectedStudyIdx]?.impression || (isAr ? "تقرير فحص طبيعي للدماغ." : "Stable study with no acute findings.") }
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono border-t border-slate-150 pt-2">
+                        <span>{isAr ? "تاريخ التوقيع المعتمد" : "Signed & Released:"} {clinicalStudies[selectedStudyIdx]?.date}</span>
+                        <span>{isAr ? "د. رامي فريد (استشاري أشعة)" : "Dr. Rami Farid (Radiology Consultant)"}</span>
                       </div>
                     </div>
                   </div>
@@ -1302,24 +1350,479 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
               </div>
             )}
 
-            {/* Other tabs can have placeholders for now, the key is the structured layout and forms */}
-            {!["summary", "forms", "timeline", "handover", "progress_notes", "nursing_notes", "radiology", "assessments", "io"].includes(activeTab) && (
-               <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                 <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4">
-                   <FileText className="w-8 h-8 text-slate-400" />
-                 </div>
-                 <p className="font-bold text-lg text-slate-500 mb-2">
-                   {tabs.find(t => t.id === activeTab)?.ar || activeTab}
-                 </p>
-                 <p className="text-sm">
-                   {isAr 
-                    ? "هذه الوحدة متصلة بقاعدة البيانات المركزية ويتم تحديثها بالمعلومات فور إدخالها." 
-                    : "Module is connected to central DB and will render data once recorded."}
-                 </p>
-                 <button className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-md hover:bg-indigo-700 transition">
-                   {isAr ? "إضافة سجل جديد" : "Add New Record"}
-                 </button>
-               </div>
+            {/* Vitals Signs Tab */}
+            {activeTab === "vitals" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <HeartPulse className="w-5 h-5 text-indigo-600" />
+                    {isAr ? "مخطط تسجيل ومراقبة المؤشرات الحيوية" : "Vital Signs Documentation & Monitoring"}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isAr ? "تسجيل فوري لدرجة الحرارة وضغط الدم ونبض القلب والتشبع بالأكسجين ومعدل التنفس في السجل السريري للمريض." : "Real-time recording and tracking of patient clinical parameters including blood pressure, pulse, temperature, and SpO2."}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Log form */}
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                    <h4 className="font-black text-xs text-slate-700 uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-indigo-600" />
+                      {isAr ? "تسجيل علامة حيوية جديدة" : "Log New Vital Reading"}
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-600">
+                      <div className="space-y-1">
+                        <label className="block text-slate-500">{isAr ? "الضغط الانقباضي" : "Systolic BP"}</label>
+                        <input type="number" value={vitalsSysBP} onChange={(e) => setVitalsSysBP(e.target.value)} className="w-full border border-slate-300 rounded-lg p-2 font-mono text-center bg-white outline-none" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-slate-500">{isAr ? "الضغط الانبساطي" : "Diastolic BP"}</label>
+                        <input type="number" value={vitalsDiaBP} onChange={(e) => setVitalsDiaBP(e.target.value)} className="w-full border border-slate-300 rounded-lg p-2 font-mono text-center bg-white outline-none" />
+                      </div>
+                      <div className="space-y-1 col-span-2">
+                        <label className="block text-slate-500">{isAr ? "نبض القلب (نبضة/دقيقة)" : "Heart Rate (bpm)"}</label>
+                        <input type="number" value={vitalsHR} onChange={(e) => setVitalsHR(e.target.value)} className="w-full border border-slate-300 rounded-lg p-2 font-mono text-center bg-white outline-none" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-slate-500">{isAr ? "الحرارة (°C)" : "Temperature (°C)"}</label>
+                        <input type="number" step="0.1" value={vitalsTemp} onChange={(e) => setVitalsTemp(e.target.value)} className="w-full border border-slate-300 rounded-lg p-2 font-mono text-center bg-white outline-none" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-slate-500">{isAr ? "التشبع بالأكسجين (%)" : "SpO2 (%)"}</label>
+                        <input type="number" value={vitalsSpO2} onChange={(e) => setVitalsSpO2(e.target.value)} className="w-full border border-slate-300 rounded-lg p-2 font-mono text-center bg-white outline-none" />
+                      </div>
+                      <div className="space-y-1 col-span-2">
+                        <label className="block text-slate-500">{isAr ? "معدل التنفس (دورة/د)" : "Respiratory Rate (rr)"}</label>
+                        <input type="number" value={vitalsRR} onChange={(e) => setVitalsRR(e.target.value)} className="w-full border border-slate-300 rounded-lg p-2 font-mono text-center bg-white outline-none" />
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const logs = currentPatient.vitalsLog || [
+                          { time: "2026-06-30 08:00", bp: "115/75", hr: 82, temp: 37.1, spo2: 98, rr: 16 },
+                          { time: "2026-06-29 20:00", bp: "120/80", hr: 80, temp: 36.8, spo2: 99, rr: 14 }
+                        ];
+                        const newEntry = {
+                          time: new Date().toLocaleString(),
+                          bp: `${vitalsSysBP}/${vitalsDiaBP}`,
+                          hr: parseInt(vitalsHR) || 80,
+                          temp: parseFloat(vitalsTemp) || 37.0,
+                          spo2: parseInt(vitalsSpO2) || 98,
+                          rr: parseInt(vitalsRR) || 16
+                        };
+                        updatePatient(patientId, { vitalsLog: [newEntry, ...logs] });
+                        toast.success(isAr ? "تم حفظ العلامة الحيوية الجديدة بنجاح" : "Vital signs recorded successfully");
+                      }}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
+                    >
+                      {isAr ? "تسجيل وتوقيع رقمي" : "E-Sign & Record Vitals"}
+                    </button>
+                  </div>
+
+                  {/* List and trend graph */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                      <h4 className="text-xs font-black text-slate-700 uppercase tracking-widest border-b border-slate-100 pb-2 mb-3">
+                        {isAr ? "تاريخ القياسات السريرية الموثقة" : "Clinical Parameters History Log"}
+                      </h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left" dir="ltr">
+                          <thead>
+                            <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase text-[10px]">
+                              <th className="py-2">{isAr ? "التاريخ والوقت" : "Date / Time"}</th>
+                              <th className="py-2 text-center">{isAr ? "ضغط الدم" : "BP (mmHg)"}</th>
+                              <th className="py-2 text-center">{isAr ? "النبض" : "HR (bpm)"}</th>
+                              <th className="py-2 text-center">{isAr ? "الحرارة" : "Temp (°C)"}</th>
+                              <th className="py-2 text-center">{isAr ? "الأكسجين" : "SpO2 (%)"}</th>
+                              <th className="py-2 text-center">{isAr ? "التنفس" : "RR (bpm)"}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                            {(currentPatient.vitalsLog || [
+                              { time: "2026-06-30 08:00", bp: "115/75", hr: 82, temp: 37.1, spo2: 98, rr: 16 },
+                              { time: "2026-06-29 20:00", bp: "120/80", hr: 80, temp: 36.8, spo2: 99, rr: 14 }
+                            ]).map((log: any, idx: number) => {
+                              const hrNum = parseInt(log.hr);
+                              const tempNum = parseFloat(log.temp);
+                              const spo2Num = parseInt(log.spo2);
+                              const isHrHigh = hrNum > 100 || hrNum < 60;
+                              const isTempHigh = tempNum > 38.0 || tempNum < 36.0;
+                              const isSpO2Low = spo2Num < 95;
+
+                              return (
+                                <tr key={idx} className="hover:bg-slate-50/50 transition">
+                                  <td className="py-3 font-mono text-slate-500 text-[10px]">{log.time}</td>
+                                  <td className="py-3 text-center font-mono font-black text-indigo-700">{log.bp}</td>
+                                  <td className={`py-3 text-center font-mono ${isHrHigh ? "text-rose-600 font-black" : ""}`}>{log.hr} {isHrHigh && "⚠️"}</td>
+                                  <td className={`py-3 text-center font-mono ${isTempHigh ? "text-rose-600 font-black" : ""}`}>{log.temp}°C</td>
+                                  <td className={`py-3 text-center font-mono ${isSpO2Low ? "text-rose-600 font-black" : ""}`}>{log.spo2}%</td>
+                                  <td className="py-3 text-center font-mono">{log.rr}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MAR Tab */}
+            {activeTab === "mar" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <Pill className="w-5 h-5 text-emerald-600" />
+                    {isAr ? "سجل إعطاء الأدوية السريري الإلكتروني (eMAR)" : "Electronic Medication Administration Record (eMAR)"}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isAr ? "تحقق وإعطاء جرعات الأدوية للمريض مع التوقيع الإلكتروني والهوية السريرية لمنع الأخطاء الطبية." : "Verify and record medication administrations with electronic signature log to safeguard patient safety."}
+                  </p>
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+                  <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                    <span className="text-xs font-black text-slate-700 uppercase tracking-wider">{isAr ? "جدول الأدوية والجرعات النشطة" : "Active Drug Schedules"}</span>
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded font-black border border-emerald-200">ICU Bedside Verified</span>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {(currentPatient.prescriptions && currentPatient.prescriptions.length > 0 ? currentPatient.prescriptions : [
+                      { id: "rx-default-1", name: "Ceftriaxone IV (مضاد حيوي)", dosage: "1g IV Q12H", status: "Active", date: "2026-06-29" },
+                      { id: "rx-default-2", name: "Paracetamol Infusion (مسكن)", dosage: "1g IV Q8H", status: "Active", date: "2026-06-29" }
+                    ]).map((rx: any) => (
+                      <div key={rx.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/20 transition">
+                        <div className="space-y-1">
+                          <p className="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                            {rx.name}
+                          </p>
+                          <div className="flex gap-4 text-xs text-slate-500 font-semibold font-mono">
+                            <span>Dosage: <strong className="text-slate-700">{rx.dosage || "500mg PO BID"}</strong></span>
+                            <span>Ordered: {rx.date}</span>
+                          </div>
+                        </div>
+
+                        {/* eMAR Timeline Slots */}
+                        <div className="flex flex-wrap items-center gap-3">
+                          {["08:00", "14:00", "20:00"].map((slot) => {
+                            const marKey = `${rx.id}-${slot}`;
+                            const adminRecord = (currentPatient.marLog || {})[marKey];
+
+                            if (adminRecord) {
+                              return (
+                                <div key={slot} className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-2 rounded-xl text-[10px] flex items-center gap-2 font-semibold">
+                                  <BadgeCheck className="w-4 h-4 text-emerald-600" />
+                                  <div className="text-left font-mono">
+                                    <p className="font-black">Given @ {slot}</p>
+                                    <p className="text-[8px] text-slate-400 font-sans">{adminRecord.by}</p>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <button
+                                key={slot}
+                                onClick={() => {
+                                  const marLog = currentPatient.marLog || {};
+                                  const updatedMarLog = {
+                                    ...marLog,
+                                    [marKey]: {
+                                      status: "Administered",
+                                      time: new Date().toLocaleTimeString().slice(0, 5),
+                                      by: isAr ? "د. أحمد علي (E-Signed)" : "Sarah Smith, RN (E-Signed)"
+                                    }
+                                  };
+                                  updatePatient(patientId, { marLog: updatedMarLog });
+                                  toast.success(isAr ? `تم تسجيل إعطاء ${rx.name} بنجاح` : `Administration of ${rx.name} recorded at ${slot}`);
+                                }}
+                                className="border border-dashed border-slate-300 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 font-black px-4 py-2 rounded-xl text-xs transition cursor-pointer"
+                              >
+                                {isAr ? `إعطاء ${slot}` : `Give @ ${slot}`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Doctor Orders Tab */}
+            {activeTab === "orders" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <Stethoscope className="w-5 h-5 text-rose-600" />
+                    {isAr ? "مفكرة الأوامر السريرية والأشعة والمختبر" : "Clinical Orders & Progress Board"}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isAr ? "مراجعة وإلغاء وتتبع الأوامر الطبية الموجهة للمختبر الطبي (LIS) ونظام الأشعة (RIS) من الأطباء." : "Track state, collection status, and clinical completion results of laboratory and radiology orders."}
+                  </p>
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left" dir="ltr">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-black uppercase text-[10px] tracking-wider">
+                          <th className="p-4">{isAr ? "الطلب" : "Order Details"}</th>
+                          <th className="p-4">{isAr ? "التاريخ" : "Ordered Date"}</th>
+                          <th className="p-4">{isAr ? "النوع" : "Category"}</th>
+                          <th className="p-4">{isAr ? "الحالة" : "Status"}</th>
+                          <th className="p-4 text-center">{isAr ? "الإجراء" : "Actions"}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(currentPatient.orders && currentPatient.orders.length > 0 ? currentPatient.orders : [
+                          { id: "ord-default-1", type: "LAB", name: "CBC (Complete Blood Count)", status: "Completed", date: "2026-06-29" },
+                          { id: "ord-default-2", type: "RAD", name: "Chest X-Ray Portable", status: "Completed", date: "2026-06-28" }
+                        ]).map((ord: any) => {
+                          const isCompleted = ord.status === "Completed";
+                          return (
+                            <tr key={ord.id} className="hover:bg-slate-50/50 transition">
+                              <td className="p-4">
+                                <p className="font-extrabold text-slate-800">{ord.name}</p>
+                                <p className="text-[10px] text-slate-400 font-mono">ID: {ord.id}</p>
+                              </td>
+                              <td className="p-4 font-mono text-[11px] text-slate-500">{ord.date}</td>
+                              <td className="p-4">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-wider uppercase ${ord.type === "LAB" ? "bg-rose-50 text-rose-600 border border-rose-200" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
+                                  {ord.type}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                  ord.status === "Completed" ? "bg-emerald-50 text-emerald-700" : 
+                                  ord.status === "In Progress" || ord.status === "Sample Collected" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"
+                                }`}>
+                                  {ord.status}
+                                </span>
+                              </td>
+                              <td className="p-4 text-center">
+                                {isCompleted ? (
+                                  <button
+                                    onClick={() => {
+                                      if (ord.type === "LAB") {
+                                        setSelectedLabReportId(ord.id);
+                                        setActiveTab("labs");
+                                      } else {
+                                        setActiveTab("radiology");
+                                      }
+                                    }}
+                                    className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-[10px] shadow-sm transition cursor-pointer"
+                                  >
+                                    {isAr ? "عرض النتيجة" : "View Result"}
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] text-slate-400 italic">{isAr ? "بانتظار المعالجة" : "Awaiting processing"}</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Labs Tab */}
+            {activeTab === "labs" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <FlaskConical className="w-5 h-5 text-rose-600" />
+                    {isAr ? "نظام عرض التحاليل المعملية المعتمدة LIS" : "Integrated LIS Laboratory Reports"}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isAr ? "تصفح وعرض التقارير الطبية المخبرية الرسمية الموقعة من رئيس قسم المختبر والمسجلة بنظام LIS." : "View verified medical laboratory results. Results flagged out of reference ranges are automatically highlighted."}
+                  </p>
+                </div>
+
+                {/* Sidebar + Main layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Selectors Sidebar */}
+                  <div className="space-y-3 lg:col-span-1">
+                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-widest">{isAr ? "التقارير المتوفرة" : "Available Reports"}</h4>
+                    {[
+                      ...((currentPatient.orders || [])
+                        .filter((o: any) => o.type === "LAB" && o.status === "Completed")
+                        .map((o: any) => ({
+                          id: o.id,
+                          name: o.name,
+                          completedAt: o.completedAt || o.date,
+                          result: o.result,
+                          notes: o.notes
+                        }))),
+                      {
+                        id: "default-cbc",
+                        name: "Complete Blood Count (CBC)",
+                        completedAt: "2026-06-29 11:15 AM",
+                        notes: "Mild anemia, red blood cells slightly microcytic. Otherwise normal leukocyte and platelet count.",
+                        result: [
+                          { name: "WBC (White Blood Cells)", value: 7.2, unit: "10^9/L", min: 4.0, max: 11.0, abnormal: false },
+                          { name: "RBC (Red Blood Cells)", value: 3.8, unit: "10^12/L", min: 4.5, max: 5.9, abnormal: true },
+                          { name: "Hemoglobin (Hgb)", value: 11.2, unit: "g/dL", min: 13.5, max: 17.5, abnormal: true },
+                          { name: "Hematocrit (Hct)", value: 34.1, unit: "%", min: 41.0, max: 50.0, abnormal: true },
+                          { name: "MCV", value: 81.5, unit: "fL", min: 80.0, max: 100.0, abnormal: false },
+                          { name: "Platelets (PLT)", value: 245, unit: "10^9/L", min: 150, max: 450, abnormal: false }
+                        ]
+                      },
+                      {
+                        id: "default-bmp",
+                        name: "Basic Metabolic Panel (BMP)",
+                        completedAt: "2026-06-29 11:15 AM",
+                        notes: "Potassium levels are within stable range, blood urea nitrogen (BUN) slightly elevated.",
+                        result: [
+                          { name: "Sodium", value: 139, unit: "mEq/L", min: 136, max: 145, abnormal: false },
+                          { name: "Potassium", value: 4.1, unit: "mEq/L", min: 3.5, max: 5.1, abnormal: false },
+                          { name: "Chloride", value: 102, unit: "mEq/L", min: 98, max: 107, abnormal: false },
+                          { name: "Carbon Dioxide (CO2)", value: 24, unit: "mEq/L", min: 22, max: 29, abnormal: false },
+                          { name: "Glucose", value: 112, unit: "mg/dL", min: 70, max: 100, abnormal: true },
+                          { name: "Blood Urea Nitrogen (BUN)", value: 22, unit: "mg/dL", min: 7, max: 20, abnormal: true },
+                          { name: "Creatinine", value: 0.9, unit: "mg/dL", min: 0.6, max: 1.2, abnormal: false }
+                        ]
+                      }
+                    ].map((report: any) => {
+                      const isSelected = selectedLabReportId === report.id || (!selectedLabReportId && report.id === "default-cbc");
+                      return (
+                        <div
+                          key={report.id}
+                          onClick={() => setSelectedLabReportId(report.id)}
+                          className={`p-3 rounded-xl border transition cursor-pointer text-left ${isSelected ? "bg-rose-50/50 border-rose-300 shadow-xs" : "bg-white border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <p className="font-extrabold text-xs text-slate-800">{report.name}</p>
+                          <p className="text-[9px] text-slate-400 font-mono mt-2">{report.completedAt}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Clinical Report Display Card */}
+                  <div className="lg:col-span-3">
+                    {(() => {
+                      const completedLabOrders = (currentPatient.orders || [])
+                        .filter((o: any) => o.type === "LAB" && o.status === "Completed")
+                        .map((o: any) => ({
+                          id: o.id,
+                          name: o.name,
+                          completedAt: o.completedAt || o.date,
+                          result: o.result,
+                          notes: o.notes
+                        }));
+                      const allReports = [
+                        ...completedLabOrders,
+                        {
+                          id: "default-cbc",
+                          name: "Complete Blood Count (CBC)",
+                          completedAt: "2026-06-29 11:15 AM",
+                          notes: "Mild anemia, red blood cells slightly microcytic. Otherwise normal leukocyte and platelet count.",
+                          result: [
+                            { name: "WBC (White Blood Cells)", value: 7.2, unit: "10^9/L", min: 4.0, max: 11.0, abnormal: false },
+                            { name: "RBC (Red Blood Cells)", value: 3.8, unit: "10^12/L", min: 4.5, max: 5.9, abnormal: true },
+                            { name: "Hemoglobin (Hgb)", value: 11.2, unit: "g/dL", min: 13.5, max: 17.5, abnormal: true },
+                            { name: "Hematocrit (Hct)", value: 34.1, unit: "%", min: 41.0, max: 50.0, abnormal: true },
+                            { name: "MCV", value: 81.5, unit: "fL", min: 80.0, max: 100.0, abnormal: false },
+                            { name: "Platelets (PLT)", value: 245, unit: "10^9/L", min: 150, max: 450, abnormal: false }
+                          ]
+                        },
+                        {
+                          id: "default-bmp",
+                          name: "Basic Metabolic Panel (BMP)",
+                          completedAt: "2026-06-29 11:15 AM",
+                          notes: "Potassium levels are within stable range, blood urea nitrogen (BUN) slightly elevated.",
+                          result: [
+                            { name: "Sodium", value: 139, unit: "mEq/L", min: 136, max: 145, abnormal: false },
+                            { name: "Potassium", value: 4.1, unit: "mEq/L", min: 3.5, max: 5.1, abnormal: false },
+                            { name: "Chloride", value: 102, unit: "mEq/L", min: 98, max: 107, abnormal: false },
+                            { name: "Carbon Dioxide (CO2)", value: 24, unit: "mEq/L", min: 22, max: 29, abnormal: false },
+                            { name: "Glucose", value: 112, unit: "mg/dL", min: 70, max: 100, abnormal: true },
+                            { name: "Blood Urea Nitrogen (BUN)", value: 22, unit: "mg/dL", min: 7, max: 20, abnormal: true },
+                            { name: "Creatinine", value: 0.9, unit: "mg/dL", min: 0.6, max: 1.2, abnormal: false }
+                          ]
+                        }
+                      ];
+                      const activeReport = allReports.find(r => r.id === selectedLabReportId) || allReports.find(r => r.id === "default-cbc") || allReports[0];
+
+                      if (!activeReport) return null;
+
+                      return (
+                        <div className="bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                          {/* Inner Lab Header */}
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4 gap-4">
+                            <div>
+                              <h4 className="font-black text-slate-800 text-sm tracking-wide uppercase">{activeReport.name}</h4>
+                              <p className="text-[10px] font-mono text-slate-500 mt-1">REPORT_UID: {activeReport.id}</p>
+                            </div>
+                            <div className="text-left sm:text-right text-xs font-semibold text-slate-600 font-mono">
+                              <p>{isAr ? "تاريخ الإصدار" : "Released:"} <strong className="text-slate-800">{activeReport.completedAt}</strong></p>
+                              <span className="inline-block mt-1 bg-rose-50 text-rose-700 px-2 py-0.5 rounded text-[9px] font-black tracking-widest border border-rose-200 uppercase">
+                                Clinical final report
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Dynamic Results Table */}
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs text-left" dir="ltr">
+                              <thead>
+                                <tr className="border-b border-slate-100 text-slate-400 font-black uppercase text-[10px] tracking-wider">
+                                  <th className="py-2">{isAr ? "اسم المؤشر" : "Parameter Name"}</th>
+                                  <th className="py-2 text-center">{isAr ? "النتيجة" : "Measured Value"}</th>
+                                  <th className="py-2 text-center">{isAr ? "الوحدة" : "Unit"}</th>
+                                  <th className="py-2 text-right">{isAr ? "المعدل الطبيعي" : "Reference Range"}</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                                {(activeReport.result || []).map((param: any, idx: number) => {
+                                  return (
+                                    <tr key={idx} className="hover:bg-slate-50/20 transition">
+                                      <td className="py-3 text-slate-800">{param.name}</td>
+                                      <td className="py-3 text-center font-mono">
+                                        {param.abnormal ? (
+                                          <span className="text-rose-600 font-black bg-rose-50 border border-rose-100 px-2.5 py-0.5 rounded-lg flex items-center justify-center gap-1 w-20 mx-auto">
+                                            {param.value} ↓
+                                          </span>
+                                        ) : (
+                                          <span className="font-extrabold text-slate-800">{param.value}</span>
+                                        )}
+                                      </td>
+                                      <td className="py-3 text-center text-slate-500 font-mono text-[10px]">{param.unit}</td>
+                                      <td className="py-3 text-right text-slate-500 font-mono text-[10px]">
+                                        {param.min} - {param.max}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* Remarks Section */}
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs">
+                            <p className="font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-1.5 mb-2">{isAr ? "ملاحظات الطبيب الاستشاري" : "Pathologist Remarks"}</p>
+                            <p className="text-slate-600 italic font-medium leading-relaxed">
+                              {activeReport.notes || (isAr ? "جميع المؤشرات طبيعية وفي النطاق المستقر." : "No significant morphological abnormalities. Retest if clinically indicated.")}
+                            </p>
+                          </div>
+
+                          {/* Digital sign */}
+                          <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono border-t border-slate-200 pt-4">
+                            <span>E-Signed by Clinical Lab Director:</span>
+                            <span className="font-extrabold text-slate-700">Dr. Tariq Hamed, MD (Clinical Pathologist)</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
             )}
 
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FileText,
   Search,
@@ -26,12 +26,22 @@ import {
   ShieldCheck,
   Receipt,
   HeartHandshake,
-  Server
+  Server,
+  PenTool,
+  CheckCircle,
+  Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
+import { useHIS } from "../context/HISContext";
 
-export default function ClinicalFormsLibrary() {
+interface FormsLibraryProps {
+  isAr?: boolean;
+  patientId?: string;
+  patientName?: string;
+}
+
+export default function ClinicalFormsLibrary({ isAr = true, patientId = "", patientName = "" }: FormsLibraryProps = {}) {
   const [activeTab, setActiveTab] = useState("admission");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedForm, setSelectedForm] = useState<any>(null);
@@ -214,6 +224,631 @@ export default function ClinicalFormsLibrary() {
     form.category.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
+  const { updatePatient, patients } = useHIS();
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [signedBy, setSignedBy] = useState<string | null>(null);
+  const [signedAt, setSignedAt] = useState<string | null>(null);
+
+  const currentPatient = patients?.find(p => p.id === patientId || p.mrn === patientId);
+  const activePatientName = currentPatient ? (isAr ? currentPatient.nameAr : currentPatient.nameEn) : (patientName || (isAr ? "سمير عبدالله حافظ" : "Samir Abdullah Hafez"));
+  const activePatientMRN = currentPatient ? currentPatient.mrn : (patientId || "MRN-2026-0041");
+  const activePatientAge = currentPatient ? currentPatient.age : 45;
+  const activePatientGender = currentPatient ? currentPatient.gender : (isAr ? "ذكر" : "Male");
+
+  const getInitialFormData = (form: any) => {
+    // If patient already has this form saved, load it!
+    if (currentPatient?.filledForms?.[form.id]) {
+      const saved = currentPatient.filledForms[form.id];
+      if (saved.signedBy) {
+        setSignedBy(saved.signedBy);
+        setSignedAt(saved.signedAt);
+      }
+      return saved.data;
+    }
+
+    const defaults: Record<string, any> = {
+      patientName: activePatientName,
+      mrn: activePatientMRN,
+      date: new Date().toLocaleDateString(),
+      clinicianName: isAr ? "د. أحمد علي" : "Dr. Ahmad Ali",
+    };
+
+    if (form.id === "adm-1" || form.id === "adm-2") {
+      return {
+        ...defaults,
+        dob: "1981-04-12",
+        gender: activePatientGender,
+        nationality: isAr ? "سعودي" : "Saudi",
+        nationalId: "1098374839",
+        phone: currentPatient?.phone || "0501234567",
+        emergencyContact: isAr ? "عبدالله حافظ (الأب) - 0507654321" : "Abdullah Hafez (Father) - 0507654321",
+        admissionReason: isAr ? "التهاب الزائدة الدودية الحاد" : "Acute appendicitis with localized peritonitis",
+        bloodGroup: "O+",
+        wardRoom: "ICU-Bed 4"
+      };
+    } else if (form.id === "adm-3" || form.id === "or-2") {
+      return {
+        ...defaults,
+        consentText: isAr 
+          ? "أقر بموافقتي التامة على إجراء الفحوصات والتدخلات الطبية والجراحية اللازمة تحت التخدير الموضعي أو العام لحالتي الصحية، وقد تم شرح كافة المخاطر المتوقعة من قبل الفريق الطبي."
+          : "I hereby declare my full consent to undergo the necessary diagnostic and surgical procedures under local or general anesthesia for my clinical condition, and all associated risks have been explained to me by the clinical team.",
+        guardianName: activePatientName,
+        guardianId: "1098374839",
+        witnessName: isAr ? "أحمد العتيبي" : "Ahmad Al-Otaibi",
+        consentSigned: true
+      };
+    } else if (form.id === "opd-1" || form.id === "ipd-6") {
+      return {
+        ...defaults,
+        temp: "37.2",
+        bp: "118/76",
+        hr: "82",
+        spo2: "98",
+        rr: "16",
+        height: "175",
+        weight: "78",
+        bmi: "25.5",
+        painScore: "3",
+        triagePriority: "Level 3 - Urgent"
+      };
+    } else if (form.id === "opd-2" || form.id === "ipd-3") {
+      return {
+        ...defaults,
+        chiefComplaint: isAr ? "ألم شديد في الربع الأسفل الأيمن من البطن منذ 12 ساعة" : "Severe right lower quadrant abdominal pain for 12 hours.",
+        hpi: isAr 
+          ? "يعاني المريض من ألم مفاجئ بدأ حول السرة ثم انتقل إلى الجهة اليمنى السفلى. الألم مصحوب بغثيان وتقيؤ مرتين وحرارة خفيفة."
+          : "Patient reports sudden onset of colicky pain starting periumbilical then migrating to RLQ. Associated with nausea, twice vomiting, and mild subjective fever.",
+        pastHistory: isAr ? "ارتفاع ضغط الدم يتم التحكم فيه بعقار أملوديبين." : "Hypertension managed with Amlodipine.",
+        allergies: isAr ? "البنسلين (يسبب حكة وطفح جلدي)" : "Penicillin (causes rash)",
+        physicalExam: isAr
+          ? "البطن: ألم وضغط عند نقطة ماكبيرني مع وجود علامة الارتداد الإيجابية. الصدر: سليم. القلب: أصوات طبيعية."
+          : "Abdomen: Guarding and tenderness at McBurney's point. Positive rebound tenderness. Chest: Clear. CVS: S1 S2 normal.",
+        assessment: isAr ? "التهاب الزائدة الدودية الحاد" : "Acute Appendicitis",
+        carePlan: isAr
+          ? "منع الأكل والشرب، البدء بالمحاليل الوريدية، إعطاء باراسيتامول 1 جرام وريدياً، وتحضير المريض لعملية جراحية عاجلة بالمنظار."
+          : "NPO, IV fluids started. Administered paracetamol 1g IV. Prepared for urgent laparoscopic appendectomy."
+      };
+    } else if (form.id === "opd-5" || form.id === "ipd-4") {
+      return {
+        ...defaults,
+        drugName: "Ceftriaxone IV",
+        dosageStrength: "1 g",
+        route: "IV",
+        frequency: "Q12H",
+        duration: "5",
+        quantity: "10 vials",
+        licenseNumber: "SCHS-8293847"
+      };
+    } else if (form.id === "ed-2") {
+      return {
+        ...defaults,
+        mechanismOfInjury: isAr ? "حادث سير - اصطدام أمامي بسرعة 60 كم/س" : "Road Traffic Accident (RTA) - Frontal impact at 60 km/h",
+        airway: isAr ? "مفتوح ومحمي" : "Patent, protected",
+        breathing: isAr ? "تمدد متماثل للصدر، معدل التنفس 18 دورة/د" : "Symmetric chest expansion, respiratory rate 18 bpm",
+        circulation: isAr ? "النبض الكعبري قوي ومنتظم (90 ن/د)، الأطراف دافئة" : "Radial pulse strong & regular (90 bpm), warm extremities",
+        disability: "GCS 15 (E4 V5 M6)",
+        exposure: isAr ? "سحجات خفيفة في الذراع اليمنى. تم استخدام غطاء دافئ." : "Mild abrasions on right arm. Warm blanket applied.",
+        traumaScore: "12/12"
+      };
+    } else if (form.id === "ipd-8") {
+      return {
+        ...defaults,
+        fallHistory: "Yes (25)",
+        secondaryDiagnosis: "Yes (15)",
+        ambulatoryAid: "None/Bedrest/Nurse assist (0)",
+        ivTherapy: "Yes (20)",
+        gait: "Weak (10)",
+        mentalStatus: "Knows own limits (0)",
+        totalFallScore: "70",
+        fallRiskLevel: "High Risk"
+      };
+    } else if (form.id === "ipd-13") {
+      return {
+        ...defaults,
+        admissionDate: "2026-06-25",
+        dischargeDate: "2026-06-30",
+        diagnosis: isAr ? "التهاب الزائدة الدودية الحاد - بعد استئصالها بالمنظار" : "Acute Appendicitis - Post Laparoscopic Appendectomy",
+        hospitalCourse: isAr
+          ? "فترة نقاهة خالية من المضاعفات بعد العملية. المريض يتناول الطعام بشكل طبيعي. تم التحكم في الألم بالمسكنات الفموية."
+          : "Uncomplicated post-operative recovery. Tolerating regular diet. Pain controlled with oral analgesics.",
+        procedures: isAr ? "استئصال الزائدة الدودية بالمنظار (2026-06-25)" : "Laparoscopic Appendectomy (2026-06-25)",
+        dischargeMeds: "Cefuroxime 500mg PO BID for 5 days, Ibuprofen 400mg PO TID PRN for pain.",
+        dischargeInstructions: isAr
+          ? "المحافظة على نظافة وجفاف الجرح. تجنب رفع الأشياء الثقيلة لأكثر من 5 كجم لمدة شهر. مراجعة الطوارئ فوراً في حال حدوث حمى أو ألم حاد."
+          : "Keep wound dry. Avoid heavy lifting (>5 kg) for 4 weeks. Return to ED if fever, severe abdominal pain, or redness/pus at wound sites.",
+        followupDate: "2026-07-07 in Surgical OPD"
+      };
+    } else if (form.id === "icu-2") {
+      return {
+        ...defaults,
+        ventMode: "ACVC (Assist/Control Volume)",
+        tidalVolume: "450",
+        setRR: "14",
+        actualRR: "15",
+        fio2: "40",
+        peep: "5",
+        pressureSupport: "0",
+        etSizeDepth: "8.0 mm @ 22 cm"
+      };
+    } else if (form.id === "or-3") {
+      return {
+        ...defaults,
+        signInConfirmed: "Yes",
+        siteMarked: "Yes",
+        anesthesiaCheck: "Yes",
+        timeOutConfirmed: "Yes",
+        antibioticProphylaxis: "Yes",
+        signOutConfirmed: "Yes",
+        countsCorrect: "Yes",
+        specimenLabeled: "Yes"
+      };
+    } else if (form.id === "qa-1") {
+      return {
+        ...defaults,
+        incidentDateTime: "2026-06-29 14:30",
+        incidentLocation: "Inpatient Ward 3 - Room 302",
+        incidentType: "Medication Error - Near Miss",
+        incidentDesc: isAr
+          ? "تم تحضير جرعة خاطئة من دواء السيفتركسون من قبل مخزن القسم ولكن تم رصدها وتصحيحها أثناء الفحص بجانب السرير (eMAR) قبل الإعطاء."
+          : "Incorrect dose of Ceftriaxone (2g instead of 1g) was prepared by the ward stock but noticed and corrected during bedside barcode verification (eMAR check) before administration.",
+        actionTaken: isAr ? "تم تحضير الجرعة الصحيحة وإعطاؤها وتوعية الفريق بأهمية مراجعة الأوامر. لا يوجد ضرر على المريض." : "The correct dose was prepared. Ward team debriefed on double-checking orders. No patient harm.",
+        reporterName: isAr ? "سارة سميث (ممرضة قانونية)" : "Sarah Smith, RN"
+      };
+    } else if (form.id === "bil-2") {
+      return {
+        ...defaults,
+        roomCharges: "1500.00",
+        labFees: "850.00",
+        pharmacyCharges: "620.00",
+        radFees: "1200.00",
+        consultFees: "500.00",
+        grossTotal: "4670.00",
+        insuranceCover: "4203.00 (90%)",
+        patientNet: "467.00"
+      };
+    }
+
+    return {
+      ...defaults,
+      notes: ""
+    };
+  };
+
+  useEffect(() => {
+    if (selectedForm) {
+      setFormData(getInitialFormData(selectedForm));
+      setIsEditing(false);
+      setSignedBy(null);
+      setSignedAt(null);
+    }
+  }, [selectedForm, patientId, patientName]);
+
+  const handleSaveForm = () => {
+    if (!patientId) {
+      toast.warning(isAr ? "يجب اختيار مريض أولاً لحفظ السجل" : "Please select a patient to save this record");
+      return;
+    }
+
+    const clinicianSignature = isAr ? "د. أحمد علي (موقّع رقمياً)" : "Dr. Ahmad Ali (E-Signed)";
+    const timestamp = new Date().toLocaleString();
+
+    setSignedBy(clinicianSignature);
+    setSignedAt(timestamp);
+    setIsEditing(false);
+
+    // Save to Firestore / local context
+    if (updatePatient) {
+      const existingForms = currentPatient?.filledForms || {};
+      updatePatient(patientId, {
+        filledForms: {
+          ...existingForms,
+          [selectedForm.id]: {
+            data: formData,
+            signedBy: clinicianSignature,
+            signedAt: timestamp,
+            title: selectedForm.title,
+            category: selectedForm.category,
+            id: selectedForm.id
+          }
+        }
+      });
+    }
+
+    toast.success(isAr ? "تم توقيع وحفظ المستند السريري في ملف المريض بنجاح" : "Clinical document signed and saved to patient file successfully");
+  };
+
+  const renderField = (labelAr: string, labelEn: string, key: string, type: "text" | "textarea" | "select" | "checkbox" = "text", options: string[] = []) => {
+    const isReadOnly = !isEditing || signedBy !== null;
+    const value = formData[key] || "";
+
+    const handleChange = (val: any) => {
+      setFormData(prev => ({ ...prev, [key]: val }));
+    };
+
+    return (
+      <div className={`space-y-1 ${type === "checkbox" ? "flex items-center gap-3 pt-3" : ""}`}>
+        {type !== "checkbox" && (
+          <label className="text-xs font-bold text-slate-700 flex justify-between items-center">
+            <span className="text-slate-800">{labelAr}</span>
+            <span className="text-slate-400 text-[10px] font-mono font-medium">{labelEn}</span>
+          </label>
+        )}
+
+        {type === "textarea" ? (
+          isReadOnly ? (
+            <div className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl text-sm text-slate-800 min-h-[80px] whitespace-pre-wrap leading-relaxed">
+              {value || <span className="text-slate-300 italic">فارغ / Empty</span>}
+            </div>
+          ) : (
+            <textarea
+              value={value}
+              onChange={(e) => handleChange(e.target.value)}
+              className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none min-h-[80px]"
+            />
+          )
+        ) : type === "select" ? (
+          isReadOnly ? (
+            <div className="h-10 px-3 flex items-center bg-slate-50/50 border border-slate-100 rounded-xl text-sm text-slate-800 font-medium">
+              {value || <span className="text-slate-300 italic">غير محدد / Not specified</span>}
+            </div>
+          ) : (
+            <select
+              value={value}
+              onChange={(e) => handleChange(e.target.value)}
+              className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+            >
+              <option value="">-- اختر / Choose --</option>
+              {options.map((opt, i) => (
+                <option key={i} value={opt}>{opt}</option>
+              ))}
+            </select>
+          )
+        ) : type === "checkbox" ? (
+          <>
+            <input
+              type="checkbox"
+              id={key}
+              checked={!!value}
+              disabled={isReadOnly}
+              onChange={(e) => handleChange(e.target.checked)}
+              className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 disabled:opacity-50"
+            />
+            <label htmlFor={key} className="text-xs font-bold text-slate-700 flex flex-col cursor-pointer">
+              <span className="text-slate-800">{labelAr}</span>
+              <span className="text-slate-400 text-[10px] font-mono font-medium">{labelEn}</span>
+            </label>
+          </>
+        ) : (
+          isReadOnly ? (
+            <div className="h-10 px-3 flex items-center bg-slate-50/50 border border-slate-100 rounded-xl text-sm text-slate-800">
+              {value || <span className="text-slate-300 italic">فارغ / Empty</span>}
+            </div>
+          ) : (
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => handleChange(e.target.value)}
+              className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          )
+        )}
+      </div>
+    );
+  };
+
+  const renderClinicalFormBody = (formId: string) => {
+    if (formId === "adm-1" || formId === "adm-2") {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("تاريخ الميلاد", "Date of Birth", "dob", "text")}
+            {renderField("الجنس", "Gender", "gender", "text")}
+            {renderField("الجنسية", "Nationality", "nationality", "text")}
+            {renderField("رقم الهوية الوطنية / الإقامة", "National ID / Iqama", "nationalId", "text")}
+            {renderField("رقم الجوال", "Phone Number", "phone", "text")}
+            {renderField("جهة اتصال الطوارئ", "Emergency Contact (Name/Phone)", "emergencyContact", "text")}
+          </div>
+          <div className="p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/50 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("سبب التنويم الطبي المقترح", "Proposed Admission Diagnosis", "admissionReason", "textarea")}
+            {renderField("فصيلة الدم", "Blood Group", "bloodGroup", "select", ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
+            {renderField("الجناح والغرفة المخصصة", "Assigned Ward & Room", "wardRoom", "text")}
+            {renderField("تاريخ وتوقيت الدخول المتوقع", "Scheduled Admission Date/Time", "date", "text")}
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "adm-3" || formId === "or-2") {
+      return (
+        <div className="space-y-4">
+          <div className="p-5 bg-amber-50/50 border border-amber-200/50 rounded-2xl space-y-3">
+            <h4 className="font-bold text-sm text-amber-800 flex items-center gap-2">
+              <ShieldCheck size={18} />
+              <span>إقرار وإذن بالتدخل الطبي والجراحي</span>
+            </h4>
+            {renderField("نص الإقرار الطبي الرسمي المعتمد بالمستشفى", "Official Consent & Disclosure Text", "consentText", "textarea")}
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("اسم ولي الأمر (في حال القاصر أو فاقد الأهلية)", "Guardian Full Name (If minor/incapacitated)", "guardianName", "text")}
+            {renderField("رقم هوية ولي الأمر", "Guardian National ID/Passport", "guardianId", "text")}
+            {renderField("اسم الشاهد على الإقرار", "Witness Full Name", "witnessName", "text")}
+            {renderField("تم التوقيع والموافقة إلكترونياً من المريض/الولي", "Consent Digitally Confirmed by Patient/Guardian", "consentSigned", "checkbox")}
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "opd-1" || formId === "ipd-6") {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-emerald-50/30 border border-emerald-100/50 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3">
+            {renderField("الحرارة (C°)", "Temperature (C°)", "temp", "text")}
+            {renderField("ضغط الدم (mmHg)", "Blood Pressure (mmHg)", "bp", "text")}
+            {renderField("النبض (bpm)", "Heart Rate (bpm)", "hr", "text")}
+            {renderField("الأكسجين (%)", "Oxygen Saturation (%)", "spo2", "text")}
+            {renderField("معدل التنفس (rpm)", "Respiratory Rate (rpm)", "rr", "text")}
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {renderField("الطول (cm)", "Height (cm)", "height", "text")}
+            {renderField("الوزن (kg)", "Weight (kg)", "weight", "text")}
+            {renderField("مؤشر كتلة الجسم", "Body Mass Index (BMI)", "bmi", "text")}
+          </div>
+          <div className="p-4 bg-rose-50/30 border border-rose-100/50 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("مقياس الألم (1-10)", "Pain Scale (1-10)", "painScore", "select", ["0 - No Pain", "1 - Mild", "2", "3 - Moderate", "4", "5", "6 - Severe", "7", "8", "9", "10 - Worst Pain"])}
+            {renderField("أولوية الفرز والفرز الطبي", "Triage Priority Level", "triagePriority", "select", ["Level 1 - Resuscitation (أحمر)", "Level 2 - Emergent (برتقالي)", "Level 3 - Urgent (أصفر)", "Level 4 - Less Urgent (أخضر)", "Level 5 - Non-Urgent (أزرق)"])}
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "opd-2" || formId === "ipd-3") {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 gap-4">
+            {renderField("الشكوى الرئيسية للمريض والمدة", "Chief Complaint & Duration", "chiefComplaint", "textarea")}
+            {renderField("تفاصيل التاريخ المرضي الحالي", "History of Present Illness (HPI)", "hpi", "textarea")}
+          </div>
+          <div className="p-4 bg-rose-50/20 border border-rose-100/30 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("التاريخ المرضي السابق والأمراض المزمنة", "Past Medical & Surgical History", "pastHistory", "textarea")}
+            {renderField("الحساسية المعروفة (أدوية/أطعمة)", "Known Allergies & Adverse Reactions", "allergies", "text")}
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 gap-4">
+            {renderField("نتائج الفحص السريري العام للأجهزة", "Physical Examination Findings", "physicalExam", "textarea")}
+          </div>
+          <div className="p-4 bg-indigo-50/20 border border-indigo-100/30 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("التقييم والتشخيص المبدئي", "Clinical Assessment & Diagnosis", "assessment", "textarea")}
+            {renderField("خطة العلاج والمتابعة التفصيلية", "Care Plan & Orders", "carePlan", "textarea")}
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "opd-5" || formId === "ipd-4") {
+      return (
+        <div className="space-y-4">
+          <div className="p-5 bg-indigo-50/40 border border-indigo-100 rounded-2xl space-y-4">
+            <h4 className="font-bold text-sm text-indigo-800 flex items-center gap-2">
+              <Pill size={18} />
+              <span>تفاصيل الدواء والجرعات الطبية الموصوفة</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("اسم الدواء العلمي والتجاري", "Medication Name (Generic/Brand)", "drugName", "text")}
+              {renderField("قوة الجرعة وشكلها", "Dosage & Strength", "dosageStrength", "text")}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {renderField("طريقة الإعطاء", "Route of Administration", "route", "select", ["Oral (فمي)", "IV (وريدي)", "IM (عضلي)", "Subcutaneous (تحت الجلد)", "Inhalation (استنشاق)", "Topical (موضعي)"])}
+              {renderField("معدل التكرار", "Frequency", "frequency", "select", ["Once (مرة واحدة)", "QD (يومياً)", "BID (مرتين باليوم)", "TID (3 مرات باليوم)", "QID (4 مرات باليوم)", "Q8H (كل 8 ساعات)", "Q12H (كل 12 ساعة)", "PRN (عند الحاجة)"])}
+              {renderField("مدة العلاج (بالأيام)", "Duration (Days)", "duration", "text")}
+              {renderField("الكمية الإجمالية للصرف", "Total Quantity To Dispense", "quantity", "text")}
+            </div>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("اسم الطبيب الواصف المعتمد", "Authorized Prescriber Name", "clinicianName", "text")}
+            {renderField("رقم ترخيص الهيئة السعودية للتخصصات الصحية", "Saudi Commission Health Specialty License (SCHS)", "licenseNumber", "text")}
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "ed-2") {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-rose-50/30 border border-rose-100/50 rounded-2xl grid grid-cols-1 gap-4">
+            {renderField("آلية حدوث الإصابة وتفاصيل الحادث", "Mechanism of Injury & Incident Details", "mechanismOfInjury", "textarea")}
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("مجرى التنفس وحماية العنق", "Airway & Cervical Spine Control", "airway", "text")}
+            {renderField("التنفس وتدفق الهواء بالصدر", "Breathing & Ventilation", "breathing", "text")}
+            {renderField("الدورة الدموية والنبض وموقع النزيف", "Circulation & Hemorrhage Control", "circulation", "text")}
+            {renderField("التقييم العصبي ومستوى الاستجابة", "Disability & Neurological Status (GCS)", "disability", "text")}
+          </div>
+          <div className="p-4 bg-amber-50/30 border border-amber-100/50 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("الفحص الظاهري وتعرض الجسم للبيئة", "Exposure & Environmental Control", "exposure", "textarea")}
+            {renderField("مجموع نقاط تقييم الإصابات", "Trauma Score Assessment", "traumaScore", "text")}
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "ipd-8") {
+      return (
+        <div className="space-y-4">
+          <div className="p-5 bg-red-50/40 border border-red-100 rounded-2xl space-y-4">
+            <h4 className="font-bold text-sm text-red-800 flex items-center gap-2">
+              <Activity size={18} />
+              <span>تقييم مورس لمخاطر سقوط المرضى المومنين بالقسم</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("تاريخ السقوط خلال الـ 3 أشهر الماضية", "History of Falling (Last 3 Months)", "fallHistory", "select", ["No (0 points)", "Yes (25 points)"])}
+              {renderField("وجود تشخيص طبي ثانوي مضاف بالملف", "Secondary Diagnosis (Multiple active diagnoses)", "secondaryDiagnosis", "select", ["No (0 points)", "Yes (15 points)"])}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("وسائل مساعدة على المشي والحركة", "Ambulatory Aid Used", "ambulatoryAid", "select", ["None / Bedrest / Nurse Assist (0 points)", "Crutches / Cane / Walker (15 points)", "Clutches on furniture (30 points)"])}
+              {renderField("قسطرة وريدية متصلة بمحاليل مستمرة", "Intravenous Therapy / Heparin Lock", "ivTherapy", "select", ["No (0 points)", "Yes (20 points)"])}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("نمط وطريقة المشي والاتزان", "Gait & Balance", "gait", "select", ["Normal / Bedrest / Wheelchair (0 points)", "Weak - light limp, slight hunch (10 points)", "Impaired - holds furniture, unsteady (20 points)"])}
+              {renderField("الحالة العقلية والوعي بالقدرات الذاتية", "Mental Status / Cognitive Fall Awareness", "mentalStatus", "select", ["Oriented to own ability (0 points)", "Overestimates or forgets limitations (15 points)"])}
+            </div>
+            <div className="pt-4 border-t border-red-100 flex justify-between items-center bg-white/50 p-3 rounded-xl">
+              {renderField("مجموع نقاط تقييم مورس", "Total Morse Fall Score", "totalFallScore", "text")}
+              {renderField("درجة خطورة السقوط والاحتياطات", "Fall Risk Level Classification", "fallRiskLevel", "select", ["Low Risk (0 - 24 points)", "Medium Risk (25 - 44 points)", "High Risk (>= 45 points)"])}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "ipd-13") {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("تاريخ الدخول والقبول بالمستشفى", "Admission Date", "admissionDate", "text")}
+            {renderField("تاريخ الخروج المرخص من الطبيب", "Discharge Date", "dischargeDate", "text")}
+          </div>
+          <div className="p-4 bg-indigo-50/20 border border-indigo-100/30 rounded-2xl grid grid-cols-1 gap-4">
+            {renderField("التشخيص الطبي النهائي والكامل عند الخروج", "Final Discharge Diagnosis", "diagnosis", "textarea")}
+            {renderField("العمليات والإجراءات الطبية والسريرية التي أجريت", "Procedures & Operations Performed", "procedures", "textarea")}
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 gap-4">
+            {renderField("ملخص فترة التنويم وسير العلاج بالمستشفى", "Brief Hospital Course", "hospitalCourse", "textarea")}
+            {renderField("الأدوية الموصوفة للمنزل والجرعات التفصيلية", "Discharge Medications & Frequencies", "dischargeMeds", "textarea")}
+          </div>
+          <div className="p-4 bg-emerald-50/20 border border-emerald-100/30 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("التعليمات والتوجيهات الطبية للمنزل وأعراض الخطورة", "Discharge Instructions & Danger Signs", "dischargeInstructions", "textarea")}
+            {renderField("موعد ومكان الاستشارة والمراجعة القادمة", "Follow-up Appointment Details", "followupDate", "text")}
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "icu-2") {
+      return (
+        <div className="space-y-4">
+          <div className="p-5 bg-sky-50/40 border border-sky-100 rounded-2xl space-y-4">
+            <h4 className="font-bold text-sm text-sky-800 flex items-center gap-2">
+              <Activity size={18} />
+              <span>إعدادات وقراءات جهاز التنفس الصناعي - العناية المركزة</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("نظام التهوئة المعتمد للجهاز", "Ventilator Mode", "ventMode", "select", ["ACVC (Assist/Control Volume)", "ACPC (Assist/Control Pressure)", "SIMV-VC", "SIMV-PC", "CPAP/PS (ضغط مستمر/دعم ضغط)", "BiPAP"])}
+              {renderField("حجم الهواء للموجة الواحدة (Vt)", "Tidal Volume (Vt - mL)", "tidalVolume", "text")}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {renderField("معدل التنفس المستهدف", "Set Respiratory Rate (bpm)", "setRR", "text")}
+              {renderField("معدل التنفس الفعلي للمريض", "Actual Respiratory Rate (bpm)", "actualRR", "text")}
+              {renderField("نسبة الأكسجين المروى %", "Fraction of Inspired Oxygen (FiO2 %)", "fio2", "text")}
+              {renderField("الضغط الإيجابي نهاية الزفير", "Positive End-Expiratory Pressure (PEEP)", "peep", "text")}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("دعم الضغط الإضافي فوق الـ PEEP", "Pressure Support (PS - cmH2O)", "pressureSupport", "text")}
+              {renderField("مقاس الأنبوب الرغامي وعمقه عند الشفة", "Endotracheal Tube Size & Depth (cm)", "etSizeDepth", "text")}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "or-3") {
+      return (
+        <div className="space-y-4">
+          <div className="p-5 bg-teal-50/40 border border-teal-100 rounded-2xl space-y-4">
+            <h4 className="font-bold text-sm text-teal-800 flex items-center gap-2">
+              <ShieldCheck size={18} />
+              <span>WHO Surgical Safety Checklist - قائمة سلامة العمليات الجراحية</span>
+            </h4>
+            <div className="space-y-3">
+              <div className="p-3 bg-white border border-teal-50 rounded-xl space-y-2">
+                <span className="text-xs font-black text-teal-800">1. قبل التخدير (Sign In)</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {renderField("تأكيد هوية المريض وموقع وموافقة الجراحة", "Patient/Site/Consent Confirmed", "signInConfirmed", "select", ["Yes (نعم)", "No (لا)"])}
+                  {renderField("تعليم وتحديد موقع الجراحة بوضوح", "Surgical Site Marked", "siteMarked", "select", ["Yes (نعم)", "No (لا)", "Not Applicable"])}
+                  {renderField("فحص وتجهيز أدوية وأجهزة التخدير بالكامل", "Anesthesia Safety Check Completed", "anesthesiaCheck", "select", ["Yes (نعم)", "No (لا)"])}
+                </div>
+              </div>
+
+              <div className="p-3 bg-white border border-teal-50 rounded-xl space-y-2">
+                <span className="text-xs font-black text-teal-800">2. قبل جرح الجلد (Time Out)</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {renderField("تأكيد الفريق بالكامل لأدوارهم والعملية بصوت مسموع", "Introduction & Time Out Confirmed", "timeOutConfirmed", "select", ["Yes (نعم)", "No (لا)"])}
+                  {renderField("إعطاء المضاد الحيوي الوقائي خلال آخر 60 دقيقة", "Antibiotic Prophylaxis Administered", "antibioticProphylaxis", "select", ["Yes (نعم)", "No (لا)", "Not Applicable"])}
+                </div>
+              </div>
+
+              <div className="p-3 bg-white border border-teal-50 rounded-xl space-y-2">
+                <span className="text-xs font-black text-teal-800">3. قبل مغادرة غرفة العمليات (Sign Out)</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {renderField("تأكيد اسم الإجراء وصحة تسجيله بالملف", "Procedure Recorded Correctly", "signOutConfirmed", "select", ["Yes (نعم)", "No (لا)"])}
+                  {renderField("تطابق عد الإبر والشاش والآلات بالكامل", "Sponge, Needle & Instrument Counts Correct", "countsCorrect", "select", ["Yes (نعم)", "No (لا)"])}
+                  {renderField("ترميز عينة الخزعة باسم ورقم ملف المريض", "Surgical Specimen Labeled Properly", "specimenLabeled", "select", ["Yes (نعم)", "No (لا)", "Not Applicable"])}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "qa-1") {
+      return (
+        <div className="space-y-4">
+          <div className="p-5 bg-amber-50/40 border border-amber-100 rounded-2xl space-y-4">
+            <h4 className="font-bold text-sm text-amber-800 flex items-center gap-2">
+              <Info size={18} />
+              <span> Occurrence Variance Report (OVR) - نموذج تقرير الأحداث العارضة والمخاطر</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {renderField("تاريخ ووقت وقوع الحدث العارض", "Date & Time of Incident", "incidentDateTime", "text")}
+              {renderField("موقع حدوث الواقعة بالمستشفى", "Location of Incident", "incidentLocation", "text")}
+              {renderField("تصنيف ونوع الحدث العارض", "Incident Type / Category", "incidentType", "select", ["Medication Error (خطأ دوائي)", "Patient Fall (سقوط مريض)", "Device/Equipment Failure (عطل جهاز)", "Clinical Process Delay (تأخير سريري)", "Staff Injury (إصابة موظف)", "Other Incident"])}
+            </div>
+            {renderField("الوصف التفصيلي والكامل للواقعة والوقائع المصاحبة", "Detailed Description of the Occurrence", "incidentDesc", "textarea")}
+            {renderField("الإجراء التصحيحي المباشر والفوري المتخذ لحماية المريض", "Immediate Action Taken to Mitigate Risk", "actionTaken", "textarea")}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("اسم المبلّغ وموقّع التقرير", "Reporter Name & Designation", "reporterName", "text")}
+              {renderField("تاريخ الرفع لإدارة المخاطر والجودة", "Date Reported", "date", "text")}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (formId === "bil-2") {
+      return (
+        <div className="space-y-4">
+          <div className="p-5 bg-emerald-50/40 border border-emerald-100 rounded-2xl space-y-4">
+            <h4 className="font-bold text-sm text-emerald-800 flex items-center gap-2">
+              <Receipt size={18} />
+              <span>Detailed Patient Invoice - الفاتورة الطبية التفصيلية وتكاليف الخدمات</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderField("رسوم الغرفة والتنويم الافتراضية (SAR)", "Room & Board Charges", "roomCharges", "text")}
+              {renderField("رسوم الفحوصات الطبية والمخبرية (SAR)", "Laboratory & Pathology Fees", "labFees", "text")}
+              {renderField("رسوم الصيدلية والأدوية الموصوفة (SAR)", "Pharmacy & Consumables Charges", "pharmacyCharges", "text")}
+              {renderField("رسوم الأشعة والتصوير الطبي (SAR)", "Radiology & Imaging Fees", "radFees", "text")}
+              {renderField("رسوم الاستشارات وزيارات الأطباء (SAR)", "Physician Clinical Consult Fees", "consultFees", "text")}
+            </div>
+            <div className="pt-4 border-t border-emerald-100 grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/50 p-3 rounded-xl">
+              {renderField("المجموع الإجمالي غير الصافي للفاتورة", "Gross Total Bill Amount", "grossTotal", "text")}
+              {renderField("نسبة وتغطية شركة التأمين المعتمدة", "Insurance Covered Amount", "insuranceCover", "text")}
+              {renderField("المبلغ المتبقي والصافي المستحق للدفع", "Patient Net Amount Due", "patientNet", "text")}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default Fallback
+    return (
+      <div className="space-y-4">
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          {renderField("ملاحظات وتدوينات سريرية تفصيلية", "Detailed Clinical Notes & Documentation", "notes", "textarea")}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6" dir="rtl">
       {/* Header */}
@@ -358,70 +993,159 @@ export default function ClinicalFormsLibrary() {
               </div>
               
               <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
-                {/* Mock Form Body */}
-                <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 min-h-[400px]">
-                  <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-end">
-                    <div>
-                      <h1 className="text-2xl font-black text-slate-900">{selectedForm.title}</h1>
-                      <p className="text-sm text-slate-500 mt-1">Official Medical Document - {selectedForm.category}</p>
+                {/* Official Medical Document Layout */}
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 min-h-[500px] relative overflow-hidden" id="clinical-document-pdf">
+                  
+                  {/* Decorative stamp for digital signatures */}
+                  {signedBy && (
+                    <div className="absolute top-10 left-10 w-44 h-44 border-4 border-emerald-500/30 rounded-full flex flex-col items-center justify-center rotate-12 pointer-events-none select-none">
+                      <div className="text-[10px] text-emerald-500 font-bold tracking-widest uppercase font-mono">Unified Hospital</div>
+                      <div className="text-emerald-500 text-lg font-black tracking-wide my-1">E-SIGNED</div>
+                      <div className="text-[10px] text-emerald-500/80 font-semibold">{signedAt?.split(" ")[0]}</div>
+                      <div className="text-[8px] text-emerald-500/60 font-mono">ID: {selectedForm.id}</div>
                     </div>
-                    <div className="text-right text-xs text-slate-500 space-y-1">
-                      <p>Doc ID: {selectedForm.id}</p>
-                      <p>Rev Date: 2026-06-25</p>
-                    </div>
-                  </div>
+                  )}
 
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold text-slate-600">Patient Name</label>
-                        <div className="h-10 bg-slate-50 border border-slate-200 rounded-lg"></div>
+                  {/* Document Header (Seal / Title / Barcode) */}
+                  <div className="border-b-4 border-double border-slate-700 pb-4 mb-6">
+                    <div className="flex justify-between items-start">
+                      <div className="text-right space-y-1">
+                        <h3 className="font-bold text-sm text-slate-800">المستشفى الرقمي الموحد</h3>
+                        <p className="text-[10px] text-slate-400 font-mono">Unified Digital Hospital - HIS</p>
+                        <p className="text-[10px] text-slate-500">مكتب السجلات الطبية الإلكترونية</p>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold text-slate-600">MRN</label>
-                        <div className="h-10 bg-slate-50 border border-slate-200 rounded-lg"></div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-600">Clinical Notes / Details</label>
-                      <div className="h-32 bg-slate-50 border border-slate-200 rounded-lg"></div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      {[1,2,3].map(i => (
-                        <div key={i} className="flex items-center gap-2">
-                          <div className="w-4 h-4 border border-slate-300 rounded"></div>
-                          <div className="h-4 w-24 bg-slate-100 rounded"></div>
+                      
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center mx-auto mb-1 text-indigo-600">
+                          <Stethoscope size={24} />
                         </div>
-                      ))}
+                        <span className="text-[9px] text-indigo-600 font-semibold tracking-wider font-mono">E-HEALTH / وزارة الصحة</span>
+                      </div>
+
+                      <div className="text-left space-y-1">
+                        <div className="h-6 w-32 bg-slate-200 rounded flex items-center justify-center font-mono text-[9px] text-slate-600 tracking-wider">
+                          |||| | ||| || ||| | |||
+                        </div>
+                        <p className="text-[9px] text-slate-400 text-center font-mono">Doc ID: {selectedForm.id}</p>
+                        <p className="text-[9px] text-slate-500 text-center">تحديث: 2026-06-25</p>
+                      </div>
+                    </div>
+
+                    <div className="text-center mt-4">
+                      <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">{selectedForm.title}</h1>
+                      <p className="text-xs text-slate-500 mt-0.5 font-mono">{selectedForm.category} Departmental Record</p>
                     </div>
                   </div>
+
+                  {/* Patient Demographic Banner Block */}
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6 text-sm">
+                    <h4 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">معلومات المريض الأساسية / Patient Demographics</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                      <div>
+                        <span className="block text-[10px] font-bold text-slate-400">اسم المريض / Patient Name</span>
+                        <span className="font-bold text-slate-800">{activePatientName}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-slate-400">رقم الملف الطبي / MRN</span>
+                        <span className="font-bold text-slate-800 font-mono">{activePatientMRN}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-slate-400">العمر والجنس / Age & Gender</span>
+                        <span className="font-bold text-slate-800">{activePatientAge} سنة / {activePatientGender}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-slate-400">تاريخ المعاينة / Date</span>
+                        <span className="font-bold text-slate-800 font-mono">{formData.date || new Date().toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Form-Specific Fields Body */}
+                  <div className="min-h-[250px] pb-6">
+                    {renderClinicalFormBody(selectedForm.id)}
+                  </div>
+
+                  {/* Signature Section at Document Bottom */}
+                  <div className="border-t-2 border-dashed border-slate-200 pt-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                    <div className="space-y-1">
+                      <span className="block text-[10px] font-bold text-slate-400">توقيع المريض أو الولي الشرعي / Patient or Guardian Sign</span>
+                      <div className="h-12 border border-slate-100 rounded-xl bg-slate-50/30 flex items-center justify-center text-slate-300 italic">
+                        {formData.consentSigned ? "✓ موافق وموقّع إلكترونياً" : "بانتظار الإقرار الطبي / Pending Signature"}
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-left">
+                      <span className="block text-[10px] font-bold text-slate-400 text-right">الممارس الطبي المسؤول / Attending Clinician E-Sign</span>
+                      <div className="h-12 border border-slate-100 rounded-xl bg-slate-50/30 flex flex-col items-center justify-center text-slate-600">
+                        {signedBy ? (
+                          <>
+                            <span className="font-bold text-indigo-600 flex items-center gap-1">
+                              <PenTool size={12} />
+                              {signedBy}
+                            </span>
+                            <span className="text-[9px] text-slate-400 font-mono">{signedAt}</span>
+                          </>
+                        ) : (
+                          <span className="text-slate-300 italic">بانتظار توقيع الطبيب المرخص / Pending Physician Sign</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
-              <div className="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
+              <div className="p-4 border-t border-slate-100 bg-white flex justify-end items-center gap-3">
+                {/* Print & Status Indication */}
+                <span className="text-xs font-semibold text-slate-400 mr-auto flex items-center gap-1.5">
+                  <span className={`w-2.5 h-2.5 rounded-full ${signedBy ? "bg-emerald-500 animate-pulse" : isEditing ? "bg-amber-500" : "bg-slate-300"}`}></span>
+                  {signedBy ? "مستند طبي مغلق وموقّع" : isEditing ? "قيد التعبئة والتعديل" : "معاينة النموذج"}
+                </span>
+
                 <button
                   onClick={() => setSelectedForm(null)}
                   className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
                 >
                   إغلاق
                 </button>
-                <button
-                  className="px-5 py-2.5 text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2"
-                >
-                  <Download size={16} />
-                  <span>تنزيل PDF</span>
-                </button>
+
                 <button
                   onClick={() => {
-                    toast.success("تم بدء تعبئة النموذج الجديد");
-                    setSelectedForm(null);
+                    window.print();
+                    toast.success(isAr ? "تم إرسال المستند للطباعة المباشرة" : "Document sent to print queue");
                   }}
-                  className="px-5 py-2.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2"
                 >
-                  بدء التعبئة (Fill Form)
+                  <Printer size={16} />
+                  <span>طباعة المستند</span>
                 </button>
+
+                {!signedBy && (
+                  isEditing ? (
+                    <>
+                      <button
+                        onClick={() => setIsEditing(false)}
+                        className="px-5 py-2.5 text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition-colors"
+                      >
+                        إلغاء التعديل
+                      </button>
+                      <button
+                        onClick={handleSaveForm}
+                        className="px-5 py-2.5 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl transition-colors flex items-center gap-1.5 shadow-md shadow-emerald-100"
+                      >
+                        <CheckCircle size={16} />
+                        <span>توقيع وحفظ السجل</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="px-5 py-2.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-colors flex items-center gap-1.5 shadow-md shadow-indigo-100"
+                    >
+                      <PenTool size={16} />
+                      <span>تعبئة وتوقيع النموذج</span>
+                    </button>
+                  )
+                )}
               </div>
             </motion.div>
           </div>
