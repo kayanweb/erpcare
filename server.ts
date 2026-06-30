@@ -865,6 +865,85 @@ Output text in: ${isAr ? "Arabic" : "English"}.
       return res.json({ success: false, error: "No settings found" });
   });
 
+  // --- DEPARTMENT INTELLIGENCE FALLBACK GENERATORS ---
+  function getDepartmentInsightsFallback(data: any, isAr: boolean) {
+    if (isAr) {
+      return `
+### 🏥 تقرير التحليل السريري والتشغيلي الاحتياطي للقسم (الباطنة العامة)
+
+**تم إنشاء هذا التقرير عبر النظام السريري الاحتياطي المدمج كخطوة آمنة.**
+
+#### 1. 📊 التقييم السريري السريع والعبء العملي:
+- **معدل إشغال القسم:** تبلغ نسبة الإشغال الحالية **${data.occupancyRate || 75}%** (منوم **${data.admittedPatientsCount || 24}** مريض من أصل سعة إجمالية **${data.capacity || 32}** سريراً).
+- **الضغط السريري:** عبء تمريضي متوسط إلى مرتفع مع وجود **${data.pendingTasksCount || 15}** مهمة معلقة تتطلب التوزيع الفوري.
+- **الحالات الحرجة:** وجود **${data.criticalCasesCount || 3}** حالات حرجة غير مستقرة في القسم تتطلب اهتماماً طبياً وثيقاً ومستمراً.
+
+#### 2. 📋 توصيات توزيع الممرضين والكادر الطبي:
+1. **نسبة الكادر إلى المرضى (Nurse-to-Patient Ratio):** يوصى بتطبيق نسبة **1:1** أو **1:2** للحالات الحرجة الثلاث، ونسبة **1:5** للحالات المستقرة المتبقية لضمان سلامة المرضى.
+2. **إعادة ترتيب أولويات المهام:** تصنيف المهام المعلقة الـ **${data.pendingTasksCount || 15}** لتكون مهام إعطاء الأدوية الوريدية وفحص العلامات الحيوية للحالات الحرجة في صدارة قائمة التنفيذ الفوري.
+
+#### 3. 🛡️ خطة إدارة الحالات الحرجة الـ ${data.criticalCasesCount || 3}:
+- تفعيل بروتوكول **NEWS2** وإعادة تقييم العلامات الحيوية كل **30 دقيقة** بدون استثناء.
+- التحقق من توافر عربة الإنعاش القلبي الرئوي (Crash Cart) وجاهزيتها للعمل الفوري في الجناح.
+- تجهيز خطوط وريدية سالكة وضمان تفعيل أجهزة المراقبة المستمرة لمعدل ضربات القلب والتشبع بالأكسجين.
+
+#### 4. 🛏️ إدارة تدفق المرضى وسعة الأسرة:
+- يبلغ عدد الأسرة المتوفرة **${data.availableBedsCount || 8}** أسرة. يجب التنسيق مع قسم الطوارئ (ER) لحجز سريرين للحالات الطارئة الواردة، وبدء تخطيط الخروج المبكر (Early Discharge) للمرضى المستقرين لتحسين السعة التدويرية.
+`;
+    } else {
+      return `
+### 🏥 Offline Department Operational & Clinical Backup Report
+
+**This analysis has been generated via the offline system fallback protocol.**
+
+#### 1. 📊 Operational Workload & Capacity Assessment:
+- **Department Occupancy:** The current occupancy rate is **${data.occupancyRate || 75}%** with **${data.admittedPatientsCount || 24}** occupied beds out of a maximum capacity of **${data.capacity || 32}** beds.
+- **Workload Stress:** Medium-to-High nursing workload with **${data.pendingTasksCount || 15}** outstanding clinical tasks pending resolution.
+- **Critical Care Vigilance:** **${data.criticalCasesCount || 3}** unstable critical patients currently admitted, requiring high clinical surveillance.
+
+#### 2. 📋 Staff Allocation & Nursing Workload Guidance:
+1. **Nurse-to-Patient Ratio:** We recommend a dedicated **1:1** or **1:2** ratio for the 3 critical cases, and a **1:5** ratio for the stable general ward patients.
+2. **Task Prioritization:** Sort the **${data.pendingTasksCount || 15}** pending tasks immediately. High-alert drug administration and vital sign tracking for unstable patients must take precedence.
+
+#### 3. 🛡️ Critical Cases Safety Action Plan:
+- Re-assess vitals for the **${data.criticalCasesCount || 3}** critical patients using the **NEWS2** framework every **30 minutes**.
+- Verify that the emergency crash cart is fully stocked, functional, and placed in proximity to the critical care rooms.
+- Establish secure intravenous access and initiate continuous cardiac/O2 saturation monitoring.
+
+#### 4. 🛏️ Patient Flow & Discharge Coordination:
+- **${data.availableBedsCount || 8}** beds are currently vacant. Coordinate with the emergency department to preserve 2 beds for prospective acute admissions. Initiate discharge planning for clinically stable patients.
+`;
+    }
+  }
+
+  function getDepartmentChatFallback(data: any, isAr: boolean) {
+    if (isAr) {
+      return `مرحباً! أنا مساعد القسم السريري المدمج (وضع الاحتياط). 
+
+بناءً على معطيات القسم الحالية:
+- **المرضى المنومين:** ${data.stats?.admitted || 24} مريضاً.
+- **الأسرة الشاغرة:** ${data.stats?.available || 8} أسرة.
+- **المهام المعلقة:** ${data.stats?.pending || 15} مهمة.
+- **الحالات الحرجة:** ${data.stats?.critical || 3} حالات حرجة.
+
+سؤالك هو: "${data.query}"
+
+*نظراً لعدم توفر خادم الذكاء الاصطناعي حالياً، يرجى الاستعانة بالطبيب المناوب أو رئيس التمريض للإجابة السريرية الدقيقة طبقاً لبروتوكول المستشفى.*`;
+    } else {
+      return `Hello! I am the integrated Clinical Department Assistant (Offline backup mode).
+
+Based on the current metrics of the department:
+- **Admitted Patients:** ${data.stats?.admitted || 24}
+- **Available Beds:** ${data.stats?.available || 8}
+- **Pending Tasks:** ${data.stats?.pending || 15}
+- **Critical Cases:** ${data.stats?.critical || 3}
+
+Your question: "${data.query}"
+
+*Since the live AI model is temporarily busy, please consult with the shift supervisor or attending physician in accordance with hospital policies.*`;
+    }
+  }
+
   // API Route: Clinical Quality & Safety AI assistant
   app.post("/api/ai/analyze-clinical", async (req, res) => {
     const { type, data, lang } = req.body;
@@ -922,6 +1001,39 @@ Format the response beautifully in clean, structured Markdown.
 The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
 If in Arabic, write with professional medical terminology used in top hospitals. Ensure a compassionate, professional, and clear scientific tone.
         `;
+      } else if (type === "department_insights") {
+        targetPrompt = `
+You are an expert Chief Medical Officer and Clinical Operations Director.
+Analyze the operational and clinical state of the ${data.departmentName} department:
+- Admitted Patients: ${data.admittedPatientsCount} (Capacity: ${data.capacity || 32}, Occupancy Rate: ${data.occupancyRate || 75}%)
+- Vacant/Available Beds: ${data.availableBedsCount}
+- Pending/Outstanding Tasks: ${data.pendingTasksCount}
+- Critical Patients: ${data.criticalCasesCount}
+
+Please provide:
+1. Operational Assessment & Staff Allocation (التقييم التشغيلي وتوزيع الكادر): Analyze the occupancy and workload (15 tasks, 3 critical cases) and recommend nursing/physician staffing ratios.
+2. Clinical Action Plan for Critical Cases (خطة العمل السريرية للحالات الحرجة): Specific checklists and safety guidelines for managing the 3 critical patients in this department.
+3. Bed Capacity & Flow Optimization (تحسين تدفق المرضى وسعة الأسرة): Strategies to optimize bed utilization, discharge planning, and coordination with the ER/ICU.
+4. Risk Management & Forecast (إدارة المخاطر والتنبؤ السريري): Identify potential operational bottlenecks or safety issues (e.g., patient safety risks, task delays, ventilator/monitor constraints) over the next 24-48 hours.
+
+Format the response in gorgeous, highly professional Markdown with clear headers, bullet points, and key terms in bold.
+The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
+        `;
+      } else if (type === "department_chat") {
+        targetPrompt = `
+You are a helpful and highly intelligent Clinical Department AI assistant. You help medical staff manage the ${data.departmentName} department.
+Here are the live metrics of the department:
+- Admitted Patients: ${data.stats?.admitted || 24}
+- Available Beds: ${data.stats?.available || 8}
+- Pending Tasks: ${data.stats?.pending || 15}
+- Critical Cases: ${data.stats?.critical || 3}
+
+Answer the user's clinical or operational question in the requested language: ${lang === "ar" ? "Arabic" : "English"}.
+User Question: "${data.query}"
+
+Provide a concise, highly practical, and clinically sound answer. Do not use generic filler text. Use medical standards where appropriate.
+If the question is in Arabic, respond in clear, professional Arabic medical terminology.
+        `;
       } else {
         targetPrompt = `
 You are a Clinical Quality and Patient Safety AI expert.
@@ -968,6 +1080,10 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
         text = getNews2Fallback(data, isAr);
       } else if (type === "isbar") {
         text = getIsbarFallback(data, isAr);
+      } else if (type === "department_insights") {
+        text = getDepartmentInsightsFallback(data, isAr);
+      } else if (type === "department_chat") {
+        text = getDepartmentChatFallback(data, isAr);
       } else {
         text = isAr 
           ? `### 📋 تدقيق سريري احتياطي\n\n**البيانات المستلمة:**\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\`\n\nنظام التحليل الفوري قيد الصيانة التلقائية حالياً. يرجى مراجعة المعايير السريرية يدوياً.`
