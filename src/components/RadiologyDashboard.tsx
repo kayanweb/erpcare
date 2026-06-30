@@ -14,11 +14,16 @@ export default function RadiologyDashboard({ language }: Props) {
   const isAr = language === "ar";
   const [activeTab, setActiveTab] = useState<"orders" | "pacs">("orders");
 
-  const [orders] = useState([
+  const [orders, setOrders] = useState([
     { id: "RAD-882", patient: "Ahmed Youssef", type: "MRI Brain", priority: "Urgent", status: "Pending", time: "10:30 AM" },
     { id: "RAD-883", patient: "Sarah Ali", type: "X-Ray Chest", priority: "Routine", status: "In Progress", time: "11:00 AM" },
     { id: "RAD-884", patient: "Omar Hassan", type: "CT Abdomen", priority: "STAT", status: "Pending", time: "11:15 AM" },
   ]);
+
+  const handleUpdateStatus = (id: string, newStatus: string, actionNameEn: string, actionNameAr: string) => {
+    setOrders(prev => prev.map(order => order.id === id ? { ...order, status: newStatus } : order));
+    toast.success(isAr ? `تم ${actionNameAr} بنجاح` : `${actionNameEn} successfully`);
+  };
 
   return (
     <div className="p-4 md:p-6 bg-slate-50 min-h-full font-sans animate-fade-in flex flex-col" dir={isAr ? "rtl" : "ltr"}>
@@ -90,14 +95,14 @@ export default function RadiologyDashboard({ language }: Props) {
                          <span className="text-xs font-bold text-indigo-600">{order.status}</span>
                       </td>
                       <td className="px-4 py-3 flex gap-2 justify-center flex-wrap">
-                         <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Order Accepted", titleAr: "Order Accepted", type: "form" } }))} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
-                           Accept
+                         <button onClick={() => handleUpdateStatus(order.id, 'Accepted', 'Order accepted', 'قبول الطلب')} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
+                           {isAr ? 'قبول' : 'Accept'}
                          </button>
-                         <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Opened Scheduler", titleAr: "Opened Scheduler", type: "form" } }))} className="bg-slate-100 text-slate-600 hover:bg-slate-200 px-2 py-1.5 rounded text-[10px] font-bold transition">
-                           Schedule
+                         <button onClick={() => handleUpdateStatus(order.id, 'Scheduled', 'Order scheduled', 'جدولة الطلب')} className="bg-slate-100 text-slate-600 hover:bg-slate-200 px-2 py-1.5 rounded text-[10px] font-bold transition">
+                           {isAr ? 'جدولة' : 'Schedule'}
                          </button>
-                         <button onClick={() => window.dispatchEvent(new CustomEvent('openGenericModal', { detail: { titleEn: "Exam Started", titleAr: "Exam Started", type: "form" } }))} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
-                           Perform
+                         <button onClick={() => handleUpdateStatus(order.id, 'Completed', 'Exam completed', 'إتمام الفحص')} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1.5 rounded text-[10px] font-bold transition">
+                           {isAr ? 'إجراء' : 'Perform'}
                          </button>
                       </td>
                     </tr>

@@ -212,8 +212,8 @@ export default function DocumentCenter({ language, currentUser, systemUsers }: D
         const newTemplate: FormTemplate = {
             id: `imported-${Date.now()}`,
             code: `DOC-${Date.now().toString().slice(-4)}`,
-            titleAr: doc.name.replace(/\.[^/.]+$/, ""),
-            titleEn: doc.name.replace(/\.[^/.]+$/, ""),
+            titleAr: doc.name?.replace(/\.[^/.]+$/, "") || "Untitled",
+            titleEn: doc.name?.replace(/\.[^/.]+$/, "") || "Untitled",
             departmentDefault: "General",
             items: [{ itemAr: "سجل مستورد", itemEn: "Imported Record" }] 
         };

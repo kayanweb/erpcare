@@ -70,6 +70,7 @@ import {
   Star,
   FileDigit,
   BookOpen,
+  Server,
 } from "lucide-react";
 import {
   GoogleAuthProvider,
@@ -102,6 +103,7 @@ import {
 } from "./types";
 import ProfileView from "./components/ProfileView";
 import AdminDashboard from "./components/AdminDashboard";
+import HISImplementationDashboard from "./components/HISImplementationDashboard";
 import MessagingDashboard from "./components/MessagingDashboard";
 import NursingAdminToolbox from "./components/NursingAdminToolbox";
 import SupervisorDashboard from "./components/SupervisorDashboard";
@@ -448,7 +450,7 @@ const DEPT_NAMES_MOCK = [
   "LABORATORY DEPT",
 ];
 
-const MOCK_USERS: AppUser[] = [...BASE_MOCK_USERS];
+export const MOCK_USERS: AppUser[] = [...BASE_MOCK_USERS];
 DEPT_NAMES_MOCK.forEach((dept) => {
   MOCK_USERS.push({
     id: `emp-dept-1-${dept}`,
@@ -986,8 +988,8 @@ function AppContent({
   const [selectedHistoryRecord, setSelectedHistoryRecord] =
     useState<SavedRecord | null>(null);
   const [historyDeptFilter, setHistoryDeptFilter] = useState<string>("");
-  const [historyTemplateFilter, setHistoryTemplateFilter] =
-    useState<string>("");
+  const [historyTemplateFilter, setHistoryTemplateFilter] = useState<string>("");
+  const [selectedHistoryRecordIds, setSelectedHistoryRecordIds] = useState<string[]>([]);
   const [userRegistrySearch, setUserRegistrySearch] = useState("");
   const [userRegistryPage, setUserRegistryPage] = useState(0);
   const [dbStatus, setDbStatus] = useState<"connected" | "syncing" | "error">(
@@ -6207,13 +6209,27 @@ Full administrative override and emergency clinical execution privileges have be
 
     // Search first by typed staff ID (case-insensitive)
     const cleanStaffId = loginStaffId.trim().toUpperCase();
+    console.log("DEBUG: Attempting login for StaffID:", cleanStaffId);
+    console.log("DEBUG: SystemUsers count:", systemUsers.length, "MOCK count:", MOCK_USERS.length);
+    console.log("DEBUG: Sample StaffIDs:", systemUsers.slice(0, 5).map(u => u.staffId));
+    
     let targetUser = systemUsers.find(
-      (u) => u.staffId.trim().toUpperCase() === cleanStaffId,
+      (u) => u.staffId && u.staffId.trim().toUpperCase() === cleanStaffId,
     );
+
+    // Fallback to MOCK_USERS if not found in systemUsers (in case seeding failed)
+    if (!targetUser) {
+      targetUser = MOCK_USERS.find(
+        (u) => u.staffId && u.staffId.trim().toUpperCase() === cleanStaffId,
+      );
+    }
 
     // Cover if user typed id as text or clicked select
     if (!targetUser && loginSelectedUserId) {
       targetUser = systemUsers.find((u) => u.id === loginSelectedUserId);
+      if (!targetUser) {
+        targetUser = MOCK_USERS.find((u) => u.id === loginSelectedUserId);
+      }
     }
 
     if (!targetUser) {
@@ -7473,7 +7489,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                         required
                         value={loginStaffId}
                         onChange={(e) => {
-                          setLoginStaffId(e.target.value.replace(/\D/g, ""));
+                          setLoginStaffId(e.target.value);
                           setLoginError(null);
                         }}
                         className="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 pl-10 pr-4 text-sm font-semibold tracking-wider text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500"
@@ -8450,6 +8466,20 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
               </span>
             </button>
           )}
+
+          <button
+            onClick={() => setActiveTab("project_implementation")}
+            className={`w-full flex items-center gap-3 px-6 py-2.5 text-right text-xs font-semibold transition-colors ${
+              activeTab === "project_implementation"
+                ? "bg-slate-800 border-r-4 border-indigo-500 text-indigo-400 font-bold"
+                : "text-slate-500 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <Server className="h-4 w-4 shrink-0 text-indigo-500" />
+            <span>
+              {language === "ar" ? "تتبع مشروع HIS" : "HIS Implementation Tracker"}
+            </span>
+          </button>
 
           <button
             onClick={() => setActiveTab("admin_dashboard")}
@@ -13895,6 +13925,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
               systemUsers={systemUsers}
               currentUser={currentUser}
             />
+          )}
+
+          {activeTab === "project_implementation" && (
+            <HISImplementationDashboard language={language} />
           )}
 
           {activeTab === "admin_dashboard" && (
@@ -19631,11 +19665,47 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                       {/* Left Column: Records list */}
                       <div className="xl:col-span-2 space-y-3">
+                        <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 text-pink-600 rounded border-slate-300 focus:ring-pink-500 cursor-pointer"
+                              onChange={(e) => {
+                                if(e.target.checked) setSelectedHistoryRecordIds(finalHistoryRecords.map(r => r.id));
+                                else setSelectedHistoryRecordIds([]);
+                              }} 
+                              checked={selectedHistoryRecordIds.length === finalHistoryRecords.length && finalHistoryRecords.length > 0} 
+                            />
+                            <span className="text-xs font-bold text-slate-600">
+                              {language === "ar" ? "تحديد الكل" : "Select All"}
+                            </span>
+                          </div>
+                          {selectedHistoryRecordIds.length > 0 && (
+                            <button
+                              onClick={() => {
+                                const selectedRecords = finalHistoryRecords.filter(r => selectedHistoryRecordIds.includes(r.id));
+                                selectedRecords.forEach(r => {
+                                  const tpl = allAvailableTemplates.find((t) => t.id === r.templateId);
+                                  if (tpl) {
+                                    // Generate a PDF for each selected record
+                                    generatePDF(r, tpl, hospitalSettings, language, "all");
+                                  }
+                                });
+                              }}
+                              className="px-3 py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded text-xs font-bold transition flex items-center gap-2"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                              {language === "ar" ? `تصدير المحدد (${selectedHistoryRecordIds.length})` : `Export Selected (${selectedHistoryRecordIds.length})`}
+                            </button>
+                          )}
+                        </div>
                         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                           <div className="overflow-x-auto text-right">
                             <table className="w-full text-xs text-right text-slate-650 whitespace-nowrap min-w-full">
                               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-black tracking-wider text-[10px]">
                                 <tr>
+                                  <th scope="col" className="px-4 py-3 w-10">
+                                  </th>
                                   <th scope="col" className="px-4 py-3">
                                     {language === "ar" ? "كود الشيت" : "Code"}
                                   </th>
@@ -19684,6 +19754,20 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                         setSelectedHistoryRecord(r)
                                       }
                                     >
+                                      <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
+                                        <input 
+                                          type="checkbox" 
+                                          className="w-4 h-4 text-pink-600 rounded border-slate-300 focus:ring-pink-500 cursor-pointer"
+                                          checked={selectedHistoryRecordIds.includes(r.id)}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setSelectedHistoryRecordIds(prev => [...prev, r.id]);
+                                            } else {
+                                              setSelectedHistoryRecordIds(prev => prev.filter(id => id !== r.id));
+                                            }
+                                          }}
+                                        />
+                                      </td>
                                       <td className="px-4 py-3.5">
                                         <span className="font-sans font-black bg-slate-150 text-slate-700 px-2 py-0.5 rounded text-[10px] border border-slate-250/50">
                                           {tpl ? tpl.code : "N/A"}

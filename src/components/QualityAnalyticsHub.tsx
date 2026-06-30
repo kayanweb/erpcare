@@ -497,7 +497,7 @@ export default function QualityAnalyticsHub({
 
     const startIdx = Date.now().toString().slice(-4);
     const newReport = {
-       id: `PR-${reportYear}-${reportDept.replace(/\s+/g, '-').toUpperCase()}-${startIdx}`,
+       id: `PR-${reportYear}-${reportDept?.replace(/\s+/g, '-').toUpperCase() || 'DEPT'}-${startIdx}`,
        department: reportDept,
        periodType: reportPeriodType, // "monthly" | "quarterly"
        periodReference: reportPeriodType === "monthly" ? reportMonth : reportQuarter,

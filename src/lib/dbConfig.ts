@@ -1,6 +1,6 @@
 // dbConfig.ts
 
-export type DbProvider = "FIREBASE" | "SUPABASE" | "POCKETBASE" | "APPWRITE" | "LOCAL_HOST" | "MQTT" | "SOCKET_IO_REDIS" | "NULL_DB";
+export type DbProvider = "FIREBASE" | "SUPABASE" | "POCKETBASE" | "APPWRITE" | "LOCAL_HOST" | "MQTT" | "SOCKET_IO_REDIS" | "NULL_DB" | "POSTGRES_PRISMA";
 
 // Central dynamic provider setting (in-memory, strictly no localStorage for patient data!)
 let currentProvider: DbProvider = "FIREBASE";
@@ -94,6 +94,14 @@ export const DB_PROVIDERS_CONFIG = {
       serverUrl: "http://127.0.0.1:3000",
       redisUrl: "redis://127.0.0.1:6379",
       statusUrl: "http://127.0.0.1:3000/health"
+  },
+  POSTGRES_PRISMA: {
+      nameAr: "الاستضافة المحلية (PostgreSQL + Prisma)",
+      nameEn: "Local On-Premises (PostgreSQL + Prisma)",
+      databaseUrl: "postgresql://postgres:password@localhost:5432/his_db",
+      prismaStudioUrl: "http://localhost:5555",
+      expressServer: "http://localhost:3000/api",
+      statusUrl: "http://localhost:3000/health"
   }
 };
 
@@ -111,7 +119,7 @@ Object.keys(DB_PROVIDERS_CONFIG).forEach(provider => {
 */
 
 export const switchEnvironment = (provider: DbProvider, newSettings: any = {}) => {
-  if (["FIREBASE", "SUPABASE", "POCKETBASE", "APPWRITE", "LOCAL_HOST", "MQTT", "SOCKET_IO_REDIS", "NULL_DB"].includes(provider)) {
+  if (["FIREBASE", "SUPABASE", "POCKETBASE", "APPWRITE", "LOCAL_HOST", "MQTT", "SOCKET_IO_REDIS", "NULL_DB", "POSTGRES_PRISMA"].includes(provider)) {
     setActiveDbProvider(provider);
     if (newSettings && Object.keys(newSettings).length > 0) {
       const targetConfig: any = DB_PROVIDERS_CONFIG[provider];

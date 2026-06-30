@@ -10,7 +10,16 @@ interface Props {
 }
 
 export function NewVitalsModal({ isOpen, onClose, onSave, isAr }: Props) {
-  const [data, setData] = useState({ temp: "", bp: "", hr: "", spo2: "", rr: "" });
+  const [data, setData] = useState({ patientName: "", patientMRN: "", temp: "", bp: "", hr: "", spo2: "", rr: "" });
+
+  const handleSave = () => {
+    if (!data.patientName || !data.patientMRN) {
+      toast.error(isAr ? "يرجى إدخال اسم المريض ورقم الملف الطبي" : "Please enter Patient Name and MRN");
+      return;
+    }
+    onSave(data);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -25,6 +34,16 @@ export function NewVitalsModal({ isOpen, onClose, onSave, isAr }: Props) {
         </div>
 
         <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 mb-1 block">{isAr ? "اسم المريض" : "Patient Name"}</label>
+                  <input type="text" className="w-full border rounded-lg p-2" value={data.patientName} onChange={e => setData({...data, patientName: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 mb-1 block">{isAr ? "رقم الملف الطبي" : "MRN"}</label>
+                  <input type="text" className="w-full border rounded-lg p-2" value={data.patientMRN} onChange={e => setData({...data, patientMRN: e.target.value})} />
+                </div>
+            </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-500 mb-1 block">{isAr ? "الحرارة" : "Temp"} (°C)</label>
@@ -46,10 +65,7 @@ export function NewVitalsModal({ isOpen, onClose, onSave, isAr }: Props) {
         </div>
 
         <button 
-          onClick={() => {
-            onSave(data);
-            onClose();
-          }}
+          onClick={handleSave}
           className="w-full mt-6 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2"
         >
           <Save className="w-4 h-4" /> {isAr ? "حفظ القياس" : "Save Record"}

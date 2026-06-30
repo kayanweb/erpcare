@@ -159,7 +159,7 @@ export default function InfectionControlHub({ language, currentUser, systemUsers
     await saveSetting("baheya_infection_incidents", nextIncidents);
     
     // Broadcast notification
-    const notifications = await getSetting("baheya_notifications") || [];
+    const notifications: any[] = (await getSetting("baheya_notifications") as any[]) || [];
     const notif = {
       id: Date.now().toString(),
       type: "infection_alert",

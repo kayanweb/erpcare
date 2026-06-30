@@ -1,265 +1,42 @@
 {
   "entities": {
-    "SavedRecord": {
-      "title": "SavedRecord",
-      "description": "Clinical and safety log records",
+    "Patient": {
+      "title": "Patient",
+      "description": "Patient information",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "templateId": { "type": "string" },
-        "date": { "type": "string" },
-        "time": { "type": "string" },
-        "department": { "type": "string" },
-        "staffName": { "type": "string" },
-        "staffId": { "type": "string" },
-        "notes": { "type": "string" },
-        "createdAt": { "type": "string" },
-        "shift": { "type": "string" },
-        "status": { "type": "string" },
-        "patientName": { "type": "string" },
-        "patientMRN": { "type": "string" },
-        "diagnosis": { "type": "string" },
-        "gridData": { "type": "array" }
+        "mrn": { "type": "string" },
+        "national_id": { "type": "string" },
+        "first_name": { "type": "string" },
+        "last_name": { "type": "string" },
+        "date_of_birth": { "type": "string", "format": "date" },
+        "gender": { "type": "string", "enum": ["MALE", "FEMALE"] },
+        "phone_mobile": { "type": "string" }
       },
-      "required": ["id", "templateId", "date", "staffId", "createdAt"]
+      "required": ["id", "mrn", "first_name", "last_name", "date_of_birth", "gender", "phone_mobile"]
     },
-    "AppUser": {
-      "title": "AppUser",
-      "description": "Registry of system clinicians and access attributes",
+    "Encounter": {
+      "title": "Encounter",
+      "description": "Patient visit information",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "nameAr": { "type": "string" },
-        "nameEn": { "type": "string" },
-        "role": { "type": "string" },
-        "roleId": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "active", "disabled"] },
-        "department": { "type": "string" },
-        "staffId": { "type": "string" },
-        "pin": { "type": "string" },
-        "email": { "type": "string" }
+        "patient_id": { "type": "string" },
+        "encounter_type": { "type": "string", "enum": ["OPD", "IPD", "ER"] },
+        "status": { "type": "string", "enum": ["SCHEDULED", "CHECKED_IN", "IN_PROGRESS", "ON_HOLD", "CLOSED", "CANCELLED"] }
       },
-      "required": ["id", "nameAr", "role", "staffId"]
-    },
-    "UnitDailyChecklist": {
-      "title": "UnitDailyChecklist",
-      "description": "Daily unit supervisor audits and answers",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "department": { "type": "string" },
-        "date": { "type": "string" },
-        "completedByStaffName": { "type": "string" },
-        "completedByStaffId": { "type": "string" },
-        "completedAt": { "type": "string" },
-        "status": { "type": "string", "enum": ["completed", "audited"] },
-        "answers": { "type": "object" }
-      },
-      "required": ["id", "department", "date", "completedByStaffId"]
-    },
-    "DailyDutyTask": {
-      "title": "DailyDutyTask",
-      "description": "Standardized list of daily clinical duty tasks",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "department": { "type": "string" },
-        "taskAr": { "type": "string" },
-        "taskEn": { "type": "string" },
-        "categoryAr": { "type": "string" },
-        "categoryEn": { "type": "string" },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "department", "taskAr", "categoryAr"]
-    },
-    "FormTemplate": {
-      "title": "FormTemplate",
-      "description": "Dynamic custom form templates designed by supervisors/IT",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "code": { "type": "string" },
-        "titleAr": { "type": "string" },
-        "titleEn": { "type": "string" },
-        "departmentDefault": { "type": "string" }
-      },
-      "required": ["id", "code", "titleAr", "departmentDefault"]
-    },
-    "DepartmentRoster": {
-      "title": "DepartmentRoster",
-      "description": "Master department rosters of monthly operational plans",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "departmentName": { "type": "string" },
-        "startDate": { "type": "string" },
-        "endDate": { "type": "string" },
-        "rows": { "type": "array" }
-      },
-      "required": ["id", "departmentName", "startDate", "endDate"]
-    },
-    "RosterWish": {
-      "title": "RosterWish",
-      "description": "Staff-submitted shift request preferences",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "dayKey": { "type": "string" },
-        "requestedShift": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
-        "submittedAt": { "type": "string" }
-      },
-      "required": ["id", "employeeId", "dayKey", "requestedShift"]
-    },
-    "Notification": {
-      "title": "Notification",
-      "description": "Real-time user notification queues",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "messageAr": { "type": "string" },
-        "messageEn": { "type": "string" },
-        "timestamp": { "type": "string" },
-        "read": { "type": "boolean" }
-      },
-      "required": ["id", "messageAr", "timestamp", "read"]
-    },
-    "Message": {
-      "title": "Message",
-      "description": "ERP messaging and nurse request communication chats",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "senderId": { "type": "string" },
-        "senderNameAr": { "type": "string" },
-        "content": { "type": "string" },
-        "type": { "type": "string" }
-      },
-      "required": ["senderId", "content", "type"]
-    },
-    "DailyDutyAssignment": {
-      "title": "DailyDutyAssignment",
-      "description": "Staff assigned to the daily duty of a specific department",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "date": { "type": "string" },
-        "department": { "type": "string" },
-        "assignedStaffIds": { "type": "array" },
-        "updatedAt": { "type": "string" }
-      },
-      "required": ["id", "date", "department", "assignedStaffIds"]
-    },
-    "EmergencyTeamAssignment": {
-      "title": "EmergencyTeamAssignment",
-      "description": "Daily supervisor assignments for Code Blue and other emergency teams",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "date": { "type": "string" },
-        "roles": { "type": "object" },
-        "updatedAt": { "type": "string" }
-      },
-      "required": ["id", "date", "roles"]
-    },
-    "Role": {
-      "title": "Role",
-      "description": "Dynamic custom roles in ERP system",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "nameAr": { "type": "string" },
-        "nameEn": { "type": "string" }
-      },
-      "required": ["id", "nameAr", "nameEn"]
-    },
-    "Permission": {
-      "title": "Permission",
-      "description": "Standard app permission values list",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "nameAr": { "type": "string" },
-        "nameEn": { "type": "string" }
-      },
-      "required": ["id", "nameAr", "nameEn"]
-    },
-    "AccessMatrix": {
-      "title": "AccessMatrix",
-      "description": "Dynamic connection of Roles to Permissions with enabled flags",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "roleId": { "type": "string" },
-        "permissionId": { "type": "string" },
-        "enabled": { "type": "boolean" }
-      },
-      "required": ["id", "roleId", "permissionId", "enabled"]
-    },
-    "AuditLog": {
-      "title": "AuditLog",
-      "description": "Administrative changes audits registry",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "action": { "type": "string" },
-        "details": { "type": "string" },
-        "timestamp": { "type": "number" }
-      },
-      "required": ["id", "userId", "action", "timestamp"]
+      "required": ["id", "patient_id", "encounter_type", "status"]
     }
   },
   "firestore": {
-    "hospital_clinical_records": { "schema": "SavedRecord", "description": "Clinical and safety log records" },
-    "hospital_staff_registry": { "schema": "AppUser", "description": "Registry of system clinicians and access attributes" },
-    "hospital_daily_audits": { "schema": "UnitDailyChecklist", "description": "Records of clinical shift safety audits" },
-    "hospital_system_logs": { "schema": "SystemLog", "description": "Technical and access operations history" },
-    "hospital_daily_duty_tasks": { "schema": "DailyDutyTask", "description": "Standardized list of daily clinical duty tasks" },
-    "hospital_custom_templates": { "schema": "FormTemplate", "description": "Dynamic custom form templates" },
-    "hospital_department_rosters": { "schema": "DepartmentRoster", "description": "Master department rosters" },
-    "hospital_roster_wishes": { "schema": "RosterWish", "description": "Staff-submitted shift request preferences" },
-    "hospital_resolved_gaps": { "schema": "object", "description": "Operational adjustments resolving nursing staffing gaps" },
-    "hospital_settings": { "schema": "object", "description": "Static application attributes and authorization matrix data" },
-    "hospital_sentinel_incidents": { "schema": "object", "description": "Hospital sentinel incident reports" },
-    "hospital_cqi_documents": { "schema": "FormTemplate", "description": "Continuous Quality Improvement documents" },
-    "hospital_cqi_ovrs": { "schema": "object", "description": "Quality OVR reports" },
-    "hospital_cqi_staff_evals": { "schema": "object", "description": "Staff clinical evaluations" },
-    "hospital_cqi_unit_inspections": { "schema": "object", "description": "Unit safety inspections" },
-    "hospital_policy_acks": { "schema": "object", "description": "Policy acknowledgment logs" },
-    "hospital_decision_logs": { "schema": "object", "description": "Administrative decision logs" },
-    "hospital_leave_requests": { "schema": "object", "description": "Staff leave and absence requests" },
-    "hospital_admin_requests": { "schema": "object", "description": "Administrative support requests" },
-    "hospital_daily_duties": { "schema": "DailyDutyAssignment", "description": "Daily staff assignments for department duties" },
-    "hospital_daily_emergency_teams": { "schema": "EmergencyTeamAssignment", "description": "Daily emergency team staffings" },
-    "hospital_his_patients": { "schema": "object", "description": "Patient HIS records" },
-    "hospital_his_prescriptions": { "schema": "object", "description": "Medical prescriptions" },
-    "hospital_his_invoices": { "schema": "object", "description": "Financial invoices" },
-    "hospital_periodic_reports": { "schema": "object", "description": "Generated periodic clinical reports" },
-    "hospital_approved_medications": { "schema": "object", "description": "Approved hospital medication list" },
-    "hospital_idc_logs": { "schema": "object", "description": "Infection control daily logs" },
-    "notifications": { "schema": "Notification", "description": "Real-time user notification queues" },
-    "organizationSettings": { "schema": "object", "description": "Main organization configurations" },
-    "roles": { "schema": "Role", "description": "Dynamic custom roles" },
-    "permissions": { "schema": "Permission", "description": "Standard app permission values list" },
-    "access_matrix": { "schema": "AccessMatrix", "description": "Dynamic connection of Roles to Permissions" },
-    "audit_logs": { "schema": "AuditLog", "description": "Administrative changes audits registry" },
-    "messages": { "schema": "Message", "description": "Staff communications" },
-    "hospital_workflow_instances": { "schema": "object", "description": "Active patient visit workflows tracking stages" },
-    "hospital_clinical_notes": { "schema": "object", "description": "SOAP, Progress, and Nursing notes" },
-    "hospital_vital_signs": { "schema": "object", "description": "Patient vital signs records" },
-    "hospital_nursing_assessments": { "schema": "object", "description": "Scales (Braden, Glasgow) and Nursing Care Plans" },
-    "hospital_mar_records": { "schema": "object", "description": "Medication Administration Records" },
-    "hospital_orders": { "schema": "object", "description": "Lab, Radiology, and Medication orders" },
-    "hospital_billing_claims": { "schema": "object", "description": "Insurance claims and patient billing records" },
-    "hospital_icu_records": { "schema": "object", "description": "Ventilator and hemodynamic monitoring data" },
-    "hospital_or_records": { "schema": "object", "description": "Operation Theater records and surgical checklists" },
-    "hospital_inventory_assets": { "schema": "object", "description": "Hospital assets and inventory tracking" },
-    "hospital_tasks": { "schema": "object", "description": "Workflow engine tasks registry" },
-    "hospital_patient_activity": { "schema": "object", "description": "Event-driven patient journey timeline logs" },
-    "nursing_tool_archive": { "schema": "object", "description": "Archive of old clinical tools" },
-    "app_settings": { "schema": "object", "description": "KV settings" }
+    "/patients/{patientId}": {
+      "schema": "Patient",
+      "description": "Patient collection"
+    },
+    "/encounters/{encounterId}": {
+      "schema": "Encounter",
+      "description": "Encounter collection"
+    }
   }
 }

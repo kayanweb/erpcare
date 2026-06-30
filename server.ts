@@ -6,6 +6,7 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
 import { withSupabase } from "@supabase/server";
+import * as firestoreService from "./src/lib/firestoreService";
 
 dotenv.config();
 
@@ -787,6 +788,42 @@ Output text in: ${isAr ? "Arabic" : "English"}.
   // API Route: Health Check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // API Route: Registration & Encounters
+  app.post("/api/v1/patients", async (req, res) => {
+    try {
+      await firestoreService.savePatient(req.body);
+      res.status(201).json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to save patient" });
+    }
+  });
+
+  app.get("/api/v1/patients/search", async (req, res) => {
+    const queryStr = req.query.q as string;
+    // Simple search implementation
+    const patients = await new Promise((resolve) => firestoreService.syncPatients(resolve));
+    const filtered = (patients as any[]).filter(p => p.mrn?.includes(queryStr) || p.national_id?.includes(queryStr) || p.phone_mobile?.includes(queryStr));
+    res.json({ success: true, data: filtered });
+  });
+
+  app.post("/api/v1/encounters", async (req, res) => {
+    try {
+      await firestoreService.saveEncounter(req.body);
+      res.status(201).json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to save encounter" });
+    }
+  });
+
+  app.put("/api/v1/encounters/:id/check-in", async (req, res) => {
+    try {
+      await firestoreService.saveEncounter({ ...req.body, id: req.params.id, status: "CHECKED_IN" });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to check in" });
+    }
   });
 
   // API Route: Update Database Provider Credentials

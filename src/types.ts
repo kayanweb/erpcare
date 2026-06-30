@@ -387,4 +387,57 @@ export interface ICURecord {
 }
 
 
+export interface DBPatientSchema {
+  id: string;
+  mrn: string;
+  national_id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: 'MALE' | 'FEMALE';
+  blood_type?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  phone_mobile: string;
+  phone_home?: string;
+  email?: string;
+  address?: {
+    city: string;
+    district: string;
+    street: string;
+    building: string;
+  };
+  emergency_contact?: {
+    name: string;
+    phone: string;
+    relation: string;
+  };
+  insurance_company_id?: string;
+  insurance_policy_number?: string;
+  insurance_expiry_date?: string;
+  is_active: boolean;
+  created_by?: string;
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBEncounterSchema {
+  id: string;
+  patient_id: string;
+  encounter_type: 'OPD' | 'IPD' | 'ER';
+  status: 'SCHEDULED' | 'CHECKED_IN' | 'IN_PROGRESS' | 'ON_HOLD' | 'CLOSED' | 'CANCELLED';
+  department_id?: string;
+  primary_doctor_id?: string;
+  bed_id?: string;
+  admission_datetime?: string;
+  discharge_datetime?: string;
+  chief_complaint?: string;
+  clinical_notes?: {
+    notes: string;
+    vitals: any;
+    diagnosis: string;
+  };
+  triage_level?: number;
+}
+
+
 

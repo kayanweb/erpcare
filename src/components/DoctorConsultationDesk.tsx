@@ -1269,8 +1269,8 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
 
                         // Chronological sorting: newest first (sequential order indicator)
                         const sorted = [...filtered].sort((a, b) => {
-                          const dateA = new Date(a.recordedAt.replace(/-/g, ' ')).getTime() || 0;
-                          const dateB = new Date(b.recordedAt.replace(/-/g, ' ')).getTime() || 0;
+                          const dateA = new Date(a.recordedAt?.replace(/-/g, ' ') || '').getTime() || 0;
+                          const dateB = new Date(b.recordedAt?.replace(/-/g, ' ') || '').getTime() || 0;
                           return dateB - dateA;
                         });
 

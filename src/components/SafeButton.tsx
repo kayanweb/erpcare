@@ -6,6 +6,8 @@ interface SafeButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
   successMessage?: string;
   errorMessage?: string;
   isAr?: boolean;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export function SafeButton({ 

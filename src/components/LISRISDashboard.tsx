@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Microscope, TestTube, HardDrive, Printer, CheckCircle2, QrCode, FileText, Share2, Search, Zap, Check, AlertCircle } from "lucide-react";
+import { useHIS } from "../context/HISContext";
+import { toast } from "sonner";
 
 interface Props {
   language: "ar" | "en";
@@ -12,6 +14,31 @@ export default function LISRISDashboard({ language }: Props) {
   // States for Lab
   const [labSubTab, setLabSubTab] = useState<"orders" | "catalog" | "results">("orders");
   const [radSubTab, setRadSubTab] = useState<"worklist" | "reporting">("worklist");
+
+  const { patients, updatePatient } = useHIS();
+
+  // Aggregate orders from all patients
+  const allOrders = patients.flatMap(p => 
+    (p.orders || []).map((o: any) => ({ ...o, patientId: p.id, patientName: isAr ? p.nameAr : p.nameEn, patientMrn: p.mrn }))
+  );
+
+  const labOrders = allOrders.filter(o => o.type === "LAB");
+  const radOrders = allOrders.filter(o => o.type === "RAD");
+
+  const pendingLab = labOrders.filter(o => o.status === "Ordered" || o.status === "Pending");
+  const completedLab = labOrders.filter(o => o.status === "Completed");
+
+  const handleUpdateOrderStatus = (patientId: string, orderId: string, newStatus: string) => {
+    const patient = patients.find(p => p.id === patientId);
+    if (!patient || !patient.orders) return;
+    
+    const updatedOrders = patient.orders.map((o: any) => 
+      o.id === orderId ? { ...o, status: newStatus } : o
+    );
+
+    updatePatient(patientId, { orders: updatedOrders });
+    toast.success(isAr ? `تم تحديث الحالة إلى ${newStatus}` : `Order marked as ${newStatus}`);
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-50 font-sans" dir={isAr ? "rtl" : "ltr"}>
@@ -54,10 +81,9 @@ export default function LISRISDashboard({ language }: Props) {
                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row h-[600px]">
                   <div className="w-full md:w-1/3 border-r border-slate-200 bg-slate-50 flex flex-col">
                     <div className="p-3 border-b border-slate-200">
-                      <div className="flex gap-2 text-[10px] font-bold mb-3">
-                         <span className="bg-white px-2 py-1 border border-slate-200 rounded text-purple-600">New (2)</span>
-                         <span className="bg-white px-2 py-1 border border-slate-200 rounded text-amber-600">Pending (3)</span>
-                         <span className="bg-white px-2 py-1 border border-slate-200 rounded text-emerald-600">Completed (10)</span>
+                      <div className="flex gap-2 text-[10px] font-bold mb-3 flex-wrap">
+                         <span className="bg-white px-2 py-1 border border-slate-200 rounded text-amber-600">Pending ({pendingLab.length})</span>
+                         <span className="bg-white px-2 py-1 border border-slate-200 rounded text-emerald-600">Completed ({completedLab.length})</span>
                       </div>
                       <div className="relative">
                         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
@@ -65,38 +91,38 @@ export default function LISRISDashboard({ language }: Props) {
                       </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                       <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-pointer border-l-4 border-l-purple-500">
-                          <div className="flex justify-between items-start mb-1">
-                             <span className="font-bold text-slate-800 text-xs">CBC, Lipid Profile</span>
-                             <span className="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold">New</span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 mb-2">Ahmed Ali (MRN-12345)</div>
-                          <div className="text-[10px] text-slate-400">Ord by: Dr. Hassan • 10:30 AM</div>
-                       </div>
-                       <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300">
-                          <div className="flex justify-between items-start mb-1">
-                             <span className="font-bold text-slate-800 text-xs">Liver Function Test</span>
-                             <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded font-bold">Pending</span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 mb-2">Sara Omar (MRN-12346)</div>
-                          <div className="text-[10px] text-slate-400">Ord by: Dr. Mona • 09:15 AM</div>
-                       </div>
+                       {labOrders.length > 0 ? labOrders.map((order, idx) => (
+                         <div key={idx} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300">
+                            <div className="flex justify-between items-start mb-1">
+                               <span className="font-bold text-slate-800 text-xs">{order.name}</span>
+                               <span className={`text-[9px] px-1 rounded font-bold ${order.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{order.status}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 mb-2">{order.patientName} ({order.patientMrn})</div>
+                            <div className="text-[10px] text-slate-400">Date: {order.date}</div>
+                         </div>
+                       )) : (
+                         <div className="text-center text-xs text-slate-500 p-4">No lab orders found.</div>
+                       )}
                     </div>
                   </div>
                   <div className="flex-1 p-6 flex flex-col items-center justify-center bg-white">
-                     <div className="w-full max-w-md bg-slate-50 border border-slate-200 rounded-xl p-6 shadow-sm">
-                        <h3 className="font-bold text-slate-800 mb-2">Sample Collection</h3>
-                        <p className="text-xs text-slate-500 mb-6">Patient: Ahmed Ali (MRN-12345)<br/>Tests: Complete Blood Count, Lipid Profile</p>
-                        
-                        <div className="flex flex-col gap-3">
-                           <button className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-xs shadow-sm">
-                             <QrCode className="w-4 h-4" /> Print Barcode
-                           </button>
-                           <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-xs shadow-sm">
-                             <CheckCircle2 className="w-4 h-4" /> Mark Collected
-                           </button>
-                        </div>
-                     </div>
+                     {pendingLab.length > 0 ? (
+                       <div className="w-full max-w-md bg-slate-50 border border-slate-200 rounded-xl p-6 shadow-sm">
+                          <h3 className="font-bold text-slate-800 mb-2">Process Sample</h3>
+                          <p className="text-xs text-slate-500 mb-6">Patient: {pendingLab[0].patientName} ({pendingLab[0].patientMrn})<br/>Test: {pendingLab[0].name}</p>
+                          
+                          <div className="flex flex-col gap-3">
+                             <button className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-xs shadow-sm">
+                               <QrCode className="w-4 h-4" /> Print Barcode
+                             </button>
+                             <button onClick={() => handleUpdateOrderStatus(pendingLab[0].patientId, pendingLab[0].id, "Completed")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-xs shadow-sm">
+                               <CheckCircle2 className="w-4 h-4" /> Mark Collected & Completed
+                             </button>
+                          </div>
+                       </div>
+                     ) : (
+                       <div className="text-slate-500 font-bold text-sm">Select an order to process</div>
+                     )}
                   </div>
                </div>
             )}
@@ -106,11 +132,10 @@ export default function LISRISDashboard({ language }: Props) {
                  <div className="flex justify-between items-center mb-6">
                    <div>
                      <h3 className="font-bold text-slate-800">Result Entry: Complete Blood Count</h3>
-                     <p className="text-xs text-slate-500">Patient: Sara Omar | Sample ID: SMP-987654</p>
+                     <p className="text-xs text-slate-500">Select a completed lab order from the left to enter detailed results</p>
                    </div>
                    <div className="flex gap-2">
                      <button className="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-50 flex items-center gap-1"><Printer className="w-3.5 h-3.5"/> Print Result</button>
-                     <button className="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-50 flex items-center gap-1">Save Result</button>
                      <button className="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-purple-700 flex items-center gap-1"><Check className="w-3.5 h-3.5"/> Approve Result</button>
                    </div>
                  </div>
@@ -175,7 +200,7 @@ export default function LISRISDashboard({ language }: Props) {
                       </select>
                    </div>
                  </div>
-                 <table className="w-full text-sm border-collapse">
+                 <table className="w-full text-sm border-collapse" dir={isAr ? "rtl" : "ltr"}>
                     <thead className="bg-slate-50 text-slate-600 border-y border-slate-200">
                       <tr>
                         <th className="py-2 px-4 font-bold text-start">Time</th>
@@ -186,24 +211,23 @@ export default function LISRISDashboard({ language }: Props) {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-xs">
-                      <tr className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-mono">09:00 AM</td>
-                        <td className="py-3 px-4 font-bold">Mona Zaki (MRN-9912)</td>
-                        <td className="py-3 px-4 font-bold text-purple-600">CT</td>
-                        <td className="py-3 px-4">CT Brain W/O Contrast</td>
-                        <td className="py-3 px-4 text-end">
-                           <button className="bg-amber-100 text-amber-700 px-3 py-1 rounded font-bold hover:bg-amber-200 transition">Start Exam</button>
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-mono">10:15 AM</td>
-                        <td className="py-3 px-4 font-bold">Tarek Nour (MRN-8811)</td>
-                        <td className="py-3 px-4 font-bold text-blue-600">X-Ray</td>
-                        <td className="py-3 px-4">Chest X-Ray PA/LAT</td>
-                        <td className="py-3 px-4 text-end">
-                           <button className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded font-bold hover:bg-emerald-200 transition">End Exam</button>
-                        </td>
-                      </tr>
+                      {radOrders.length > 0 ? radOrders.map((order, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="py-3 px-4 font-mono">{order.date}</td>
+                          <td className="py-3 px-4 font-bold">{order.patientName} ({order.patientMrn})</td>
+                          <td className="py-3 px-4 font-bold text-purple-600">RAD</td>
+                          <td className="py-3 px-4">{order.name} <span className={`text-[9px] px-1 rounded ${order.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{order.status}</span></td>
+                          <td className="py-3 px-4 text-end">
+                            {order.status !== 'Completed' && (
+                              <button onClick={() => handleUpdateOrderStatus(order.patientId, order.id, "Completed")} className="bg-amber-100 text-amber-700 px-3 py-1 rounded font-bold hover:bg-amber-200 transition">End Exam</button>
+                            )}
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={5} className="py-4 text-center text-slate-500 font-bold">No radiology orders found.</td>
+                        </tr>
+                      )}
                     </tbody>
                  </table>
               </div>
@@ -214,7 +238,7 @@ export default function LISRISDashboard({ language }: Props) {
                  <div className="flex justify-between items-center mb-4 shrink-0">
                     <div>
                       <h3 className="font-bold text-slate-800 text-sm">Radiology Reporting</h3>
-                      <p className="text-xs text-slate-500">Exam: MRI Lumbar Spine | Patient: Tarek Nour</p>
+                      <p className="text-xs text-slate-500">Select an exam from the worklist to report on.</p>
                     </div>
                     <div className="flex gap-2">
                        <button className="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50 flex items-center gap-1.5"><Share2 className="w-3.5 h-3.5"/> Share PACS Link</button>

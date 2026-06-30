@@ -198,7 +198,15 @@ export default function PatientJourneySimulator({ language }: Props) {
                           messageAr: `المريض أحمد محمد محمود تم تسجيله برقم ${patientId} ومحول لقسم الفرز.`,
                           messageEn: `Patient Ahmad Mohamed Mahmoud registered with MRN ${patientId} and routed to Triage.`,
                           type: "info",
-                          timestamp: new Date().toISOString()
+                          timestamp: new Date().toISOString(),
+                          patientId: patientId,
+                          patientName: isAr ? "أحمد محمد محمود" : "Ahmad Mohamed Mahmoud",
+                          details: {
+                            mrn: { ar: patientId, en: patientId, keyAr: "الرقم الطبي", keyEn: "MRN" },
+                            visitType: { ar: "طوارئ", en: "Emergency", keyAr: "نوع الزيارة", keyEn: "Visit Type" },
+                            priority: { ar: "قيد الفرز", en: "Pending Triage", keyAr: "الأولوية", keyEn: "Priority" },
+                            chiefComplaint: { ar: "ألم بالصدر", en: "Chest Pain", keyAr: "الشكوى الرئيسية", keyEn: "Chief Complaint" }
+                          }
                         }).catch(e => console.error(e));
 
                         setState(s => ({ ...s, registration: { done: true, data: {} } }));
@@ -295,7 +303,14 @@ export default function PatientJourneySimulator({ language }: Props) {
                           messageAr: `المريض أحمد محمد محمود تم فرزه بمستوى خطورة عالي (Level 2 - Emergent) ومحول للطبيب فوراً.`,
                           messageEn: `Patient Ahmad Mohamed Mahmoud triaged as Level 2 (Emergent) and assigned to ER Physician immediately.`,
                           type: "warning",
-                          timestamp: new Date().toISOString()
+                          timestamp: new Date().toISOString(),
+                          patientId: patientId,
+                          patientName: isAr ? "أحمد محمد محمود" : "Ahmad Mohamed Mahmoud",
+                          details: {
+                            mrn: { ar: patientId, en: patientId, keyAr: "الرقم الطبي", keyEn: "MRN" },
+                            vitals: { ar: "ضغط 160/95، نبض 110", en: "BP 160/95, HR 110", keyAr: "العلامات الحيوية", keyEn: "Vitals" },
+                            priority: { ar: "المستوى الثاني", en: "Level 2 - Emergent", keyAr: "الفرز", keyEn: "Triage" }
+                          }
                         }).catch(e => console.error(e));
 
                         setState(s => ({ ...s, triage: { ...s.triage, done: true } }));
@@ -438,7 +453,14 @@ export default function PatientJourneySimulator({ language }: Props) {
                           messageAr: `الطبيب وقع بروتوكول الذبحة الصدرية (Troponin, ECG, Aspirin, NTG) للمريض أحمد محمد محمود.`,
                           messageEn: `ER Physician signed ACS STAT orders (Troponin, ECG, Aspirin, NTG) for patient Ahmad Mohamed Mahmoud.`,
                           type: "info",
-                          timestamp: new Date().toISOString()
+                          timestamp: new Date().toISOString(),
+                          patientId: patientId,
+                          patientName: isAr ? "أحمد محمد محمود" : "Ahmad Mohamed Mahmoud",
+                          details: {
+                            mrn: { ar: patientId, en: patientId, keyAr: "الرقم الطبي", keyEn: "MRN" },
+                            orders: { ar: "Troponin, ECG, Aspirin, NTG", en: "Troponin, ECG, Aspirin, NTG", keyAr: "الطلبات", keyEn: "Orders" },
+                            priority: { ar: "عاجل جداً", en: "STAT", keyAr: "الأولوية", keyEn: "Priority" }
+                          }
                         }).catch(e => console.error(e));
 
                         setState(s => ({ ...s, doctor: { ...s.doctor, done: true, ordersSent: true } }));
@@ -532,7 +554,15 @@ export default function PatientJourneySimulator({ language }: Props) {
                             messageAr: `تحذير: قيمة التروبونين مرتفعة جداً (1.45 ng/mL) للمريض أحمد محمود. احتمال ذبحة صدرية حادة.`,
                             messageEn: `Warning: Troponin I is critically high (1.45 ng/mL) for patient Ahmad Mahmoud. Immediate ACS protocol recommended.`,
                             type: "error",
-                            timestamp: new Date().toISOString()
+                            timestamp: new Date().toISOString(),
+                            patientId: patientId,
+                            patientName: isAr ? "أحمد محمد محمود" : "Ahmad Mohamed Mahmoud",
+                            details: {
+                              mrn: { ar: patientId, en: patientId, keyAr: "الرقم الطبي", keyEn: "MRN" },
+                              test: { ar: "تروبونين آي", en: "Troponin I", keyAr: "التحليل", keyEn: "Test" },
+                              result: { ar: "1.45 ng/mL", en: "1.45 ng/mL", keyAr: "النتيجة", keyEn: "Result" },
+                              status: { ar: "مرتفع جداً", en: "CRITICAL HIGH", keyAr: "الحالة", keyEn: "Status" }
+                            }
                           }).catch(e => console.error(e));
 
                           setState(s => ({ ...s, lab: { ...s.lab, resultsEntered: true } }));
@@ -653,7 +683,14 @@ export default function PatientJourneySimulator({ language }: Props) {
                             messageAr: `تم إعطاء الأسبرين والنيتروجليسرين للمريض أحمد محمد محمود. حالته مستقرة الآن وتم نقله لجناح التنويم الداخلي.`,
                             messageEn: `STAT Aspirin and Nitroglycerin successfully administered. Patient Ahmad Mohamed Mahmoud stabilized and transferred to Inpatient Ward.`,
                             type: "success",
-                            timestamp: new Date().toISOString()
+                            timestamp: new Date().toISOString(),
+                            patientId: patientId,
+                            patientName: isAr ? "أحمد محمد محمود" : "Ahmad Mohamed Mahmoud",
+                            details: {
+                              mrn: { ar: patientId, en: patientId, keyAr: "الرقم الطبي", keyEn: "MRN" },
+                              meds: { ar: "Aspirin, Nitroglycerin", en: "Aspirin, Nitroglycerin", keyAr: "الأدوية المعطاة", keyEn: "Administered Meds" },
+                              status: { ar: "مستقر - محول للتنويم", en: "Stable - Admitted to Ward", keyAr: "الحالة", keyEn: "Status" }
+                            }
                           }).catch(e => console.error(e));
 
                           setState(s => ({ ...s, nursing: { ...s.nursing, done: true } }));

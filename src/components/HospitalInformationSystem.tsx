@@ -6,7 +6,9 @@ import {
   saveHISNotification,
   deleteHISNotification,
   syncHISMessages,
-  saveHISMessage
+  saveHISMessage,
+  clearHISNotifications,
+  clearHISMessages
 } from "../lib/firestoreService";
 import {
   Users,
@@ -58,7 +60,10 @@ import {
   Server,
   Cpu,
   Calculator,
-  Heart
+  Heart,
+  Ambulance,
+  HeartPulse,
+  Building
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -72,9 +77,12 @@ import { SmartFormBuilder } from "./SmartFormBuilder";
 import { WorkflowDashboard } from "./WorkflowDashboard";
 import ExecutiveCommandCenter from "./ExecutiveCommandCenter";
 import IAMDashboard from "./IAMDashboard";
+import MedicalRecordsDashboard from "./MedicalRecordsDashboard";
 import OrganizationDashboard from "./OrganizationDashboard";
 import QualityDashboard from "./QualityDashboard";
 import HospitalOperationsDashboard from "./HospitalOperationsDashboard";
+import BedManagementDashboard from "./BedManagementDashboard";
+import HousekeepingDashboard from "./HousekeepingDashboard";
 import PharmacyDashboard from "./PharmacyDashboard";
 import ERPDashboard from "./ERPDashboard";
 import RevenueCycleDashboard from "./RevenueCycleDashboard";
@@ -83,7 +91,9 @@ import PlatformEnginesDashboard from "./PlatformEnginesDashboard";
 import PatientRegistration from "./PatientRegistration";
 import SpecializedModulesDashboard from "./SpecializedModulesDashboard";
 import EMRDashboard from "./EMRDashboard";
+import DepartmentWorkspace from "./DepartmentWorkspace";
 import WardNurseDashboard from "./WardNurseDashboard";
+import PhysicianWardDashboard from "./PhysicianWardDashboard";
 import OperatingTheaterBoard from "./OperatingTheaterBoard";
 import PharmacyInventory from "./PharmacyInventory";
 import BillingInsurance from "./BillingInsurance";
@@ -136,9 +146,11 @@ import MasterDataDashboard from "./MasterDataDashboard";
 import ClinicalFormsLibrary from "./ClinicalFormsLibrary";
 import PatientJourneySimulator from "./PatientJourneySimulator";
 import ClinicalTimelinesHub from "./ClinicalTimelinesHub";
+import { PatientChartModal } from "./PatientChartModal";
 
 import VitalsDashboard from "./VitalsDashboard";
 import PatientPortalDashboard from "./PatientPortalDashboard";
+import GlobalSettings from "./GlobalSettings";
 
 interface HospitalInformationSystemProps {
   language: "en" | "ar";
@@ -176,6 +188,7 @@ export default function HospitalInformationSystem({
   const [isHISNotificationsOpen, setIsHISNotificationsOpen] = useState(false);
   const [isHISMessagesOpen, setIsHISMessagesOpen] = useState(false);
   const [selectedHISNotification, setSelectedHISNotification] = useState<any>(null);
+  const [selectedHISMessage, setSelectedHISMessage] = useState<any>(null);
 
   const [hisNotifications, setHISNotifications] = useState<any[]>([]);
   const prevNotifsCount = useRef(0);
@@ -183,12 +196,22 @@ export default function HospitalInformationSystem({
   const [hisMessages, setHISMessages] = useState<any[]>([]);
   const [newHISMessageText, setNewHISMessageText] = useState("");
 
+  const [activePatientChart, setActivePatientChart] = useState<{ patientId: string; patientName: string; initialTab?: string } | null>(null);
+
+  useEffect(() => {
+    const handleOpenPatientChart = (e: any) => {
+      setActivePatientChart({ patientId: e.detail.patientId, patientName: e.detail.patientName, initialTab: e.detail.initialTab });
+    };
+    window.addEventListener("openPatientChart", handleOpenPatientChart);
+    return () => window.removeEventListener("openPatientChart", handleOpenPatientChart);
+  }, []);
+
   // Sync HIS-specific real-time Notifications and Messages
   useEffect(() => {
     const unsubNotifs = syncHISNotifications((data) => {
       if (!data) return;
-      // Seed default mock clinical notifications if collection is empty
-      if (data.length === 0) {
+      const cleared = localStorage.getItem("his_notifications_cleared") === "true";
+      if (data.length === 0 && !cleared) {
         const defaultNotifs = [
           {
             id: "notif-001",
@@ -209,7 +232,9 @@ export default function HospitalInformationSystem({
             timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString()
           }
         ];
-        defaultNotifs.forEach(n => saveHISNotification(n));
+        setHISNotifications(defaultNotifs);
+        prevNotifsCount.current = defaultNotifs.length;
+        isInitialLoad.current = false;
       } else {
         const sortedData = [...data].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         
@@ -232,17 +257,23 @@ export default function HospitalInformationSystem({
 
     const unsubMessages = syncHISMessages((data) => {
       if (!data) return;
-      if (data.length === 0) {
+      const cleared = localStorage.getItem("his_messages_cleared") === "true";
+      if (data.length === 0 && !cleared) {
         const defaultMessages = [
           {
             id: "msg-001",
             senderNameAr: "د. سارة",
             senderNameEn: "Dr. Sarah",
             content: "Can you review patient 402? / هل يمكنك مراجعة المريض 402؟",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+            timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+            details: {
+              patientId: { ar: "402", en: "402", keyAr: "رقم المريض", keyEn: "Patient ID" },
+              urgency: { ar: "عادي", en: "Routine", keyAr: "الأولوية", keyEn: "Urgency" },
+              context: { ar: "استشارة طبية", en: "Medical Consult", keyAr: "السياق", keyEn: "Context" }
+            }
           }
         ];
-        defaultMessages.forEach(m => saveHISMessage(m));
+        setHISMessages(defaultMessages);
       } else {
         setHISMessages(data);
       }
@@ -256,6 +287,7 @@ export default function HospitalInformationSystem({
 
   const handleSendHISMessage = async () => {
     if (!newHISMessageText.trim()) return;
+    localStorage.removeItem("his_messages_cleared");
     const msgId = "hismsg-" + Date.now();
     const newMsg = {
       id: msgId,
@@ -269,10 +301,19 @@ export default function HospitalInformationSystem({
   };
 
   const handleClearHISNotifications = async () => {
-    for (const notif of hisNotifications) {
-      await deleteHISNotification(notif.id);
-    }
+    localStorage.setItem("his_notifications_cleared", "true");
+    const idsToClear = hisNotifications.map(n => n.id);
+    setHISNotifications([]);
+    await clearHISNotifications(idsToClear);
     toast.success(isAr ? "تم مسح جميع الإشعارات" : "All notifications cleared");
+  };
+
+  const handleClearHISMessages = async () => {
+    localStorage.setItem("his_messages_cleared", "true");
+    const idsToClear = hisMessages.map(m => m.id);
+    setHISMessages([]);
+    await clearHISMessages(idsToClear);
+    toast.success(isAr ? "تم مسح المحادثات" : "Chats cleared");
   };
 
   const [activeModule, setActiveModule] = useState<string>(() => {
@@ -281,7 +322,9 @@ export default function HospitalInformationSystem({
   const [activeSubTab, setActiveSubTab] = useState<string>(() => {
     return sessionStorage.getItem("hospital_his_activeSubTab") || "opd";
   });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth >= 768 : true;
+  });
 
   useEffect(() => {
     sessionStorage.setItem("hospital_his_activeModule", activeModule);
@@ -367,252 +410,95 @@ export default function HospitalInformationSystem({
       icon: LayoutGrid,
     },
     {
-      id: "adt",
-      labelAr: "التسجيل",
-      labelEn: "Registration",
-      icon: UserCircle,
-      hasChildren: true,
-      subItems: [
-        { id: "adt", labelAr: "تسجيل المرضى", labelEn: "Patient Registration" },
-        {
-          id: "patient_portal",
-          labelAr: "بوابة المريض",
-          labelEn: "Patient Portal",
-        },
-      ],
-    },
-    {
-      id: "appointments",
-      labelAr: "المواعيد",
-      labelEn: "Appointments",
-      icon: CheckSquare,
-      hasChildren: true,
-      subItems: [
-        {
-          id: "appointments",
-          labelAr: "مواعيد العيادات",
-          labelEn: "Clinic Appointments",
-        },
-      ],
-    },
-    {
-      id: "opd",
+      id: "outpatient",
       labelAr: "العيادات الخارجية",
-      labelEn: "OPD",
+      labelEn: "Outpatient Clinics",
       icon: Stethoscope,
       hasChildren: true,
       subItems: [
-        {
-          id: "clinics_list",
-          labelAr: "قائمة العيادات",
-          labelEn: "Clinics List",
-        },
-        { id: "opd", labelAr: "مكتب الطبيب", labelEn: "Doctor Desk" },
-      ],
-    },
-    {
-      id: "ipd",
-      labelAr: "الأقسام الداخلية",
-      labelEn: "Admission (IPD)",
-      icon: BedDouble,
-      hasChildren: true,
-      subItems: [
-        { id: "ipd", labelAr: "إدارة الأجنحة", labelEn: "Ward Management" },
-        {
-          id: "nursing_flow",
-          labelAr: "متابعة التمريض",
-          labelEn: "Nursing Flow",
-        },
+        { id: "dept_opd_im", labelAr: "عيادة الباطنة", labelEn: "Internal Medicine Clinic" },
+        { id: "dept_opd_surg", labelAr: "عيادة الجراحة العامة", labelEn: "General Surgery Clinic" },
+        { id: "dept_opd_peds", labelAr: "عيادة الأطفال", labelEn: "Pediatrics Clinic" },
+        { id: "dept_opd_obgyn", labelAr: "عيادة النساء والولادة", labelEn: "OB/GYN Clinic" },
+        { id: "dept_opd_ortho", labelAr: "عيادة جراحة العظام", labelEn: "Orthopedic Clinic" },
       ],
     },
     {
       id: "er",
       labelAr: "الطوارئ",
-      labelEn: "Emergency (ER)",
-      icon: ActivitySquare,
+      labelEn: "Emergency Dept",
+      icon: Ambulance,
       hasChildren: true,
       subItems: [
-        { id: "er", labelAr: "لوحة الطوارئ", labelEn: "ER Dashboard" },
+        { id: "dept_er_main", labelAr: "الطوارئ الرئيسية", labelEn: "Main ER" },
+        { id: "dept_er_triage", labelAr: "فرز الطوارئ", labelEn: "ER Triage" },
       ],
     },
     {
-      id: "nursing",
-      labelAr: "التمريض",
-      labelEn: "Nursing",
-      icon: Activity,
+      id: "inpatient",
+      labelAr: "الأقسام الداخلية (التنويم)",
+      labelEn: "Inpatient Wards",
+      icon: BedDouble,
       hasChildren: true,
       subItems: [
-        { id: "cno", labelAr: "مدير التمريض", labelEn: "Nursing Director" },
-        {
-          id: "supervisor",
-          labelAr: "مشرف التمريض",
-          labelEn: "Nursing Supervisor",
-        },
-        { id: "vitals", labelAr: "العلامات الحيوية", labelEn: "Vitals Monitor" },
+        { id: "dept_ward_im", labelAr: "الباطنة العامة", labelEn: "Internal Medicine" },
+        { id: "dept_ward_surg", labelAr: "الجراحة العامة", labelEn: "General Surgery" },
+        { id: "dept_ward_ortho", labelAr: "جراحة العظام", labelEn: "Orthopedics" },
+        { id: "dept_ward_peds", labelAr: "طب الأطفال", labelEn: "Pediatrics" },
+        { id: "dept_ward_obgyn", labelAr: "النساء والولادة", labelEn: "Obstetrics & Gynecology" },
       ],
     },
     {
-      id: "specialized",
-      labelAr: "العيادات التخصصية",
-      labelEn: "Specialized",
-      icon: Heart,
+      id: "critical_care",
+      labelAr: "العناية المركزة",
+      labelEn: "Critical Care Units",
+      icon: HeartPulse,
       hasChildren: true,
       subItems: [
-        { id: "specialized_overview", labelAr: "نظرة عامة", labelEn: "Overview" },
-        { id: "icu", labelAr: "العناية المركزة", labelEn: "ICU" },
-        { id: "nicu", labelAr: "الحضانات", labelEn: "NICU" },
-        { id: "pacu", labelAr: "الإفاقة", labelEn: "PACU" },
-        { id: "pt", labelAr: "العلاج الطبيعي", labelEn: "Physiotherapy" },
-        { id: "oncology", labelAr: "الأورام", labelEn: "Oncology" },
+        { id: "dept_icu", labelAr: "العناية المركزة (ICU)", labelEn: "ICU" },
+        { id: "dept_ccu", labelAr: "العناية القلبية (CCU)", labelEn: "CCU" },
+        { id: "dept_nicu", labelAr: "حديثي الولادة (NICU)", labelEn: "NICU" },
+        { id: "dept_picu", labelAr: "عناية الأطفال (PICU)", labelEn: "PICU" },
       ],
     },
     {
-      id: "lis_ris",
-      labelAr: "المختبر",
-      labelEn: "Laboratory",
-      icon: Microscope,
-      hasChildren: true,
-      subItems: [
-        { id: "lis_ris", labelAr: "لوحة المختبر", labelEn: "Lab Dashboard" },
-        { id: "pathology", labelAr: "علم الأمراض", labelEn: "Pathology" },
-      ],
-    },
-    {
-      id: "radiology",
-      labelAr: "الأشعة",
-      labelEn: "Radiology",
-      icon: Network,
-      hasChildren: true,
-      subItems: [
-        {
-          id: "radiology",
-          labelAr: "لوحة الأشعة",
-          labelEn: "Radiology Dashboard",
-        },
-      ],
-    },
-    {
-      id: "pharmacy",
-      labelAr: "الصيدلية",
-      labelEn: "Pharmacy",
-      icon: Pill,
-      hasChildren: true,
-      subItems: [
-        { id: "pharmacy_dash", labelAr: "إدارة الصيدلية", labelEn: "Pharmacy Dash" },
-        { id: "pharmacy", labelAr: "صرف الأدوية", labelEn: "Dispensing" },
-        { id: "inventory", labelAr: "المخزون", labelEn: "Inventory" },
-      ],
-    },
-    {
-      id: "ot",
-      labelAr: "العمليات",
-      labelEn: "Operation Theater",
+      id: "or",
+      labelAr: "العمليات والإفاقة",
+      labelEn: "Operating Rooms",
       icon: Scissors,
       hasChildren: true,
       subItems: [
-        { id: "ot", labelAr: "لوحة العمليات", labelEn: "Operation Board" },
+        { id: "dept_or_main", labelAr: "العمليات الكبرى", labelEn: "Main OR" },
+        { id: "dept_or_pacu", labelAr: "الإفاقة (PACU)", labelEn: "PACU" },
       ],
     },
     {
-      id: "billing",
-      labelAr: "الفوترة (RCM)",
-      labelEn: "Billing (RCM)",
-      icon: Receipt,
+      id: "clinical_services",
+      labelAr: "الخدمات الطبية المساعدة",
+      labelEn: "Clinical Services",
+      icon: FlaskConical,
       hasChildren: true,
       subItems: [
-        { id: "rcm_dashboard", labelAr: "لوحة RCM", labelEn: "RCM Dashboard" },
-        {
-          id: "billing",
-          labelAr: "إدارة الفواتير",
-          labelEn: "Billing Management",
-        },
-        { id: "rcm", labelAr: "المطالبات", labelEn: "Claims" },
+        { id: "pharmacy", labelAr: "الصيدلية", labelEn: "Pharmacy" },
+        { id: "laboratory", labelAr: "المختبر (LIS)", labelEn: "Laboratory (LIS)" },
+        { id: "radiology", labelAr: "الأشعة (RIS)", labelEn: "Radiology (RIS)" },
+        { id: "blood_bank", labelAr: "بنك الدم", labelEn: "Blood Bank" },
       ],
     },
     {
-      id: "cashier",
-      labelAr: "الصندوق",
-      labelEn: "Cashier",
-      icon: CircleDollarSign,
+      id: "admin_support",
+      labelAr: "الإدارة والدعم",
+      labelEn: "Admin & Support",
+      icon: Building,
       hasChildren: true,
       subItems: [
-        { id: "cashier", labelAr: "لوحة الصندوق", labelEn: "Cashier POS" },
-      ],
-    },
-    {
-      id: "reports",
-      labelAr: "التقارير",
-      labelEn: "Reports",
-      icon: TrendingUp,
-      hasChildren: true,
-      subItems: [
-        { id: "reports", labelAr: "التقارير الإحصائية", labelEn: "BI Reports" },
-        { id: "kpi", labelAr: "مؤشرات الأداء", labelEn: "KPIs" },
-        { id: "audit_trail", labelAr: "سجل التدقيق", labelEn: "Audit Trail" },
-      ],
-    },
-    {
-      id: "doc_manager",
-      labelAr: "إدارة المستندات",
-      labelEn: "Document Manager",
-      icon: Upload,
-      hasChildren: false,
-    },
-    {
-      id: "clinical_timelines",
-      labelAr: "التسلسلات والتوقيتات",
-      labelEn: "Sequences & Timings",
-      icon: Clock,
-      hasChildren: false,
-    },
-    {
-      id: "insurance_master",
-      labelAr: "التأمين",
-      labelEn: "Insurance",
-      icon: ShieldAlert,
-      hasChildren: true,
-      subItems: [
-        {
-          id: "insurance_master",
-          labelAr: "إدارة التأمين",
-          labelEn: "Insurance Management",
-        },
-      ],
-    },
-    {
-      id: "hr",
-      labelAr: "الإدارة",
-      labelEn: "Administration",
-      icon: Users,
-      hasChildren: true,
-      subItems: [
-        { id: "hr", labelAr: "الموارد البشرية", labelEn: "HR Dashboard" },
-        { id: "helpdesk", labelAr: "الدعم الفني", labelEn: "Helpdesk" },
-      ],
-    },
-    {
-      id: "sysadmin",
-      labelAr: "إعدادات النظام",
-      labelEn: "System Setup",
-      icon: Settings,
-      hasChildren: true,
-      subItems: [
-        { id: "sysadmin", labelAr: "إدارة النظام", labelEn: "System Admin" },
-        {
-          id: "multi_tenant",
-          labelAr: "الشركات والفروع",
-          labelEn: "Multi-Tenant",
-        },
-        {
-          id: "clinical_forms",
-          labelAr: "النماذج الطبية",
-          labelEn: "Clinical Forms",
-        },
-        {
-          id: "infection_control",
-          labelAr: "مكافحة العدوى",
-          labelEn: "Infection Control",
-        },
+        { id: "adt", labelAr: "التسجيل والدخول", labelEn: "Admission & Registration" },
+        { id: "bed_management", labelAr: "إدارة الأسرة المركزية", labelEn: "Central Bed Management" },
+        { id: "billing", labelAr: "الفوترة (RCM)", labelEn: "Billing & Insurance" },
+        { id: "medical_records", labelAr: "السجلات الطبية (HIM)", labelEn: "Medical Records (HIM)" },
+        { id: "reports", labelAr: "التقارير", labelEn: "Reports" },
+        { id: "clinical_forms", labelAr: "النماذج الطبية", labelEn: "Clinical Forms" },
+        { id: "global_settings", labelAr: "إعدادات النظام الشاملة", labelEn: "Global Settings" },
       ],
     },
   ];
@@ -1838,9 +1724,31 @@ export default function HospitalInformationSystem({
                         {isAr ? selectedHISNotification.titleAr : selectedHISNotification.titleEn}
                       </h2>
                       
-                      <p className="text-sm text-slate-600 leading-relaxed mb-6">
+                      <p className="text-sm text-slate-600 leading-relaxed mb-4">
                         {isAr ? selectedHISNotification.messageAr : selectedHISNotification.messageEn}
                       </p>
+
+                      {selectedHISNotification.details && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 text-xs space-y-2 max-h-56 overflow-y-auto" dir={isAr ? "rtl" : "ltr"}>
+                          <p className="text-[#0a4275] border-b border-slate-200 pb-1 mb-2 font-black text-right text-xs">
+                            {isAr ? "📋 البيانات الطبية والسريرية المسجلة" : "📋 Recorded Medical & Clinical Data"}
+                          </p>
+                          {Object.entries(selectedHISNotification.details).map(([key, val]) => {
+                            let displayKey = key;
+                            let displayVal = val;
+                            if (typeof val === "object" && val !== null) {
+                              displayKey = isAr ? ((val as any).keyAr || key) : ((val as any).keyEn || key);
+                              displayVal = isAr ? ((val as any).ar || "") : ((val as any).en || "");
+                            }
+                            return (
+                              <div key={key} className="flex justify-between items-center gap-2 border-b border-dashed border-slate-200 pb-1 text-right">
+                                <span className="text-slate-500 font-bold">{displayKey}:</span>
+                                <span className="text-slate-800 font-black">{String(displayVal)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                       
                       <button
                         onClick={() => {
@@ -2165,8 +2073,16 @@ export default function HospitalInformationSystem({
                 </div>
                 {isHISMessagesOpen && (
                   <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col">
-                    <div className="p-3 border-b border-slate-100 bg-slate-50 font-bold text-xs text-slate-800">
-                      {isAr ? "محادثات الطاقم الطبي" : "Clinical Team Chats"}
+                    <div className="p-3 border-b border-slate-100 bg-slate-50 font-bold text-xs text-slate-800 flex justify-between items-center">
+                      <span>{isAr ? "محادثات الطاقم الطبي" : "Clinical Team Chats"}</span>
+                      {hisMessages.length > 0 && (
+                        <button
+                          onClick={handleClearHISMessages}
+                          className="text-[10px] text-rose-500 hover:underline font-semibold"
+                        >
+                          {isAr ? "مسح الكل" : "Clear All"}
+                        </button>
+                      )}
                     </div>
                     <div className="max-h-56 overflow-y-auto p-2 space-y-2 bg-slate-50 flex flex-col">
                       {hisMessages.length === 0 ? (
@@ -2175,7 +2091,11 @@ export default function HospitalInformationSystem({
                         </div>
                       ) : (
                         hisMessages.map((msg) => (
-                          <div key={msg.id} className="p-2 bg-white rounded-lg border border-slate-100 shadow-2xs">
+                          <div 
+                            key={msg.id} 
+                            onClick={() => setSelectedHISMessage(msg)}
+                            className="p-2 bg-white rounded-lg border border-slate-100 shadow-2xs cursor-pointer hover:bg-slate-50 transition-colors"
+                          >
                             <div className="flex justify-between items-center text-[10px] font-semibold text-[#0a4275] mb-0.5">
                               <span>{isAr ? msg.senderNameAr : msg.senderNameEn}</span>
                               <span className="text-[8px] text-slate-400">
@@ -2283,6 +2203,19 @@ export default function HospitalInformationSystem({
                   : "min-h-full"
               }
             >
+              {activeSubTab.startsWith("dept_") && (
+                <DepartmentWorkspace
+                  language={language}
+                  departmentId={activeSubTab}
+                  departmentName={
+                    systemModules
+                      .flatMap((m) => m.subItems || [])
+                      .find((s) => s.id === activeSubTab)?.[
+                      isAr ? "labelAr" : "labelEn"
+                    ] || activeSubTab
+                  }
+                />
+              )}
               {activeSubTab === "gate_reception" && (
                 <GateReceptionDashboard language={language} departments={departments} />
               )}
@@ -2323,8 +2256,8 @@ export default function HospitalInformationSystem({
                 <MortuaryDashboard language={language} />
               )}
               {activeSubTab === "hr" && <HRDashboard language={language} />}
-              {activeSubTab === "sysadmin" && (
-                <SystemAdminDashboard language={language} systemUsers={systemUsers || []} departments={departments} />
+              {activeSubTab === "global_settings" && (
+                <GlobalSettings language={language} />
               )}
               {activeSubTab === "multi_tenant" && (
                 <MultiTenantDashboard language={language} />
@@ -2334,6 +2267,12 @@ export default function HospitalInformationSystem({
               )}
               {activeSubTab === "helpdesk" && (
                 <HelpdeskDashboard language={language} />
+              )}
+              {activeSubTab === "mr_dashboard" && (
+                <MedicalRecordsDashboard />
+              )}
+              {activeSubTab === "coding" && (
+                <MedicalRecordsDashboard />
               )}
               {activeSubTab === "reports" && (
                 <ReportsBIDashboard language={language} />
@@ -2368,7 +2307,10 @@ export default function HospitalInformationSystem({
                 <EMRDashboard language={language} currentUser={currentUser} onNavigate={(subTab) => handleSubTabClick("ipd", subTab)} />
               )}
               {activeSubTab === "ipd" && (
-                <HeadNurseDashboard language={language} currentUser={currentUser} onNavigate={handleSmartNavigate} />
+                <WardNurseDashboard language={language} />
+              )}
+              {activeSubTab === "physician_ward" && (
+                <PhysicianWardDashboard language={language} />
               )}
               {activeSubTab === "ot" && (
                 <OperatingTheaterBoard language={language} />
@@ -2440,6 +2382,8 @@ export default function HospitalInformationSystem({
               
               {/* NEW CORE MODULES */}
               {activeSubTab === "ai_brain" && <AiHospitalBrain language={language} />}
+              {activeSubTab === "bed_management" && <BedManagementDashboard />}
+              {activeSubTab === "housekeeping" && <HousekeepingDashboard />}
               {activeSubTab === "doc_manager" && <DocumentManager patientId="TEST-001" language={language} />}
               {activeSubTab === "queue_mgmt" && <QueueManagement department="General OPD" language={language} />}
               {activeSubTab === "form_builder" && <SmartFormBuilder language={language} />}
@@ -2448,6 +2392,164 @@ export default function HospitalInformationSystem({
           </AnimatePresence>
         </div>
       </div>
+      
+      {/* Notification Details Modal */}
+      <AnimatePresence>
+        {selectedHISNotification && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100"
+              dir={isAr ? "rtl" : "ltr"}
+            >
+              <div className={`p-4 ${selectedHISNotification.type === 'error' ? 'bg-rose-50' : selectedHISNotification.type === 'success' ? 'bg-emerald-50' : selectedHISNotification.type === 'warning' ? 'bg-amber-50' : 'bg-blue-50'} border-b flex justify-between items-start`}>
+                <div>
+                  <h3 className={`font-bold ${selectedHISNotification.type === 'error' ? 'text-rose-900' : selectedHISNotification.type === 'success' ? 'text-emerald-900' : selectedHISNotification.type === 'warning' ? 'text-amber-900' : 'text-blue-900'}`}>
+                    {isAr ? selectedHISNotification.titleAr : selectedHISNotification.titleEn}
+                  </h3>
+                  <div className="text-xs opacity-70 mt-1">
+                    {new Date(selectedHISNotification.timestamp).toLocaleString(isAr ? 'ar-EG' : 'en-US')}
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSelectedHISNotification(null)}
+                  className="p-1 rounded-full hover:bg-black/5 text-slate-500 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              
+              <div className="p-5">
+                <p className="text-slate-800 text-sm leading-relaxed mb-6 font-medium">
+                  {isAr ? selectedHISNotification.messageAr : selectedHISNotification.messageEn}
+                </p>
+
+                {selectedHISNotification.details && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      {isAr ? "التفاصيل" : "Details"}
+                    </h4>
+                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-2">
+                      {Object.entries(selectedHISNotification.details).map(([k, v]: [string, any]) => (
+                        <div key={k} className="flex justify-between items-center text-sm">
+                          <span className="text-slate-500">{isAr ? v.keyAr : v.keyEn}</span>
+                          <span className="font-semibold text-slate-800">{isAr ? v.ar : v.en}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-6 flex justify-end gap-2">
+                  <button 
+                    onClick={() => {
+                      deleteHISNotification(selectedHISNotification.id);
+                      setSelectedHISNotification(null);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                  >
+                    {isAr ? "حذف الإشعار" : "Delete Notification"}
+                  </button>
+                  <button 
+                    onClick={() => setSelectedHISNotification(null)}
+                    className="px-4 py-2 text-sm font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors shadow-md"
+                  >
+                    {isAr ? "إغلاق" : "Close"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Message Details Modal */}
+      <AnimatePresence>
+        {selectedHISMessage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100"
+              dir={isAr ? "rtl" : "ltr"}
+            >
+              <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-start">
+                <div>
+                  <h3 className="font-bold text-indigo-900">
+                    {isAr ? "رسالة من:" : "Message from:"} {isAr ? selectedHISMessage.senderNameAr : selectedHISMessage.senderNameEn}
+                  </h3>
+                  <div className="text-xs text-indigo-700/70 mt-1">
+                    {new Date(selectedHISMessage.timestamp).toLocaleString(isAr ? 'ar-EG' : 'en-US')}
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSelectedHISMessage(null)}
+                  className="p-1 rounded-full hover:bg-indigo-900/10 text-indigo-500 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              
+              <div className="p-5">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
+                  <p className="text-slate-800 text-sm leading-relaxed font-medium whitespace-pre-wrap">
+                    {selectedHISMessage.content}
+                  </p>
+                </div>
+
+                {selectedHISMessage.details && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      {isAr ? "معلومات إضافية" : "Additional Info"}
+                    </h4>
+                    <div className="bg-white rounded-xl p-3 border border-slate-200 space-y-2">
+                      {Object.entries(selectedHISMessage.details).map(([k, v]: [string, any]) => (
+                        <div key={k} className="flex justify-between items-center text-sm">
+                          <span className="text-slate-500">{isAr ? v.keyAr : v.keyEn}</span>
+                          <span className="font-semibold text-slate-800">{isAr ? v.ar : v.en}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-6 flex justify-end gap-2">
+                  <button 
+                    onClick={() => setSelectedHISMessage(null)}
+                    className="px-4 py-2 text-sm font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
+                  >
+                    {isAr ? "إغلاق" : "Close"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {activePatientChart && (
+        <PatientChartModal
+          patientId={activePatientChart.patientId}
+          patientName={activePatientChart.patientName}
+          isAr={isAr}
+          onClose={() => setActivePatientChart(null)}
+          initialTab={activePatientChart.initialTab}
+        />
+      )}
+
       <GenericActionModal />
     </div>
   );

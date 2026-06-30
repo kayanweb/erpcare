@@ -1,6 +1,30 @@
 import { doc, setDoc, collection, getDocs, query, limit } from "firebase/firestore";
 import { db } from "../firebase";
 import { Patient } from "../types";
+import { MOCK_USERS } from "../App";
+
+export async function seedSystemUsers() {
+  const q = query(collection(db, "users"), limit(1));
+  const snapshot = await getDocs(q);
+  
+  // If there are some users, we might still be missing some.
+  // A better check is if we have at least as many as MOCK_USERS.
+  const allUsersSnap = await getDocs(collection(db, "users"));
+  if (allUsersSnap.size >= MOCK_USERS.length) return; // Already fully seeded
+  
+  console.log("Seeding system users (missing ones)...");
+  const existingIds = new Set(allUsersSnap.docs.map(d => d.id));
+  
+  for (const user of MOCK_USERS) {
+    if (existingIds.has(user.id)) continue;
+    try {
+      await setDoc(doc(db, "users", user.id), user);
+    } catch (e) {
+      console.error("Failed to seed user", user.id, e);
+    }
+  }
+  console.log("🔥 System users seeded.");
+}
 
 export async function seedInitialPatients() {
   const q = query(collection(db, "hospital_his_patients"), limit(1));

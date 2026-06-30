@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, getDoc, setDoc } from "../lib/firestoreService";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 interface Settings {
   institutionNameAr: string;

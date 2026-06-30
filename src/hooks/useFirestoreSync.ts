@@ -20,7 +20,28 @@ export function useFirestoreSync<T>(
       return;
     }
     const unsubscribe = syncFnRef.current((newData) => {
-      setData(newData);
+      console.log("DEBUG useFirestoreSync newData:", newData?.length, "initialData:", initialData?.length);
+      // If newData is somehow strictly empty, we MUST fallback to initialData to avoid breaking the app.
+      // Additionally, we merge missing initialData items by ID to guarantee mock fallbacks are always present.
+      if (newData && Array.isArray(newData)) {
+        if (newData.length === 0 && initialData && initialData.length > 0) {
+          console.log("DEBUG useFirestoreSync: using initialData because newData is empty");
+          setData(initialData);
+        } else if (initialData && initialData.length > 0) {
+          // Merge missing mock items to ensure essential records (like admin user) are never lost
+          const existingIds = new Set(newData.map((d: any) => d.id));
+          const missingMocks = initialData.filter((d: any) => !existingIds.has(d.id));
+          if (missingMocks.length > 0) {
+            setData([...newData, ...missingMocks]);
+          } else {
+            setData(newData);
+          }
+        } else {
+          setData(newData);
+        }
+      } else {
+        setData(newData);
+      }
       setIsLoaded(true);
     });
     return () => unsubscribe();

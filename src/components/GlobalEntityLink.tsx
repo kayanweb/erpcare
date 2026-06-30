@@ -27,6 +27,17 @@ export function GlobalEntityLink({
     // Or we can dispatch a navigation event if we had one.
     
     // We'll show a toast and open the EntityDetailModal via the GenericActionModal system or similar
+    if (entityType === "patient") {
+      toast.success(isAr ? `جاري فتح ملف المريض: ${entityName}` : `Opening Patient Chart: ${entityName}`);
+      window.dispatchEvent(new CustomEvent("openPatientChart", {
+        detail: {
+          patientId: entityId,
+          patientName: entityName,
+        }
+      }));
+      return;
+    }
+
     toast.success(isAr ? `جاري فتح ملف: ${entityName}` : `Opening Profile: ${entityName}`);
     
     window.dispatchEvent(new CustomEvent("openGenericModal", {

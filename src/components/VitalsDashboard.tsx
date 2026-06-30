@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Activity, Plus, Search, Thermometer, Gauge, Droplets, Eye } from "lucide-react";
+import { Activity, Plus, Search, Thermometer, Gauge, Eye, Droplets } from "lucide-react";
 import { toast } from "sonner";
-import { collection, onSnapshot, query, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
-import { handleFirestoreError, OperationType } from "../lib/firebaseUtils";
+import { firestoreService } from "../lib/firestoreService";
+import { VitalSigns } from "../types";
 import { EntityDetailModal } from "./EntityDetailModal";
 import { GlobalEntityLink } from "./GlobalEntityLink";
 import { NewVitalsModal } from "./NewVitalsModal";
@@ -15,31 +14,30 @@ interface Props {
 export default function VitalsDashboard({ language }: Props) {
   const isAr = language === "ar";
   const [searchTerm, setSearchTerm] = useState("");
-  const [vitalsData, setVitalsData] = useState<any[]>([]);
-  const [selectedEntity, setSelectedEntity] = useState<any>(null);
+  const [vitalsData, setVitalsData] = useState<VitalSigns[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEntity, setSelectedEntity] = useState<any>(null);
 
   useEffect(() => {
-    const q = query(collection(db, "hospital_system_vitals"));
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setVitalsData(data);
-      },
-      (error) => handleFirestoreError(error, OperationType.LIST, "hospital_system_vitals")
-    );
-    return () => unsubscribe();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const data = await firestoreService.getAll<VitalSigns>(firestoreService.collections.vitals);
+      setVitalsData(data);
+    } catch (e) {
+      toast.error("Failed to load vitals");
+    }
+  };
 
   const handleSaveVitals = async (data: any) => {
     try {
-        await addDoc(collection(db, "hospital_system_vitals"), {
-            ...data,
-            createdAt: serverTimestamp(),
-        });
+        await firestoreService.add(firestoreService.collections.vitals, data);
         toast.success(isAr ? "تم حفظ العلامات الحيوية!" : "Vitals saved successfully!");
+        loadData();
     } catch (error) {
-        handleFirestoreError(error, OperationType.CREATE, "hospital_system_vitals");
+        toast.error(isAr ? "حدث خطأ أثناء الحفظ" : "Error saving vitals");
     }
   };
 
@@ -85,7 +83,7 @@ export default function VitalsDashboard({ language }: Props) {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-4">{isAr ? "المريض" : "Patient"}</th>
+                <th className="px-6 py-4">{isAr ? "المريض / ملف" : "Patient / MRN"}</th>
                 <th className="px-6 py-4"><Thermometer className="w-4 h-4 inline" /> {isAr ? "الحرارة" : "Temp"}</th>
                 <th className="px-6 py-4"><Gauge className="w-4 h-4 inline" /> {isAr ? "الضغط" : "BP"}</th>
                 <th className="px-6 py-4"><Activity className="w-4 h-4 inline" /> {isAr ? "النبض" : "HR"}</th>
@@ -97,14 +95,19 @@ export default function VitalsDashboard({ language }: Props) {
             <tbody className="divide-y divide-slate-100">
               {filteredData.map((row) => (
                 <tr key={row.id} className="hover:bg-slate-50/80 transition group">
-                  <td className="px-6 py-4 font-bold text-slate-800">
-                    <GlobalEntityLink entityName={row.patientName} entityId={row.patientId} entityType="patient" className="text-slate-800 hover:text-indigo-600" isAr={isAr} />
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-slate-800">
+                        <GlobalEntityLink entityName={row.patientName} entityId={row.patientMRN} entityType="patient" className="text-slate-800 hover:text-indigo-600" isAr={isAr} />
+                    </div>
+                    <div className="text-xs text-slate-500 font-mono">#{row.patientMRN}</div>
                   </td>
                   <td className="px-6 py-4 text-slate-600">{row.temp}°C</td>
                   <td className="px-6 py-4 text-slate-600">{row.bp}</td>
                   <td className="px-6 py-4 text-slate-600">{row.hr}</td>
                   <td className="px-6 py-4 text-slate-600">{row.spo2}%</td>
-                  <td className="px-6 py-4 text-slate-600">{row.date}</td>
+                  <td className="px-6 py-4 text-slate-600 text-xs">
+                    {row.createdAt?.toDate ? row.createdAt.toDate().toLocaleString() : 'N/A'}
+                  </td>
                   <td className="px-6 py-4 flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => setSelectedEntity(row)} className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition" title="View Details">
                       <Eye className="w-4 h-4" />

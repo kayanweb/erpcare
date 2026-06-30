@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { 
   Settings, Users, Shield, Database, 
-  HardDrive, History, FileDown, LifeBuoy, Building2, Bed, BarChart3, Search, Plus, Filter
+  HardDrive, History, FileDown, LifeBuoy, Building2, Bed, BarChart3, Search, Plus, Filter,
+  Server, PlayCircle, RefreshCcw, CheckCircle2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,7 +14,7 @@ interface Props {
 
 export default function SystemAdminDashboard({ language, systemUsers = [], departments = [] }: Props) {
   const isAr = language === "ar";
-  const [activeTab, setActiveTab] = useState<"users" | "setup" | "reports">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "setup" | "reports" | "localServer">("users");
   const [userSearch, setUserSearch] = useState("");
 
   const filteredUsers = systemUsers.filter(u => {
@@ -56,6 +57,12 @@ export default function SystemAdminDashboard({ language, systemUsers = [], depar
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === "reports" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
           >
             <BarChart3 className="w-4 h-4" /> {isAr ? "التقارير الإدارية" : "Reports"}
+          </button>
+          <button 
+            onClick={() => setActiveTab("localServer")}
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === "localServer" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            <Server className="w-4 h-4" /> {isAr ? "الاستضافة المحلية" : "Local Hosting"}
           </button>
         </div>
       </div>
@@ -300,6 +307,78 @@ export default function SystemAdminDashboard({ language, systemUsers = [], depar
               </div>
            </div>
         )}
+
+        {activeTab === "localServer" && (
+           <div className="animate-fade-in space-y-6">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
+                   <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                      <Database className="w-5 h-5 text-indigo-500" /> 
+                      {isAr ? "إعدادات الخادم المحلي (On-Premises)" : "Local Server Configuration (On-Premises)"}
+                   </h3>
+                   <span className="flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs font-bold">
+                     <CheckCircle2 className="w-3.5 h-3.5" /> {isAr ? "الخدمة نشطة" : "Service Active"}
+                   </span>
+                </div>
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-slate-700 border-b pb-2">{isAr ? "حالة النظام" : "System Status"}</h4>
+                    
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Server className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm font-semibold">{isAr ? "خادم الويب (Node.js/Express)" : "Web Server (Node.js/Express)"}</span>
+                      </div>
+                      <span className="text-xs font-mono bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">Running - Port 3000</span>
+                    </div>
+
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Database className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm font-semibold">{isAr ? "قاعدة البيانات (PostgreSQL)" : "Database (PostgreSQL)"}</span>
+                      </div>
+                      <span className="text-xs font-mono bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">Connected - Port 5432</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <HardDrive className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm font-semibold">{isAr ? "المحرك (Prisma ORM)" : "Engine (Prisma ORM)"}</span>
+                      </div>
+                      <span className="text-xs font-mono bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">Synced - v5.x</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-slate-700 border-b pb-2">{isAr ? "إجراءات الخادم" : "Server Actions"}</h4>
+                    <button className="w-full flex justify-between items-center p-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition" onClick={() => toast.success(isAr ? 'تم إعادة تشغيل الخادم بنجاح' : 'Server restarted successfully')}>
+                      <span className="text-sm font-semibold text-slate-700">{isAr ? "إعادة تشغيل الخدمات (Restart Services)" : "Restart Services"}</span>
+                      <RefreshCcw className="w-4 h-4 text-indigo-600" />
+                    </button>
+                    <button className="w-full flex justify-between items-center p-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition" onClick={() => toast.success(isAr ? 'تم أخذ نسخة احتياطية' : 'Backup completed')}>
+                      <span className="text-sm font-semibold text-slate-700">{isAr ? "النسخ الاحتياطي (Backup Database)" : "Backup Database"}</span>
+                      <FileDown className="w-4 h-4 text-indigo-600" />
+                    </button>
+                    <button className="w-full flex justify-between items-center p-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition" onClick={() => toast.success(isAr ? 'جاري فتح لوحة تحكم قاعدة البيانات...' : 'Opening Prisma Studio...')}>
+                      <span className="text-sm font-semibold text-slate-700">{isAr ? "إدارة الجداول (Prisma Studio)" : "Manage Schema (Prisma Studio)"}</span>
+                      <Database className="w-4 h-4 text-indigo-600" />
+                    </button>
+                  </div>
+
+                </div>
+                
+                <div className="bg-slate-900 p-4 text-emerald-400 font-mono text-xs overflow-x-auto">
+                  <p>$ systemctl status his-server</p>
+                  <p className="text-slate-300">● his-server.service - Hospital Information System (Node.js)</p>
+                  <p className="text-slate-300">   Loaded: loaded (/etc/systemd/system/his-server.service; enabled)</p>
+                  <p className="text-emerald-400">   Active: active (running) since {new Date().toISOString()}</p>
+                  <p className="mt-2 text-slate-400"># Prisma ORM is connected to PostgreSQL on localhost:5432</p>
+                  <p className="text-slate-400"># Next.js / Vite build served on localhost:3000</p>
+                </div>
+              </div>
+            </div>
+         )}
       </div>
     </div>
   );

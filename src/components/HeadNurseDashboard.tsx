@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, ClipboardList, Database, Clock, CalendarCheck, ShieldCheck, CheckSquare, PlusCircle, Activity, BedDouble, ArrowRightLeft, FileWarning, Search, ShieldAlert } from "lucide-react";
+import { User, ClipboardList, Database, Clock, CalendarCheck, ShieldCheck, CheckSquare, PlusCircle, Activity, BedDouble, ArrowRightLeft, FileWarning, Search, ShieldAlert, AlertTriangle } from "lucide-react";
 import SmartNotificationCenter from "./SmartNotificationCenter";
 
 interface Props {
@@ -33,7 +33,7 @@ export default function HeadNurseDashboard({ language, currentUser, onNavigate }
             className={`px-3 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === "handover" ? "bg-white text-pink-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
           >
             <ClipboardList className="w-4 h-4" />
-            {isAr ? "تسليم الشفت (Kardex)" : "Shift Handover"}
+            {isAr ? "ملخص الشفت" : "Shift Summary"}
           </button>
           <button 
             onClick={() => setActiveTab("assignment")}
@@ -78,104 +78,59 @@ export default function HeadNurseDashboard({ language, currentUser, onNavigate }
         {/* Main Content */}
         <div className="flex-1 space-y-6 overflow-hidden">
           {activeTab === "handover" && (
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-fade-in flex flex-col lg:flex-row gap-6">
-              <div className="flex-1 space-y-4">
-                <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
-                   <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                     <ClipboardList className="w-5 h-5 text-indigo-500" />
-                     {isAr ? "السجل الرقمي لتسليم الحالات (Digital Kardex)" : "Digital Clinical Handover"}
-                   </h3>
-                   <div className="flex gap-2">
-                      <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded text-[10px] font-bold">فلترة حسب السرير</button>
-                      <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded text-[10px] font-bold">حالات حرجة فقط</button>
-                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                   <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden hover:border-slate-300 transition">
-                      <div className="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-100">
-                        <div className="flex items-center gap-3">
-                           <div className="bg-rose-100 text-rose-700 font-black text-sm w-10 h-10 flex flex-col items-center justify-center rounded-lg border border-rose-200 shadow-sm font-mono leading-tight">
-                              <span className="text-[8px]">Bed</span>
-                              <span>4</span>
-                           </div>
-                           <div>
-                              <h4 className="font-bold text-sm text-slate-900">محمود السيد عبد الله <span className="text-[10px] text-slate-500 font-mono">| MRN: #340912</span></h4>
-                              <p className="text-[10px] font-bold text-slate-500 mt-0.5">Dx: Sepsis / Pneumonia | Dr. Kamal Ali</p>
-                           </div>
-                        </div>
-                        <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 animate-pulse">
-                           <Activity className="w-3 h-3"/> حرج / غير مستقر (Critical)
-                        </span>
-                      </div>
-                      <div className="p-4 bg-white">
-                         <p className="text-xs text-slate-700 leading-relaxed font-semibold">
-                           المريض يعاني من انخفاض الضغط (Hypotension). تم البدء في نقل كيس بلازما وسيستمر في الشفت المسائي. يرجى مراقبة CVP باستمرار للحفاظ عليه فوق 8.
-                           مراجعة معمل الـ Hemoglobin بمجرد ظهوره وإبلاغ الطبيب لو أقل من 7.
-                         </p>
-                         <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[10px] text-slate-500 font-bold">
-                           <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-indigo-500" /> تم التسجيل منذ 45 دقيقة بواسطة: أحمد العتوم (Morning Shift)</div>
-                           <button className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 w-full sm:w-auto justify-center">إضافة تحديث <PlusCircle className="w-3 h-3"/></button>
-                         </div>
-                      </div>
-                   </div>
-
-                   <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden hover:border-slate-300 transition">
-                      <div className="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-100">
-                        <div className="flex items-center gap-3">
-                           <div className="bg-amber-100 text-amber-700 font-black text-sm w-10 h-10 flex flex-col items-center justify-center rounded-lg border border-amber-200 shadow-sm font-mono leading-tight">
-                              <span className="text-[8px]">Bed</span>
-                              <span>2</span>
-                           </div>
-                           <div>
-                              <h4 className="font-bold text-sm text-slate-900">سعاد علي إبراهيم <span className="text-[10px] text-slate-500 font-mono">| MRN: #882110</span></h4>
-                              <p className="text-[10px] font-bold text-slate-500 mt-0.5">Dx: Appendicitis | Dr. Samir Hashem</p>
-                           </div>
-                        </div>
-                        <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-[10px] font-bold">
-                           بانتظار عملية (Pre-Op)
-                        </span>
-                      </div>
-                      <div className="p-4 bg-white">
-                         <p className="text-xs text-slate-700 leading-relaxed font-semibold">
-                           NPO صيام المريضة من 12 منتصف الليل. جاهزة للعمليات (استئصال الزائدة) الساعة 8 صباحاً غداً.
-                           تم الانتهاء من حلاقة منطقة الجراحة وتجهيز ملف الإقرار الطبي موقع وموجود بالملف.
-                         </p>
-                         <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[10px] text-slate-500 font-bold">
-                           <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-indigo-500" /> تم التسجيل بواسطة: سالمة محمد (Morning Shift)</div>
-                           <button className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 w-full sm:w-auto justify-center">إضافة تحديث <PlusCircle className="w-3 h-3"/></button>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-              </div>
-              
-              <div className="w-full lg:w-[320px] bg-slate-900 rounded-2xl p-6 text-white shrink-0 self-start shadow-xl border border-slate-700 max-h-max border-t-4 border-t-pink-500">
-                 <h3 className="font-black text-sm mb-4 flex items-center gap-2">
-                   <FileWarning className="w-5 h-5 text-amber-400" />
-                   {isAr ? "ملاحظات الشفت العام للتسليم" : "General Shift Handover Notes"}
-                 </h3>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-fade-in flex flex-col gap-6">
+              <div className="flex-1 space-y-6">
+                 <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                        <ClipboardList className="w-6 h-6 text-pink-500" />
+                        {isAr ? "ملخص وملاحظات القسم (Ward Shift Summary)" : "Ward Shift Summary"}
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1 font-medium">
+                        {isAr ? "الإعلانات، الأحداث، النواقص، وتحديثات القسم العامة." : "General ward announcements, incidents, equipment issues, and updates."}
+                      </p>
+                    </div>
+                 </div>
                  
-                 <div className="space-y-4">
-                   <div>
-                     <label className="text-[10px] text-slate-400 font-bold block mb-1">حوادث الشفت (OVR / Code)</label>
-                     <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500" placeholder="لا يوجد حوادث..." />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="space-y-2">
+                     <label className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                       <FileWarning className="w-4 h-4 text-amber-500" /> {isAr ? "أحداث هامة (Incidents / Code)" : "Important Incidents"}
+                     </label>
+                     <textarea 
+                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-pink-500 outline-none" 
+                       rows={4} 
+                       placeholder={isAr ? "سجل أي أحداث طارئة أو حالات Code..." : "Record any emergencies or codes..."}
+                     ></textarea>
                    </div>
-                   <div>
-                     <label className="text-[10px] text-slate-400 font-bold block mb-1">أجهزة معطلة أو نواقص</label>
-                     <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500" placeholder="جهاز ضغط غرفة 2 معطل، تم إرساله للصيانة..." />
+                   
+                   <div className="space-y-2">
+                     <label className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                       <AlertTriangle className="w-4 h-4 text-rose-500" /> {isAr ? "أعطال الأجهزة والنواقص" : "Equipment Issues & Shortages"}
+                     </label>
+                     <textarea 
+                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-pink-500 outline-none" 
+                       rows={4} 
+                       placeholder={isAr ? "مثال: جهاز رسم القلب في غرفة 204 معطل..." : "e.g., ECG machine in room 204 is broken..."}
+                     ></textarea>
                    </div>
-                   <div>
-                     <label className="text-[10px] text-slate-400 font-bold block mb-1">توجيهات الشفت القادم الرئيسية</label>
-                     <textarea className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-xs text-white placeholder-slate-500 h-24 focus:outline-none focus:border-pink-500" placeholder={isAr ? "توجيهات عامة للقسم..." : "General shift instructions..."}></textarea>
+                   
+                   <div className="space-y-2 md:col-span-2">
+                     <label className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                       <ClipboardList className="w-4 h-4 text-pink-500" /> {isAr ? "إعلانات إدارية (Ward Announcements)" : "Ward Announcements"}
+                     </label>
+                     <textarea 
+                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-pink-500 outline-none" 
+                       rows={4} 
+                       placeholder={isAr ? "أي تعليمات من الإدارة أو تحديثات للقسم..." : "Management instructions or ward updates..."}
+                     ></textarea>
                    </div>
                  </div>
-
-                 <div className="mt-6 pt-4 border-t border-slate-700">
-                   <p className="text-[10px] text-slate-400 text-center mb-3">يوقع التمريض على التسليم باستخدام البصمة الرقمية للتوثيق الإلزامي.</p>
-                   <button className="w-full bg-pink-600 hover:bg-pink-700 text-white font-black py-3 rounded-xl text-xs transition flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(219,39,119,0.5)]">
-                     <ShieldCheck className="w-4 h-4"/>
-                     {isAr ? "إغلاق وتوقيع تسليم الشفت" : "Sign & Lock Complete Handover"}
+                 
+                 <div className="flex justify-end pt-4 border-t border-slate-100 mt-6">
+                   <button className="bg-pink-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-pink-700 transition shadow-md flex items-center gap-2">
+                     <ShieldCheck className="w-5 h-5"/>
+                     {isAr ? "اعتماد ملخص القسم (Sign Shift Summary)" : "Sign Ward Shift Summary"}
                    </button>
                  </div>
               </div>

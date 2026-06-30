@@ -21,6 +21,7 @@ export type Patient = {
   phone: string;
   status: "registered" | "triage" | "doctor" | "ward" | "discharged";
   insurance: string;
+  [key: string]: any; // Allow dynamic clinical data
 };
 
 export type Prescription = {
@@ -86,7 +87,11 @@ export function HISProvider({ children }: { children: ReactNode }) {
   const updatePatient = (id: string, updates: Partial<Patient>) => {
     const patient = patients.find(p => p.id === id);
     if (patient) {
-      firestoreSavePatient({ ...patient, ...updates }).catch(err => console.error("Cloud patient save error:", err));
+      // Check if something actually changed
+      const hasChanged = Object.keys(updates).some(key => patient[key] !== updates[key]);
+      if (hasChanged) {
+        firestoreSavePatient({ ...patient, ...updates }).catch(err => console.error("Cloud patient save error:", err));
+      }
     }
   };
 
@@ -96,7 +101,7 @@ export function HISProvider({ children }: { children: ReactNode }) {
 
   const updatePatientStatus = (id: string, status: Patient["status"]) => {
     const patient = patients.find(p => p.id === id);
-    if (patient) {
+    if (patient && patient.status !== status) {
       firestoreSavePatient({ ...patient, status }).catch(err => console.error("Cloud patient save error:", err));
       
       // Dispatch real-time Firestore notification
@@ -108,7 +113,14 @@ export function HISProvider({ children }: { children: ReactNode }) {
           messageAr: `تم نقل المريض ${patient.nameAr} لجناح التنويم الداخلي. بانتظار استلام سرير الكاردكس.`,
           messageEn: `Patient ${patient.nameEn} has been transferred to Inpatient Ward. Pending Bed assignment.`,
           type: "info",
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          patientId: patient.id,
+          patientName: patient.nameAr,
+          details: {
+            mrn: { ar: patient.id, en: patient.id, keyAr: "الرقم الطبي", keyEn: "MRN" },
+            name: { ar: patient.nameAr, en: patient.nameEn, keyAr: "الاسم", keyEn: "Name" },
+            status: { ar: "مطلوب نقل", en: "Transfer Requested", keyAr: "الحالة", keyEn: "Status" }
+          }
         }).catch(err => console.error("Cloud notification save error:", err));
       } else if (status === "discharged") {
         saveHISNotification({
@@ -118,7 +130,14 @@ export function HISProvider({ children }: { children: ReactNode }) {
           messageAr: `المريض: ${patient.nameAr} - تم إكمال إجراءات الخروج الطبية بنجاح.`,
           messageEn: `Patient: ${patient.nameEn} - Medical discharge completed successfully.`,
           type: "success",
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          patientId: patient.id,
+          patientName: patient.nameAr,
+          details: {
+            mrn: { ar: patient.id, en: patient.id, keyAr: "الرقم الطبي", keyEn: "MRN" },
+            name: { ar: patient.nameAr, en: patient.nameEn, keyAr: "الاسم", keyEn: "Name" },
+            status: { ar: "تم الخروج", en: "Discharged", keyAr: "الحالة", keyEn: "Status" }
+          }
         }).catch(err => console.error("Cloud notification save error:", err));
       }
     }
@@ -130,7 +149,7 @@ export function HISProvider({ children }: { children: ReactNode }) {
   
   const updatePrescriptionStatus = (id: string, status: Prescription["status"]) => {
     const prescription = prescriptions.find(p => p.id === id);
-    if (prescription) {
+    if (prescription && prescription.status !== status) {
       firestoreSavePrescription({ ...prescription, status }).catch(err => console.error("Cloud prescription save error:", err));
     }
   };
@@ -141,7 +160,7 @@ export function HISProvider({ children }: { children: ReactNode }) {
   
   const updateInvoiceStatus = (id: string, status: Invoice["status"]) => {
     const invoice = invoices.find(inv => inv.id === id);
-    if (invoice) {
+    if (invoice && invoice.status !== status) {
         firestoreSaveInvoice({ ...invoice, status }).catch(err => console.error("Cloud invoice save error:", err));
     }
   };
