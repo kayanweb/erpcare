@@ -73,6 +73,7 @@ export const DocumentManager: React.FC<Props> = ({ patientId, language }) => {
   const isAr = language === "ar";
   const [docs, setDocs] = useState<PatientDocument[]>(MOCK_DOCS);
   const [isUploading, setIsUploading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = () => {
@@ -143,6 +144,8 @@ export const DocumentManager: React.FC<Props> = ({ patientId, language }) => {
            <Search className={`absolute ${isAr ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400`} />
            <input 
              type="text" 
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
              placeholder={isAr ? "بحث في الملفات..." : "Search documents..."}
              className={`w-full py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold ${isAr ? "pr-10" : "pl-10"} focus:ring-2 focus:ring-indigo-500 outline-none`}
            />
@@ -161,7 +164,16 @@ export const DocumentManager: React.FC<Props> = ({ patientId, language }) => {
       {/* Document List */}
       <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {docs.map(doc => (
+          {docs.filter(doc => {
+            const q = searchTerm.toLowerCase().trim();
+            if (!q) return true;
+            return (
+              doc.name.toLowerCase().includes(q) ||
+              doc.id.toLowerCase().includes(q) ||
+              doc.category.toLowerCase().includes(q) ||
+              doc.uploadedBy.toLowerCase().includes(q)
+            );
+          }).map(doc => (
             <div key={doc.id} className="group bg-white p-5 rounded-3xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-50 transition-all cursor-pointer relative">
                <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">

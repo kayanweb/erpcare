@@ -14,6 +14,7 @@ export default function LISRISDashboard({ language }: Props) {
   // States for Lab
   const [labSubTab, setLabSubTab] = useState<"orders" | "catalog" | "results">("orders");
   const [radSubTab, setRadSubTab] = useState<"worklist" | "reporting">("worklist");
+  const [labSearchTerm, setLabSearchTerm] = useState("");
 
   const { patients, updatePatient } = useHIS();
 
@@ -24,6 +25,16 @@ export default function LISRISDashboard({ language }: Props) {
 
   const labOrders = allOrders.filter(o => o.type === "LAB");
   const radOrders = allOrders.filter(o => o.type === "RAD");
+
+  const filteredLabOrders = labOrders.filter(order => {
+    const q = labSearchTerm.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      (order.name && order.name.toLowerCase().includes(q)) ||
+      (order.patientName && order.patientName.toLowerCase().includes(q)) ||
+      (order.patientMrn && order.patientMrn.toLowerCase().includes(q))
+    );
+  });
 
   const pendingLab = labOrders.filter(o => o.status === "Ordered" || o.status === "Pending");
   const completedLab = labOrders.filter(o => o.status === "Completed");
@@ -87,11 +98,17 @@ export default function LISRISDashboard({ language }: Props) {
                       </div>
                       <div className="relative">
                         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
-                        <input type="text" placeholder="Search orders..." className="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-slate-200 outline-none focus:border-purple-500" />
+                        <input 
+                          type="text" 
+                          placeholder="Search orders..." 
+                          value={labSearchTerm}
+                          onChange={(e) => setLabSearchTerm(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-slate-200 outline-none focus:border-purple-500" 
+                        />
                       </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                       {labOrders.length > 0 ? labOrders.map((order, idx) => (
+                       {filteredLabOrders.length > 0 ? filteredLabOrders.map((order, idx) => (
                          <div key={idx} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300">
                             <div className="flex justify-between items-start mb-1">
                                <span className="font-bold text-slate-800 text-xs">{order.name}</span>

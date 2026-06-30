@@ -13,6 +13,7 @@ interface Props {
 export default function RadiologyDashboard({ language }: Props) {
   const isAr = language === "ar";
   const [activeTab, setActiveTab] = useState<"orders" | "pacs">("orders");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [orders, setOrders] = useState([
     { id: "RAD-882", patient: "Ahmed Youssef", type: "MRI Brain", priority: "Urgent", status: "Pending", time: "10:30 AM" },
@@ -64,7 +65,13 @@ export default function RadiologyDashboard({ language }: Props) {
                </div>
                <div className="relative w-full sm:w-auto">
                   <Search className={`w-4 h-4 text-slate-400 absolute top-2.5 ${isAr ? "right-3" : "left-3"}`} />
-                  <input type="text" placeholder={isAr ? "بحث في الطلبات..." : "Search orders..."} className={`w-full sm:w-64 border border-slate-200 rounded-lg py-2 focus:border-indigo-500 outline-none text-sm ${isAr ? "pr-9 pl-3" : "pl-9 pr-3"}`} />
+                  <input 
+                    type="text" 
+                    placeholder={isAr ? "بحث في الطلبات..." : "Search orders..."} 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={`w-full sm:w-64 border border-slate-200 rounded-lg py-2 focus:border-indigo-500 outline-none text-sm ${isAr ? "pr-9 pl-3" : "pl-9 pr-3"}`} 
+                  />
                </div>
             </div>
 
@@ -81,7 +88,12 @@ export default function RadiologyDashboard({ language }: Props) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {orders.map((order, idx) => (
+                  {orders.filter(order => 
+                    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    order.patient.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    order.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    order.priority.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map((order, idx) => (
                     <tr key={idx} className="hover:bg-slate-50 transition">
                       <td className="px-4 py-3 font-mono text-slate-600">{order.id}</td>
                       <td className="px-4 py-3 font-bold text-slate-800">{order.patient}</td>

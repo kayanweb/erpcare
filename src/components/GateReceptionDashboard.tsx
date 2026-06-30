@@ -24,6 +24,7 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
     { id: "P-4402", name: "Omar Hassan", clinic: departments[0] || "Cardiology", apptTime: "12:00 PM", status: "Arrived" },
     { id: "P-4415", name: "Laila Mahmoud", clinic: departments[1] || "Pediatrics", apptTime: "12:30 PM", status: "Waiting" },
   ]);
+  const [patientSearch, setPatientSearch] = useState("");
 
   const [isVisitorModalOpen, setIsVisitorModalOpen] = useState(false);
   const [visitorForm, setVisitorForm] = useState({ name: "", destination: "" });
@@ -161,7 +162,13 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
                 </h3>
                 <div className="relative">
                   <Search className={`w-4 h-4 text-slate-400 absolute top-2.5 ${isAr ? "right-3" : "left-3"}`} />
-                  <input type="text" placeholder={isAr ? "بحث عن مريض..." : "Search patient..."} className={`pl-9 pr-9 py-2 border border-slate-200 rounded-lg text-sm w-64 focus:border-indigo-500 outline-none ${isAr ? "pr-9 pl-3" : "pl-9 pr-3"}`} />
+                  <input 
+                    type="text" 
+                    placeholder={isAr ? "بحث عن مريض..." : "Search patient..."} 
+                    value={patientSearch}
+                    onChange={(e) => setPatientSearch(e.target.value)}
+                    className={`pl-9 pr-9 py-2 border border-slate-200 rounded-lg text-sm w-64 focus:border-indigo-500 outline-none ${isAr ? "pr-9 pl-3" : "pl-9 pr-3"}`} 
+                  />
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -177,7 +184,11 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {patients.map(p => (
+                    {patients.filter(p => 
+                      p.name.toLowerCase().includes(patientSearch.toLowerCase()) ||
+                      p.id.toLowerCase().includes(patientSearch.toLowerCase()) ||
+                      p.clinic.toLowerCase().includes(patientSearch.toLowerCase())
+                    ).map(p => (
                       <tr key={p.id} className="hover:bg-slate-50 transition">
                         <td className="px-4 py-3 font-mono text-slate-600">{p.id}</td>
                         <td className="px-4 py-3 font-bold text-slate-800">{p.name}</td>

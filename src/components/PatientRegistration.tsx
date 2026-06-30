@@ -24,6 +24,8 @@ export default function PatientRegistration({ language, departments = [] }: Prop
   const [gender, setGender] = useState("male");
   const [isSaving, setIsSaving] = useState(false);
   const [editingPatientId, setEditingPatientId] = useState<string | null>(null);
+  const [directorySearchQuery, setDirectorySearchQuery] = useState("");
+  const [aptSearchQuery, setAptSearchQuery] = useState("");
 
   const handleRegister = async () => {
     if (!firstName || !phone) {
@@ -121,10 +123,20 @@ export default function PatientRegistration({ language, departments = [] }: Prop
       <div className="space-y-6">
         {activeSubTab === "directory" && (
            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
-             <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+             <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                <h3 className="font-black text-slate-800 flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-500" /> {isAr ? "سجل المرضى المسجلين" : "Registered Patients Directory"}
                </h3>
+               <div className="relative w-full sm:w-64">
+                 <Search className={`w-4 h-4 text-slate-400 absolute top-2.5 ${isAr ? "right-3" : "left-3"}`} />
+                 <input 
+                   type="text" 
+                   value={directorySearchQuery} 
+                   onChange={(e) => setDirectorySearchQuery(e.target.value)} 
+                   placeholder={isAr ? "بحث بالاسم، الهوية، الهاتف، الملف..." : "Search by name, ID, phone, MRN..."} 
+                   className={`w-full bg-white border border-slate-250 rounded-xl py-1.5 text-xs outline-none focus:border-indigo-500 font-bold ${isAr ? "pr-9 pl-3 text-right" : "pl-9 pr-3 text-left"}`} 
+                 />
+               </div>
              </div>
              <table className="w-full text-sm text-left" dir={isAr ? "rtl" : "ltr"}>
                 <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
@@ -138,7 +150,17 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {patients.map(p => (
+                  {patients.filter(p => {
+                    const q = directorySearchQuery.toLowerCase().trim();
+                    if (!q) return true;
+                    return (
+                      (p.mrn && p.mrn.toLowerCase().includes(q)) ||
+                      (p.nameAr && p.nameAr.toLowerCase().includes(q)) ||
+                      (p.nameEn && p.nameEn.toLowerCase().includes(q)) ||
+                      (p.phone && p.phone.toLowerCase().includes(q)) ||
+                      (p.nationalId && p.nationalId.toLowerCase().includes(q))
+                    );
+                  }).map(p => (
                     <tr key={p.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 font-mono font-bold text-slate-500">
                         <GlobalEntityLink entityName={p.mrn} entityId={p.id} entityType="patient" isAr={isAr} />
@@ -403,7 +425,13 @@ export default function PatientRegistration({ language, departments = [] }: Prop
              <div className="flex flex-col md:flex-row gap-4 items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex flex-1 items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 max-w-xl w-full">
                   <Search className="w-5 h-5 text-slate-400 ml-2" />
-                  <input type="text" placeholder={isAr ? "بحث برقم الملف، التليفون، واسم الطبيب" : "Search by MRN, Phone, Doctor Name..."} className="bg-transparent border-none outline-none text-sm w-full" />
+                  <input 
+                    type="text" 
+                    value={aptSearchQuery}
+                    onChange={(e) => setAptSearchQuery(e.target.value)}
+                    placeholder={isAr ? "بحث برقم الملف، الهاتف، المريض، الطبيب..." : "Search by MRN, phone, patient, doctor..."} 
+                    className="bg-transparent border-none outline-none text-sm w-full" 
+                  />
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
                   <input type="date" defaultValue={new Date().toISOString().split('T')[0]} className="bg-white border border-slate-300 rounded-lg p-2 text-sm outline-none" />
@@ -421,10 +449,34 @@ export default function PatientRegistration({ language, departments = [] }: Prop
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-               {['09:00 AM', '09:15 AM', '09:30 AM', '09:45 AM', '10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM'].map((time, idx) => {
-                 let status = "available";
-                 if (idx === 1 || idx === 3) status = "booked";
-                 if (idx === 4) status = "pending";
+               {[
+                  { time: '09:00 AM', status: 'available', mrn: '', patientName: '', doctorName: '', phone: '' },
+                  { time: '09:15 AM', status: 'booked', mrn: 'MRN-2026-0012', patientName: isAr ? 'عمر عبد العزيز محمود' : 'Omar Abdelaziz', doctorName: isAr ? 'د. خالد عبد الرحمن' : 'Dr. Khaled Abdelrahman', phone: '0501234567' },
+                  { time: '09:30 AM', status: 'available', mrn: '', patientName: '', doctorName: '', phone: '' },
+                  { time: '09:45 AM', status: 'booked', mrn: 'MRN-2026-0055', patientName: isAr ? 'أحمد علي حسن' : 'Ahmed Ali Hassan', doctorName: isAr ? 'د. منى العتيبي' : 'Dr. Mona Al-Otaibi', phone: '0557654321' },
+                  { time: '10:00 AM', status: 'pending', mrn: 'MRN-2026-0044', patientName: isAr ? 'سعاد محمد السيد' : 'Soad Mohamed', doctorName: isAr ? 'د. عادل الشريف' : 'Dr. Adel Al-Sherif', phone: '0543210987' },
+                  { time: '10:15 AM', status: 'available', mrn: '', patientName: '', doctorName: '', phone: '' },
+                  { time: '10:30 AM', status: 'available', mrn: '', patientName: '', doctorName: '', phone: '' },
+                  { time: '10:45 AM', status: 'available', mrn: '', patientName: '', doctorName: '', phone: '' }
+                ].filter(slot => {
+                  const q = aptSearchQuery.toLowerCase().trim();
+                  if (!q) return true;
+                  return (
+                    slot.time.toLowerCase().includes(q) ||
+                    slot.mrn.toLowerCase().includes(q) ||
+                    slot.patientName.toLowerCase().includes(q) ||
+                    slot.doctorName.toLowerCase().includes(q) ||
+                    slot.phone.includes(q)
+                  );
+                }).map((slot) => {
+                  const time = slot.time;
+                  const status = slot.status;
+                  const idx = 0;
+                  const isMockActive = true;
+                  if (isMockActive) {
+                    // Overrides
+                  }
+
 
                  const statusColors = {
                    available: "bg-emerald-50 border-emerald-200 hover:border-emerald-400",
@@ -445,13 +497,15 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                      </div>
                      {status === 'booked' ? (
                         <div className="text-xs">
-                          <p className="font-bold text-slate-800">MRN-2026-0012</p>
-                          <p className="text-slate-600">عمر عبد العزيز محمود</p>
+                          <p className="font-bold text-slate-800">{slot.mrn}</p>
+                          <p className="text-slate-600">{slot.patientName}</p>
+                           <p className="text-[10px] text-indigo-600 font-bold mt-1">{slot.doctorName}</p>
                         </div>
                      ) : status === 'pending' ? (
                         <div className="text-xs">
-                          <p className="font-bold text-slate-800">MRN-2026-0044</p>
-                          <p className="text-slate-600">سعاد محمد السيد</p>
+                          <p className="font-bold text-slate-800">{slot.mrn}</p>
+                          <p className="text-slate-600">{slot.patientName}</p>
+                           <p className="text-[10px] text-indigo-600 font-bold mt-1">{slot.doctorName}</p>
                         </div>
                      ) : (
                         <button className="mt-2 w-full bg-white border border-slate-300 text-slate-600 text-[10px] font-bold py-1.5 rounded hover:bg-slate-50 transition">
