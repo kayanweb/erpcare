@@ -76,7 +76,7 @@ export default function GenericActionModal() {
 
   useEffect(() => {
     const handleOpen = (e: any) => {
-      const { titleAr, titleEn, type, payload } = e.detail || {};
+      const { titleAr, titleEn, type, payload, entityId } = e.detail || {};
       setConfig({
         titleAr: titleAr || "",
         titleEn: titleEn || "",
@@ -86,6 +86,10 @@ export default function GenericActionModal() {
       setIsOpen(true);
       setFormData({});
       setIsAr(document.dir === "rtl");
+
+      if (entityId) {
+        setClinicalPatientId(entityId);
+      }
 
       // Auto detect and set appropriate tab based on title keywords
       const titleLower = (titleEn + " " + titleAr).toLowerCase();
@@ -436,7 +440,7 @@ export default function GenericActionModal() {
   const currentPatientInsurance = currentPatientObj?.insurance || "Cash";
 
   return (
-    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[99999] flex items-center justify-center p-2 sm:p-4 transition-all duration-300" dir={isAr ? "rtl" : "ltr"}>
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[9999999] flex items-center justify-center p-2 sm:p-4 transition-all duration-300" dir={isAr ? "rtl" : "ltr"}>
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 flex flex-col h-[90vh] sm:h-[80vh] md:h-[75vh]">
         
         {/* Header Banner */}

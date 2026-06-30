@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { 
   Printer, Share2, MoreHorizontal, AlertTriangle, UserPlus, FileText, Beaker, Zap, Pill, 
   Calendar, CheckCircle2, ChevronRight, Download, Activity, HeartPulse, Droplets, Thermometer,
-  Wind, Scale, Search, Clock, Plus, ArrowRight, Trash2, Save, X, Check, Eye, History
+  Wind, Scale, Search, Clock, Plus, ArrowRight, Trash2, Save, X, Check, Eye, History,
+  ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useHIS } from "../context/HISContext";
@@ -120,6 +121,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
   const { patients, updatePatientStatus, updatePatient, prescriptions, addPrescription } = useHIS();
   const queuePatients = patients.filter(p => p.status !== "discharged");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [isQueueCollapsed, setIsQueueCollapsed] = useState(true);
 
   // Set first active patient if none selected
   useEffect(() => {
@@ -2270,20 +2272,41 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
       </div>
       
       {/* Patient Queue Bottom Bar */}
-      <div className="bg-white border-t border-slate-200 shrink-0 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]">
-        <div className="flex items-center gap-4 px-4 py-3 border-b border-slate-100">
-          <h3 className="text-sm font-bold text-blue-800 shrink-0">{isAr ? "قائمة انتظار العيادة" : "Patient Queue"}</h3>
-          <div className="flex gap-4 overflow-x-auto custom-scrollbar">
-            {["All", "Waiting", "With Doctor", "Completed"].map((q, i) => (
-              <button key={i} className={`text-xs font-bold whitespace-nowrap ${i === 0 ? "text-blue-600 border-b-2 border-blue-600 pb-1" : "text-slate-500 pb-1"}`}>
-                {isAr ? (
-                  q === "All" ? "الكل" :
-                  q === "Waiting" ? "في الانتظار" :
-                  q === "With Doctor" ? "عند الطبيب" : "مكتمل"
-                ) : q} {i === 0 ? `(${queuePatients.length})` : ""}
-              </button>
-            ))}
+      <div className="bg-white border-t border-slate-200 shrink-0 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] transition-all duration-300">
+        <div className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-slate-100 flex-wrap sm:flex-nowrap gap-2">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-black text-blue-800 shrink-0">{isAr ? "قائمة انتظار العيادة" : "Patient Queue"}</h3>
+            <button 
+              onClick={() => setIsQueueCollapsed(!isQueueCollapsed)}
+              className="flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer"
+            >
+              {isQueueCollapsed ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5 text-blue-600" />
+                  <span>{isAr ? "إظهار قائمة المرضى" : "Show Queue List"}</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{isAr ? "إخفاء قائمة المرضى" : "Hide Queue List"}</span>
+                </>
+              )}
+            </button>
           </div>
+
+          {!isQueueCollapsed && (
+            <div className="flex gap-4 overflow-x-auto custom-scrollbar">
+              {["All", "Waiting", "With Doctor", "Completed"].map((q, i) => (
+                <button key={i} className={`text-xs font-bold whitespace-nowrap ${i === 0 ? "text-blue-600 border-b-2 border-blue-600 pb-1" : "text-slate-500 pb-1"}`}>
+                  {isAr ? (
+                    q === "All" ? "الكل" :
+                    q === "Waiting" ? "في الانتظار" :
+                    q === "With Doctor" ? "عند الطبيب" : "مكتمل"
+                  ) : q} {i === 0 ? `(${queuePatients.length})` : ""}
+                </button>
+              ))}
+            </div>
+          )}
           
           <button 
             onClick={() => {
@@ -2294,39 +2317,41 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
                 toast.info(isAr ? "تم الانتقال للمريض التالي" : "Switched to next patient");
               }
             }} 
-            className="ml-auto bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shrink-0 hover:bg-blue-700"
+            className="ml-auto sm:ml-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
           >
             {isAr ? "المريض التالي" : "Next Patient"} <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
         
-        <div className="flex gap-4 p-3 overflow-x-auto custom-scrollbar bg-slate-50/50">
-          {queuePatients.length === 0 ? (
-            <div className="text-xs text-slate-500 p-2">{isAr ? "لا يوجد مرضى في الانتظار" : "No patients in queue."}</div>
-          ) : (
-            queuePatients.map((p, idx) => (
-              <div 
-                key={p.id} 
-                onClick={() => setSelectedPatientId(p.id)}
-                className={`bg-white rounded-xl p-2 w-64 shrink-0 transition-colors cursor-pointer relative ${selectedPatientId === p.id ? 'border-2 border-amber-300 shadow-sm' : 'border border-slate-200 hover:border-blue-300'}`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] font-bold text-slate-500">{isAr ? `دور #${idx + 1}` : `Queue #${idx + 1}`}</div>
-                  <div className="text-[10px] font-bold text-amber-600 font-mono">{p.mrn}</div>
+        {!isQueueCollapsed && (
+          <div className="flex gap-4 p-3 overflow-x-auto custom-scrollbar bg-slate-50/50">
+            {queuePatients.length === 0 ? (
+              <div className="text-xs text-slate-500 p-2">{isAr ? "لا يوجد مرضى في الانتظار" : "No patients in queue."}</div>
+            ) : (
+              queuePatients.map((p, idx) => (
+                <div 
+                  key={p.id} 
+                  onClick={() => setSelectedPatientId(p.id)}
+                  className={`bg-white rounded-xl p-2 w-64 shrink-0 transition-colors cursor-pointer relative ${selectedPatientId === p.id ? 'border-2 border-amber-300 shadow-sm' : 'border border-slate-200 hover:border-blue-300'}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[10px] font-bold text-slate-500">{isAr ? `دور #${idx + 1}` : `Queue #${idx + 1}`}</div>
+                    <div className="text-[10px] font-bold text-amber-600 font-mono">{p.mrn}</div>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <img src={`https://i.pravatar.cc/150?u=${p.id}`} className="w-8 h-8 rounded-full shadow-xs" alt="pic" referrerPolicy="no-referrer" />
+                    <div className="text-xs font-bold text-slate-800 truncate flex-1">{isAr ? p.nameAr : p.nameEn}</div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${p.status === 'doctor' ? 'text-amber-700 bg-amber-100' : 'text-emerald-700 bg-emerald-100'}`}>
+                      {p.status === 'doctor' ? (isAr ? "عند الطبيب" : "With Doctor") : (isAr ? "مسجل" : "Registered")}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <img src={`https://i.pravatar.cc/150?u=${p.id}`} className="w-8 h-8 rounded-full shadow-xs" alt="pic" referrerPolicy="no-referrer" />
-                  <div className="text-xs font-bold text-slate-800 truncate flex-1">{isAr ? p.nameAr : p.nameEn}</div>
-                </div>
-                <div className="text-right">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${p.status === 'doctor' ? 'text-amber-700 bg-amber-100' : 'text-emerald-700 bg-emerald-100'}`}>
-                    {p.status === 'doctor' ? (isAr ? "عند الطبيب" : "With Doctor") : (isAr ? "مسجل" : "Registered")}
-                  </span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {/* 1. Modal: Edit Vitals */}

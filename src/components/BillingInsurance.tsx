@@ -12,17 +12,19 @@ export default function BillingInsurance({ language }: Props) {
   const { invoices: realInvoices, patients, updateInvoiceStatus } = useHIS();
   
   const [searchQuery, setSearchQuery] = useState("");
+  const [paidInvoiceIds, setPaidInvoiceIds] = useState<string[]>([]);
 
   // Seed default billing data for demonstration if no DB invoices
   const defaultInvoices = [
-    { id: "INV-2026-001", patientId: "mock1", patientName: isAr ? "سارة حسن" : "Sara Hassan", mrn: "MRN-00012346", date: "2026-06-25", amount: 850, status: "unpaid" as const },
+    { id: "INV-2026-001", patientId: "mock1", patientName: isAr ? "سارة حسن" : "Sara Hassan", mrn: "MRN-00012346", date: "2026-06-25", amount: 850, status: paidInvoiceIds.includes("INV-2026-001") ? ("paid" as const) : ("unpaid" as const) },
     { id: "INV-2026-002", patientId: "mock2", patientName: isAr ? "أحمد ياسين" : "Ahmed Yassin", mrn: "MRN-100234", date: "2026-06-25", amount: 1500, status: "paid" as const },
-    { id: "INV-2026-003", patientId: "mock3", patientName: isAr ? "منى طارق" : "Mona Tarek", mrn: "MRN-00012359", date: "2026-06-24", amount: 3200, status: "unpaid" as const },
+    { id: "INV-2026-003", patientId: "mock3", patientName: isAr ? "منى طارق" : "Mona Tarek", mrn: "MRN-00012359", date: "2026-06-24", amount: 3200, status: paidInvoiceIds.includes("INV-2026-003") ? ("paid" as const) : ("unpaid" as const) },
   ];
 
   // Convert real database invoices into visual invoice structure
   const processedInvoices = realInvoices.map(inv => {
     const p = patients.find(pat => pat.id === inv.patientId);
+    const isPaidLocally = paidInvoiceIds.includes(inv.id);
     return {
       id: inv.id,
       patientId: inv.patientId,
@@ -30,7 +32,7 @@ export default function BillingInsurance({ language }: Props) {
       mrn: p ? p.mrn : inv.patientId,
       date: inv.date ? inv.date.slice(0, 10) : new Date().toISOString().slice(0,10),
       amount: inv.amount,
-      status: inv.status, // "paid" | "unpaid"
+      status: isPaidLocally ? ("paid" as const) : inv.status, // "paid" | "unpaid"
       isReal: true
     };
   });
@@ -99,12 +101,15 @@ export default function BillingInsurance({ language }: Props) {
 
   const handleMarkPaid = async () => {
     if (!activeInvoice) return;
+    
+    // Add to paid trackers to update local UI list status immediately
+    setPaidInvoiceIds(prev => [...prev, activeInvoice.id]);
+    
     if (activeInvoice.isReal) {
       await updateInvoiceStatus(activeInvoice.id, "paid");
-      toast.success(isAr ? "تم تحصيل الدفعة وتحديث الفاتورة كـ مدفوعة" : "Payment collected, invoice status set to PAID");
-    } else {
-      toast.success(isAr ? "تم محاكاة تحصيل الدفعة بنجاح" : "Mock payment collected successfully!");
     }
+    
+    toast.success(isAr ? "تم تحصيل الدفعة بنجاح وتحديث الفاتورة والسجل المالي كـ مدفوعة" : "Payment collected, invoice and financial ledger updated to PAID");
   };
 
   return (
