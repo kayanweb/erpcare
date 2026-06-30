@@ -29,6 +29,51 @@ var import_vite = require("vite");
 var import_genai = require("@google/genai");
 var import_dotenv = __toESM(require("dotenv"), 1);
 var import_fs = __toESM(require("fs"), 1);
+
+// src/lib/firestoreService.ts
+var import_firestore2 = require("firebase/firestore");
+
+// src/firebase.ts
+var import_app = require("firebase/app");
+var import_auth = require("firebase/auth");
+var import_firestore = require("firebase/firestore");
+
+// firebase-applet-config.json
+var firebase_applet_config_default = {
+  projectId: "gen-lang-client-0687053617",
+  appId: "1:682003318752:web:3028dfdf3091863b4b8d85",
+  apiKey: "AIzaSyCzywKZz8MdlHOGSTF9JIpwP1WaRgxSPeI",
+  authDomain: "gen-lang-client-0687053617.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-copyofremixremix-d0b94b41-b933-4ee6-980d-39777855109f",
+  storageBucket: "gen-lang-client-0687053617.firebasestorage.app",
+  messagingSenderId: "682003318752",
+  measurementId: ""
+};
+
+// src/firebase.ts
+var app = (0, import_app.getApps)().length > 0 ? (0, import_app.getApps)()[0] : (0, import_app.initializeApp)(firebase_applet_config_default);
+var db = (0, import_firestore.getFirestore)(app, firebase_applet_config_default.firestoreDatabaseId);
+var auth = (0, import_auth.getAuth)(app);
+async function testConnection() {
+  try {
+    await (0, import_firestore.getDocFromServer)((0, import_firestore.doc)(db, "test", "connection"));
+    console.log("\u{1F525} Firestore connection established.");
+  } catch (error) {
+    console.error("Firestore connection test failed:", error);
+  }
+}
+testConnection();
+
+// src/lib/firestoreService.ts
+var syncPatients = (callback) => {
+  return (0, import_firestore2.onSnapshot)((0, import_firestore2.collection)(db, "patients"), (snapshot) => {
+    callback(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+};
+var savePatient = async (patient) => await (0, import_firestore2.setDoc)((0, import_firestore2.doc)(db, "patients", patient.id), patient, { merge: true });
+var saveEncounter = async (encounter) => await (0, import_firestore2.setDoc)((0, import_firestore2.doc)(db, "encounters", encounter.id), encounter, { merge: true });
+
+// server.ts
 import_dotenv.default.config();
 var serverSettings = {};
 if (import_fs.default.existsSync("server-settings.json")) {
@@ -43,8 +88,8 @@ var supabaseKey = process.env.SUPABASE_SECRET_KEY || serverSettings.supabaseKey;
 var supabaseAdmin = supabaseUrl && supabaseKey ? (0, import_supabase_js.createClient)(supabaseUrl, supabaseKey) : null;
 global.supabaseAdmin = supabaseAdmin;
 function getMedicationFallback(search_query) {
-  const query = (search_query || "").toLowerCase().trim();
-  if (query.includes("aspirin") || query.includes("\u0627\u0633\u0628\u0631\u064A\u0646") || query.includes("\u0623\u0633\u0628\u064A\u0631\u064A\u0646")) {
+  const query2 = (search_query || "").toLowerCase().trim();
+  if (query2.includes("aspirin") || query2.includes("\u0627\u0633\u0628\u0631\u064A\u0646") || query2.includes("\u0623\u0633\u0628\u064A\u0631\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -74,7 +119,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query.includes("nitro") || query.includes("\u0646\u064A\u062A\u0631\u0648") || query.includes("\u0646\u064A\u062A\u0631\u0648\u062C\u0644\u064A\u0633\u0631\u064A\u0646")) {
+  if (query2.includes("nitro") || query2.includes("\u0646\u064A\u062A\u0631\u0648") || query2.includes("\u0646\u064A\u062A\u0631\u0648\u062C\u0644\u064A\u0633\u0631\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -103,7 +148,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query.includes("heparin") || query.includes("\u0647\u064A\u0628\u0627\u0631\u064A\u0646")) {
+  if (query2.includes("heparin") || query2.includes("\u0647\u064A\u0628\u0627\u0631\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -132,7 +177,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query.includes("warfarin") || query.includes("\u0648\u0627\u0631\u0641\u0627\u0631\u064A\u0646") || query.includes("coumadin") || query.includes("\u0643\u0648\u0645\u0627\u062F\u064A\u0646")) {
+  if (query2.includes("warfarin") || query2.includes("\u0648\u0627\u0631\u0641\u0627\u0631\u064A\u0646") || query2.includes("coumadin") || query2.includes("\u0643\u0648\u0645\u0627\u062F\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -161,7 +206,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query.includes("insulin") || query.includes("\u0623\u0646\u0633\u0648\u0644\u064A\u0646") || query.includes("\u0627\u0646\u0633\u0648\u0644\u064A\u0646") || query.includes("humalog") || query.includes("lantus")) {
+  if (query2.includes("insulin") || query2.includes("\u0623\u0646\u0633\u0648\u0644\u064A\u0646") || query2.includes("\u0627\u0646\u0633\u0648\u0644\u064A\u0646") || query2.includes("humalog") || query2.includes("lantus")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -190,7 +235,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query.includes("lasix") || query.includes("\u0644\u0627\u0632\u0643\u0633") || query.includes("furosemide") || query.includes("\u0641\u0648\u0631\u0648\u0633\u064A\u0645\u064A\u062F")) {
+  if (query2.includes("lasix") || query2.includes("\u0644\u0627\u0632\u0643\u0633") || query2.includes("furosemide") || query2.includes("\u0641\u0648\u0631\u0648\u0633\u064A\u0645\u064A\u062F")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -454,9 +499,9 @@ function getIsbarFallback(data, isAr) {
   }
 }
 async function startServer() {
-  const app = (0, import_express.default)();
+  const app2 = (0, import_express.default)();
   const PORT = 3e3;
-  app.use(import_express.default.json());
+  app2.use(import_express.default.json());
   let aiClient = null;
   function getAiClient() {
     if (!aiClient) {
@@ -475,7 +520,7 @@ async function startServer() {
     }
     return aiClient;
   }
-  app.post("/api/ai/analyze-medication", async (req, res) => {
+  app2.post("/api/ai/analyze-medication", async (req, res) => {
     const { search_query } = req.body;
     if (!search_query || typeof search_query !== "string" || search_query.trim() === "") {
       return res.status(400).json({ success: false, error: "Invalid medication name." });
@@ -544,7 +589,7 @@ Output ONLY a JSON object based on this schema:
       res.json({ success: true, medication: responseJson, fallback: true });
     }
   });
-  app.post("/api/ai/check-interaction", async (req, res) => {
+  app2.post("/api/ai/check-interaction", async (req, res) => {
     const { med1, med2, lang } = req.body;
     if (!med1 || !med2) {
       return res.status(400).json({ success: false, error: "Please provide both medication names." });
@@ -590,7 +635,7 @@ Output localized text in the requested language: ${isAr ? "Arabic" : "English"}.
       res.json({ success: true, analysis: responseJson, fallback: true });
     }
   });
-  app.post("/api/ai/iv-compatibility", async (req, res) => {
+  app2.post("/api/ai/iv-compatibility", async (req, res) => {
     const { drug1, drug2, fluid, lang } = req.body;
     if (!drug1 || !drug2) {
       return res.status(400).json({ success: false, error: "Please provide both drugs." });
@@ -624,7 +669,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
       res.json({ success: true, result: responseJson, fallback: true });
     }
   });
-  app.post("/api/ai/medication-counseling", async (req, res) => {
+  app2.post("/api/ai/medication-counseling", async (req, res) => {
     const { medication, lang } = req.body;
     if (!medication) {
       return res.status(400).json({ success: false, error: "Please provide medication." });
@@ -663,10 +708,40 @@ Output text in: ${isAr ? "Arabic" : "English"}.
       res.json({ success: true, counseling: responseJson, fallback: true });
     }
   });
-  app.get("/api/health", (req, res) => {
+  app2.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
-  app.post("/api/settings/update-provider", (req, res) => {
+  app2.post("/api/v1/patients", async (req, res) => {
+    try {
+      await savePatient(req.body);
+      res.status(201).json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to save patient" });
+    }
+  });
+  app2.get("/api/v1/patients/search", async (req, res) => {
+    const queryStr = req.query.q;
+    const patients = await new Promise((resolve) => syncPatients(resolve));
+    const filtered = patients.filter((p) => p.mrn?.includes(queryStr) || p.national_id?.includes(queryStr) || p.phone_mobile?.includes(queryStr));
+    res.json({ success: true, data: filtered });
+  });
+  app2.post("/api/v1/encounters", async (req, res) => {
+    try {
+      await saveEncounter(req.body);
+      res.status(201).json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to save encounter" });
+    }
+  });
+  app2.put("/api/v1/encounters/:id/check-in", async (req, res) => {
+    try {
+      await saveEncounter({ ...req.body, id: req.params.id, status: "CHECKED_IN" });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to check in" });
+    }
+  });
+  app2.post("/api/settings/update-provider", (req, res) => {
     const { provider, settings } = req.body;
     console.log("Updating provider:", provider, "with settings:", Object.keys(settings));
     if (provider && settings) {
@@ -686,7 +761,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
     }
     return res.status(400).json({ success: false, error: "Invalid provider or settings." });
   });
-  app.get("/api/settings/get-settings", (req, res) => {
+  app2.get("/api/settings/get-settings", (req, res) => {
     if (import_fs.default.existsSync("server-settings.json")) {
       try {
         const settings = JSON.parse(import_fs.default.readFileSync("server-settings.json", "utf8"));
@@ -697,7 +772,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
     }
     return res.json({ success: false, error: "No settings found" });
   });
-  app.post("/api/ai/analyze-clinical", async (req, res) => {
+  app2.post("/api/ai/analyze-clinical", async (req, res) => {
     const { type, data, lang } = req.body;
     const isAr = lang === "ar";
     try {
@@ -812,7 +887,7 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
       res.json({ success: true, analysis: text, fallback: true });
     }
   });
-  app.get("/api/ping", (req, res) => {
+  app2.get("/api/ping", (req, res) => {
     res.json({ success: true, timestamp: Date.now() });
   });
   const DB_FILE_PATH = import_path.default.join(process.cwd(), "hospital_fallback_database.json");
@@ -839,7 +914,7 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
     }
   }
   let sseClients = [];
-  app.get("/api/db/stream", (req, res) => {
+  app2.get("/api/db/stream", (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
@@ -861,7 +936,7 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
       }
     });
   }
-  app.get("/api/db/:provider/:collection", async (req, res) => {
+  app2.get("/api/db/:provider/:collection", async (req, res) => {
     const { provider, collection: collectionName } = req.params;
     const upperProvider = provider.toUpperCase();
     const admin = global.supabaseAdmin || supabaseAdmin;
@@ -892,7 +967,7 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
     }
     res.json({ success: true, data: providerStores[upperProvider][collectionName] });
   });
-  app.post("/api/db/:provider/:collection", async (req, res) => {
+  app2.post("/api/db/:provider/:collection", async (req, res) => {
     const { provider, collection: collectionName } = req.params;
     const upperProvider = provider.toUpperCase();
     const item = req.body;
@@ -944,7 +1019,7 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
     broadcastUpdate(upperProvider, collectionName);
     res.json({ success: true, item });
   });
-  app.delete("/api/db/:provider/:collection/:id", async (req, res) => {
+  app2.delete("/api/db/:provider/:collection/:id", async (req, res) => {
     const { provider, collection: collectionName, id } = req.params;
     const upperProvider = provider.toUpperCase();
     const admin = global.supabaseAdmin || supabaseAdmin;
@@ -982,17 +1057,17 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
       server: { middlewareMode: true },
       appType: "spa"
     });
-    app.use(vite.middlewares);
+    app2.use(vite.middlewares);
     console.log("Vite dev middleware loaded.");
   } else {
     const distPath = import_path.default.join(process.cwd(), "dist");
-    app.use(import_express.default.static(distPath));
-    app.get("*", (req, res) => {
+    app2.use(import_express.default.static(distPath));
+    app2.get("*", (req, res) => {
       res.sendFile(import_path.default.join(distPath, "index.html"));
     });
     console.log("Serving static files from dist.");
   }
-  app.listen(PORT, "0.0.0.0", () => {
+  app2.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
 }
