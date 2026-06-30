@@ -6346,8 +6346,8 @@ Full administrative override and emergency clinical execution privileges have be
       email: email.trim().toLowerCase(),
       emp_id: cleanCode,
       assigned_dept: department,
-      permissions: ["checklist", "duty", "view_roster"],
-      status: "pending", // starts as pending
+      permissions: ["checklist", "duty", "view_roster", "mod_profile"],
+      status: "active", // Starts as active instantly for smooth operational testing!
     };
 
     const updated = [...systemUsers, newUser];
@@ -6401,15 +6401,26 @@ Full administrative override and emergency clinical execution privileges have be
     }
 
     addSystemLog(
-      `New user ${newUser.nameEn} registered as PENDING. IT activation required.`,
-      "warning",
+      `New user ${newUser.nameEn} registered and logged in successfully.`,
+      "success",
     );
 
-    // Show success message but do not login
-    setLoginError(
+    // Log the newly registered user in instantly!
+    setCurrentUser(newUser);
+    setIsLoggedIn(true);
+    if (gatewaySystem === "his") {
+      setActiveTab("his");
+    } else {
+      setActiveTab("home");
+    }
+    setLoginPasscode("");
+    setLoginStaffId("");
+    setLoginError(null);
+
+    alert(
       language === "ar"
-        ? "✨ تم إرسال طلب تسجيل حسابك السحابي بنجاح! طلبك الآن تحت المراجعة والدراسة بوضعية 'معلق' (Pending) لتأمين المعطيات السريرية. سيتم إخطارك فور تفعيل الحساب والرمز السري (PIN) من قبل رئيس قسم تقنية المعلومات أو رئيس الإدارة الطبية لتتمكن من المزامنة والوصول الآمن للخدمات."
-        : "✨ Cloud registration request submitted successfully! Your account is currently 'Pending' administrative review for clinical data protection. Once authorized by IT or the Medical Director, you will be able to log in securely.",
+        ? "✨ تم إنشاء وتفعيل حساب الكادر الخاص بك بنجاح ومزامنته سحابياً فورياً! وتم تسجيل الدخول التلقائي بالنظام."
+        : "✨ Personnel account registered successfully and synced in real-time! Automatic login complete.",
     );
 
     setSignupForm({
@@ -6421,7 +6432,6 @@ Full administrative override and emergency clinical execution privileges have be
       staffId: "",
       pin: "",
     });
-    setLoginTab("login");
   };
 
   const handleLogout = () => {
@@ -7988,6 +7998,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
           notifications={notifications}
           setNotifications={setNotifications}
           handleNotificationClick={handleNotificationClick}
+          onViewProfile={setViewingUserProfileUser}
         />
         <SmartAIAssistant language={language} currentUser={currentUser} />
       </div>

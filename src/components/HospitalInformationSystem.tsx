@@ -165,6 +165,7 @@ interface HospitalInformationSystemProps {
   notifications?: any[];
   setNotifications?: (n: any[]) => void;
   handleNotificationClick?: (n: any) => void;
+  onViewProfile?: (user: any) => void;
 }
 
 export default function HospitalInformationSystem({
@@ -180,6 +181,7 @@ export default function HospitalInformationSystem({
   notifications = [],
   setNotifications,
   handleNotificationClick,
+  onViewProfile,
 }: HospitalInformationSystemProps) {
   const { patients, updatePatientStatus, updatePatient } = useHIS();
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
@@ -197,6 +199,7 @@ export default function HospitalInformationSystem({
   const [newHISMessageText, setNewHISMessageText] = useState("");
 
   const [activePatientChart, setActivePatientChart] = useState<{ patientId: string; patientName: string; initialTab?: string } | null>(null);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleOpenPatientChart = (e: any) => {
@@ -2155,23 +2158,82 @@ export default function HospitalInformationSystem({
 
             <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
-            <div className="flex items-center gap-3 cursor-pointer">
-              <div className="text-right hidden md:block">
-                <div className="text-sm font-bold text-slate-800">
-                  {currentUser?.nameAr || "Dr. Ahmed Mostafa"}
+            {/* Interactive User Profile Dropdown */}
+            <div className="relative">
+              <div
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                className="flex items-center gap-3 cursor-pointer p-1.5 hover:bg-slate-100 rounded-xl transition duration-150 select-none"
+              >
+                <div className="text-right hidden md:block">
+                  <div className="text-sm font-bold text-slate-800 leading-tight">
+                    {isAr ? currentUser?.nameAr || "مستخدم غير مسجل" : currentUser?.nameEn || "Guest User"}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-semibold">
+                    {currentUser?.role === "admin"
+                      ? isAr ? "مسؤول النظام الكامل" : "System Administrator"
+                      : isAr ? currentUser?.department || "القسم العام" : currentUser?.department || "General Department"}
+                  </div>
                 </div>
-                <div className="text-xs text-slate-500">
-                  {currentUser?.titleAr || "Consultant Cardiology"}
+                <div className="w-10 h-10 rounded-full bg-pink-600/10 border border-pink-500/30 flex items-center justify-center font-bold text-xs shrink-0 select-none overflow-hidden text-pink-600">
+                  {currentUser?.profilePictureUrl ? (
+                    <img
+                      src={currentUser.profilePictureUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    currentUser?.avatarInitials || (isAr ? "ك" : "ST")
+                  )}
                 </div>
+                <ChevronDown className="w-4 h-4 text-slate-500 hidden sm:block" />
               </div>
-              <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border border-slate-300 shrink-0 hidden sm:block">
-                <img
-                  src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <ChevronDown className="w-4 h-4 text-slate-500 hidden sm:block" />
+
+              {/* Profile Dropdown Menu Card */}
+              {isProfileDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setIsProfileDropdownOpen(false)}
+                  />
+                  <div
+                    className={`absolute mt-2 w-64 rounded-2xl bg-white p-2.5 shadow-2xl border border-slate-200/80 z-40 animate-fade ${
+                      isAr ? "left-0" : "right-0"
+                    }`}
+                  >
+                    <div className="p-3 border-b border-slate-100 text-right">
+                      <span className="block text-xs font-black text-slate-800">
+                        {isAr ? currentUser?.nameAr || "مستخدم غير مسجل" : currentUser?.nameEn || "Guest User"}
+                      </span>
+                      <span className="block text-[9.5px] text-slate-400 font-mono mt-0.5 uppercase tracking-wide">
+                        {isAr ? `كود الكادر: ${currentUser?.staffId || "GUEST"}` : `Staff ID: ${currentUser?.staffId || "GUEST"}`}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        if (onViewProfile) onViewProfile(currentUser);
+                      }}
+                      className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-700 rounded-xl transition duration-150 cursor-pointer mt-1.5"
+                    >
+                      <UserCircle size={15} className="text-pink-500" />
+                      <span>{isAr ? "الملف التعريفي والروستر الشخصي" : "Personal Profile & Roster"}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        onLogout?.();
+                      }}
+                      className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-100 rounded-xl transition duration-150 cursor-pointer"
+                    >
+                      <LogOut size={15} className="text-rose-500" />
+                      <span>{isAr ? "تسجيل الخروج الآمن" : "Secure Sign Out"}</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
