@@ -4,6 +4,10 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -24,61 +28,520 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 // server.ts
 var import_supabase_js = require("@supabase/supabase-js");
 var import_express = __toESM(require("express"), 1);
-var import_path = __toESM(require("path"), 1);
+var import_path2 = __toESM(require("path"), 1);
 var import_vite = require("vite");
 var import_genai = require("@google/genai");
 var import_dotenv = __toESM(require("dotenv"), 1);
+var import_fs2 = __toESM(require("fs"), 1);
+
+// server/db/index.ts
+var import_postgres_js = require("drizzle-orm/postgres-js");
+var import_postgres = __toESM(require("postgres"), 1);
+
+// server/db/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  collectionsStore: () => collectionsStore,
+  dutyTasks: () => dutyTasks,
+  invoices: () => invoices,
+  logs: () => logs,
+  messages: () => messages,
+  notifications: () => notifications,
+  patients: () => patients,
+  prescriptions: () => prescriptions,
+  settings: () => settings,
+  staff: () => staff
+});
+var import_pg_core = require("drizzle-orm/pg-core");
+var patients = (0, import_pg_core.pgTable)("patients", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  mrn: (0, import_pg_core.text)("mrn").notNull(),
+  nameEn: (0, import_pg_core.text)("name_en").notNull(),
+  nameAr: (0, import_pg_core.text)("name_ar").notNull(),
+  age: (0, import_pg_core.integer)("age").notNull(),
+  gender: (0, import_pg_core.text)("gender").notNull(),
+  phone: (0, import_pg_core.text)("phone").notNull(),
+  status: (0, import_pg_core.text)("status").notNull(),
+  insurance: (0, import_pg_core.text)("insurance").notNull(),
+  clinicalData: (0, import_pg_core.jsonb)("clinical_data")
+});
+var prescriptions = (0, import_pg_core.pgTable)("prescriptions", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  patientId: (0, import_pg_core.text)("patient_id").notNull(),
+  medication: (0, import_pg_core.text)("medication").notNull(),
+  dose: (0, import_pg_core.text)("dose").notNull(),
+  qty: (0, import_pg_core.integer)("qty").notNull(),
+  status: (0, import_pg_core.text)("status").notNull(),
+  date: (0, import_pg_core.text)("date").notNull()
+});
+var invoices = (0, import_pg_core.pgTable)("invoices", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  patientId: (0, import_pg_core.text)("patient_id").notNull(),
+  amount: (0, import_pg_core.numeric)("amount").notNull(),
+  status: (0, import_pg_core.text)("status").notNull(),
+  date: (0, import_pg_core.text)("date").notNull()
+});
+var staff = (0, import_pg_core.pgTable)("staff", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  name: (0, import_pg_core.text)("name").notNull(),
+  role: (0, import_pg_core.text)("role").notNull(),
+  department: (0, import_pg_core.text)("department").notNull()
+});
+var logs = (0, import_pg_core.pgTable)("logs", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  message: (0, import_pg_core.text)("message").notNull(),
+  timestamp: (0, import_pg_core.text)("timestamp").notNull()
+});
+var dutyTasks = (0, import_pg_core.pgTable)("duty_tasks", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  title: (0, import_pg_core.text)("title").notNull(),
+  status: (0, import_pg_core.text)("status").notNull()
+});
+var notifications = (0, import_pg_core.pgTable)("notifications", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  message: (0, import_pg_core.text)("message").notNull(),
+  timestamp: (0, import_pg_core.text)("timestamp").notNull()
+});
+var messages = (0, import_pg_core.pgTable)("messages", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  senderNameAr: (0, import_pg_core.text)("sender_name_ar").notNull(),
+  senderNameEn: (0, import_pg_core.text)("sender_name_en").notNull(),
+  content: (0, import_pg_core.text)("content").notNull(),
+  timestamp: (0, import_pg_core.text)("timestamp").notNull()
+});
+var settings = (0, import_pg_core.pgTable)("settings", {
+  key: (0, import_pg_core.text)("key").primaryKey(),
+  value: (0, import_pg_core.jsonb)("value").notNull()
+});
+var collectionsStore = (0, import_pg_core.pgTable)("collections_store", {
+  id: (0, import_pg_core.text)("id").primaryKey(),
+  collectionName: (0, import_pg_core.text)("collection_name").notNull(),
+  data: (0, import_pg_core.jsonb)("data").notNull(),
+  createdAt: (0, import_pg_core.text)("created_at"),
+  updatedAt: (0, import_pg_core.text)("updated_at")
+});
+
+// server/db/index.ts
+var connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.warn("\u26A0\uFE0F Warning: DATABASE_URL environment variable is not defined!");
+}
+var client = (0, import_postgres.default)(connectionString || "", {
+  ssl: "require",
+  max: 20,
+  idle_timeout: 30,
+  connect_timeout: 30,
+  onparameter: (key, val) => {
+  }
+});
+var db = (0, import_postgres_js.drizzle)(client, { schema: schema_exports });
+
+// server/db/postgresAdapter.ts
+var import_drizzle_orm = require("drizzle-orm");
 var import_fs = __toESM(require("fs"), 1);
-
-// src/lib/firestoreService.ts
-var import_firestore2 = require("firebase/firestore");
-
-// src/firebase.ts
-var import_app = require("firebase/app");
-var import_auth = require("firebase/auth");
-var import_firestore = require("firebase/firestore");
-
-// firebase-applet-config.json
-var firebase_applet_config_default = {
-  projectId: "gen-lang-client-0687053617",
-  appId: "1:682003318752:web:3028dfdf3091863b4b8d85",
-  apiKey: "AIzaSyCzywKZz8MdlHOGSTF9JIpwP1WaRgxSPeI",
-  authDomain: "gen-lang-client-0687053617.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-copyofremixremix-d0b94b41-b933-4ee6-980d-39777855109f",
-  storageBucket: "gen-lang-client-0687053617.firebasestorage.app",
-  messagingSenderId: "682003318752",
-  measurementId: ""
-};
-
-// src/firebase.ts
-var app = (0, import_app.getApps)().length > 0 ? (0, import_app.getApps)()[0] : (0, import_app.initializeApp)(firebase_applet_config_default);
-var db = (0, import_firestore.getFirestore)(app, firebase_applet_config_default.firestoreDatabaseId);
-var auth = (0, import_auth.getAuth)(app);
-async function testConnection() {
+var import_path = __toESM(require("path"), 1);
+var LOCAL_DB_PATH = import_path.default.join(process.cwd(), "local_database.json");
+function readLocalDb() {
   try {
-    await (0, import_firestore.getDocFromServer)((0, import_firestore.doc)(db, "test", "connection"));
-    console.log("\u{1F525} Firestore connection established.");
-  } catch (error) {
-    console.error("Firestore connection test failed:", error);
+    if (import_fs.default.existsSync(LOCAL_DB_PATH)) {
+      const content = import_fs.default.readFileSync(LOCAL_DB_PATH, "utf-8");
+      return JSON.parse(content) || {};
+    }
+  } catch (err) {
+    console.error("\u26A0\uFE0F Error reading local JSON db fallback:", err);
+  }
+  return {};
+}
+function writeLocalDb(dbData) {
+  try {
+    import_fs.default.writeFileSync(LOCAL_DB_PATH, JSON.stringify(dbData, null, 2), "utf-8");
+  } catch (err) {
+    console.error("\u26A0\uFE0F Error writing local JSON db fallback:", err);
   }
 }
-testConnection();
-
-// src/lib/firestoreService.ts
-var syncPatients = (callback) => {
-  return (0, import_firestore2.onSnapshot)((0, import_firestore2.collection)(db, "patients"), (snapshot) => {
-    callback(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+function getLocalCollection(collectionName) {
+  const dbData = readLocalDb();
+  return dbData[collectionName] || [];
+}
+function saveLocalItem(collectionName, item) {
+  const dbData = readLocalDb();
+  if (!dbData[collectionName]) {
+    dbData[collectionName] = [];
+  }
+  const collection = dbData[collectionName];
+  const idx = collection.findIndex((x) => {
+    if (collectionName === "settings") {
+      return x.key === item.key || x.id === item.id || x.key === item.id || x.id === item.key;
+    }
+    return x.id === item.id;
   });
+  if (idx !== -1) {
+    collection[idx] = { ...collection[idx], ...item };
+  } else {
+    collection.push(item);
+  }
+  writeLocalDb(dbData);
+}
+function deleteLocalItem(collectionName, id) {
+  const dbData = readLocalDb();
+  if (dbData[collectionName]) {
+    dbData[collectionName] = dbData[collectionName].filter((x) => {
+      if (collectionName === "settings") {
+        return x.key !== id && x.id !== id;
+      }
+      return x.id !== id;
+    });
+    writeLocalDb(dbData);
+  }
+}
+function usePostgres() {
+  const url = process.env.DATABASE_URL;
+  return !!url && (url.startsWith("postgres://") || url.startsWith("postgresql://"));
+}
+var PostgresAdapter = class {
+  async fetchCollection(collectionName) {
+    if (!usePostgres()) {
+      return getLocalCollection(collectionName);
+    }
+    try {
+      if (collectionName === "patients") {
+        const rows = await db.select().from(patients);
+        return rows.map((r) => ({ ...r.clinicalData || {}, ...r }));
+      } else if (collectionName === "prescriptions") {
+        return await db.select().from(prescriptions);
+      } else if (collectionName === "invoices") {
+        return await db.select().from(invoices);
+      } else if (collectionName === "staff") {
+        return await db.select().from(staff);
+      } else if (collectionName === "logs" || collectionName === "systemLogs") {
+        return await db.select().from(logs);
+      } else if (collectionName === "dutyTasks") {
+        return await db.select().from(dutyTasks);
+      } else if (collectionName === "notifications") {
+        return await db.select().from(notifications);
+      } else if (collectionName === "messages") {
+        return await db.select().from(messages);
+      } else if (collectionName === "settings") {
+        const rows = await db.select().from(settings);
+        return rows.map((r) => ({ id: r.key, key: r.key, ...r.value || {} }));
+      } else {
+        const rows = await db.select().from(collectionsStore).where((0, import_drizzle_orm.eq)(collectionsStore.collectionName, collectionName));
+        return rows.map((r) => ({ ...r.data || {}, id: r.id }));
+      }
+    } catch (err) {
+      console.warn(`\u26A0\uFE0F PostgreSQL connection error during fetch for '${collectionName}'. Falling back to local JSON database. Error:`, err.message);
+      return getLocalCollection(collectionName);
+    }
+  }
+  async saveItem(collectionName, item) {
+    saveLocalItem(collectionName, item);
+    if (!usePostgres()) {
+      return true;
+    }
+    try {
+      if (collectionName === "patients") {
+        const patientVal = {
+          id: item.id,
+          mrn: item.mrn || "",
+          nameEn: item.nameEn || "",
+          nameAr: item.nameAr || "",
+          age: Number(item.age) || 0,
+          gender: item.gender || "",
+          phone: item.phone || "",
+          status: item.status || "",
+          insurance: item.insurance || "",
+          clinicalData: item
+        };
+        await db.insert(patients).values(patientVal).onConflictDoUpdate({
+          target: patients.id,
+          set: patientVal
+        });
+      } else if (collectionName === "prescriptions") {
+        const pVal = {
+          id: item.id,
+          patientId: item.patientId || "",
+          medication: item.medication || "",
+          dose: item.dose || "",
+          qty: Number(item.qty) || 0,
+          status: item.status || "",
+          date: item.date || ""
+        };
+        await db.insert(prescriptions).values(pVal).onConflictDoUpdate({
+          target: prescriptions.id,
+          set: pVal
+        });
+      } else if (collectionName === "invoices") {
+        const iVal = {
+          id: item.id,
+          patientId: item.patientId || "",
+          amount: String(item.amount || "0"),
+          status: item.status || "",
+          date: item.date || ""
+        };
+        await db.insert(invoices).values(iVal).onConflictDoUpdate({
+          target: invoices.id,
+          set: iVal
+        });
+      } else if (collectionName === "staff") {
+        const sVal = {
+          id: item.id,
+          name: item.name || "",
+          role: item.role || "",
+          department: item.department || ""
+        };
+        await db.insert(staff).values(sVal).onConflictDoUpdate({
+          target: staff.id,
+          set: sVal
+        });
+      } else if (collectionName === "logs" || collectionName === "systemLogs") {
+        const lVal = {
+          id: item.id,
+          message: item.message || "",
+          timestamp: item.timestamp || (/* @__PURE__ */ new Date()).toISOString()
+        };
+        await db.insert(logs).values(lVal).onConflictDoUpdate({
+          target: logs.id,
+          set: lVal
+        });
+      } else if (collectionName === "dutyTasks") {
+        const tVal = {
+          id: item.id,
+          title: item.title || "",
+          status: item.status || ""
+        };
+        await db.insert(dutyTasks).values(tVal).onConflictDoUpdate({
+          target: dutyTasks.id,
+          set: tVal
+        });
+      } else if (collectionName === "notifications") {
+        const nVal = {
+          id: item.id,
+          message: item.message || "",
+          timestamp: item.timestamp || (/* @__PURE__ */ new Date()).toISOString()
+        };
+        await db.insert(notifications).values(nVal).onConflictDoUpdate({
+          target: notifications.id,
+          set: nVal
+        });
+      } else if (collectionName === "messages") {
+        const mVal = {
+          id: item.id,
+          senderNameAr: item.senderNameAr || item.sender_name_ar || "",
+          senderNameEn: item.senderNameEn || item.sender_name_en || "",
+          content: item.content || "",
+          timestamp: item.timestamp || (/* @__PURE__ */ new Date()).toISOString()
+        };
+        await db.insert(messages).values(mVal).onConflictDoUpdate({
+          target: messages.id,
+          set: mVal
+        });
+      } else if (collectionName === "settings") {
+        const setKey = item.key || item.id;
+        const sVal = {
+          key: setKey,
+          value: item
+        };
+        await db.insert(settings).values(sVal).onConflictDoUpdate({
+          target: settings.key,
+          set: sVal
+        });
+      } else {
+        const cVal = {
+          id: item.id,
+          collectionName,
+          data: item,
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        await db.insert(collectionsStore).values({
+          ...cVal,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        }).onConflictDoUpdate({
+          target: collectionsStore.id,
+          set: cVal
+        });
+      }
+      return true;
+    } catch (err) {
+      console.warn(`\u26A0\uFE0F PostgreSQL connection error during save for '${collectionName}'. Offline file storage maintained save. Error:`, err.message);
+      return true;
+    }
+  }
+  async deleteItem(collectionName, id) {
+    deleteLocalItem(collectionName, id);
+    if (!usePostgres()) {
+      return true;
+    }
+    try {
+      if (collectionName === "patients") {
+        await db.delete(patients).where((0, import_drizzle_orm.eq)(patients.id, id));
+      } else if (collectionName === "prescriptions") {
+        await db.delete(prescriptions).where((0, import_drizzle_orm.eq)(prescriptions.id, id));
+      } else if (collectionName === "invoices") {
+        await db.delete(invoices).where((0, import_drizzle_orm.eq)(invoices.id, id));
+      } else if (collectionName === "staff") {
+        await db.delete(staff).where((0, import_drizzle_orm.eq)(staff.id, id));
+      } else if (collectionName === "logs" || collectionName === "systemLogs") {
+        await db.delete(logs).where((0, import_drizzle_orm.eq)(logs.id, id));
+      } else if (collectionName === "dutyTasks") {
+        await db.delete(dutyTasks).where((0, import_drizzle_orm.eq)(dutyTasks.id, id));
+      } else if (collectionName === "notifications") {
+        await db.delete(notifications).where((0, import_drizzle_orm.eq)(notifications.id, id));
+      } else if (collectionName === "messages") {
+        await db.delete(messages).where((0, import_drizzle_orm.eq)(messages.id, id));
+      } else if (collectionName === "settings") {
+        await db.delete(settings).where((0, import_drizzle_orm.eq)(settings.key, id));
+      } else {
+        await db.delete(collectionsStore).where(
+          (0, import_drizzle_orm.and)(
+            (0, import_drizzle_orm.eq)(collectionsStore.id, id),
+            (0, import_drizzle_orm.eq)(collectionsStore.collectionName, collectionName)
+          )
+        );
+      }
+      return true;
+    } catch (err) {
+      console.warn(`\u26A0\uFE0F PostgreSQL connection error during delete for '${collectionName}'. Offline file storage maintained deletion. Error:`, err.message);
+      return true;
+    }
+  }
 };
-var savePatient = async (patient) => await (0, import_firestore2.setDoc)((0, import_firestore2.doc)(db, "patients", patient.id), patient, { merge: true });
-var saveEncounter = async (encounter) => await (0, import_firestore2.setDoc)((0, import_firestore2.doc)(db, "encounters", encounter.id), encounter, { merge: true });
+
+// server/db/firebaseAdapter.ts
+var FirebaseAdapter = class {
+  async fetchCollection(collectionName) {
+    throw new Error("Firebase fetchCollection not implemented");
+  }
+  async saveItem(collectionName, item) {
+    throw new Error("Firebase saveItem not implemented");
+  }
+  async deleteItem(collectionName, id) {
+    throw new Error("Firebase deleteItem not implemented");
+  }
+};
+
+// server/db/pocketbaseAdapter.ts
+var PocketBaseAdapter = class {
+  async fetchCollection(collectionName) {
+    throw new Error("PocketBase fetchCollection not implemented");
+  }
+  async saveItem(collectionName, item) {
+    throw new Error("PocketBase saveItem not implemented");
+  }
+  async deleteItem(collectionName, id) {
+    throw new Error("PocketBase deleteItem not implemented");
+  }
+};
+
+// server/db/supabaseAdapter.ts
+var SupabaseAdapter = class {
+  async fetchCollection(collectionName) {
+    throw new Error("Supabase fetchCollection not implemented");
+  }
+  async saveItem(collectionName, item) {
+    throw new Error("Supabase saveItem not implemented");
+  }
+  async deleteItem(collectionName, id) {
+    throw new Error("Supabase deleteItem not implemented");
+  }
+};
+
+// server/db/appwriteAdapter.ts
+var AppwriteAdapter = class {
+  async fetchCollection(collectionName) {
+    throw new Error("Appwrite fetchCollection not implemented");
+  }
+  async saveItem(collectionName, item) {
+    throw new Error("Appwrite saveItem not implemented");
+  }
+  async deleteItem(collectionName, id) {
+    throw new Error("Appwrite deleteItem not implemented");
+  }
+};
+
+// server/db/adapterFactory.ts
+var activeProvider = "POSTGRES";
+function getAdapter() {
+  switch (activeProvider) {
+    case "POSTGRES":
+      return new PostgresAdapter();
+    case "FIREBASE":
+      return new FirebaseAdapter();
+    case "POCKETBASE":
+      return new PocketBaseAdapter();
+    case "SUPABASE":
+      return new SupabaseAdapter();
+    case "APPWRITE":
+      return new AppwriteAdapter();
+    default:
+      throw new Error(`Provider ${activeProvider} not implemented`);
+  }
+}
+function setProvider(provider) {
+  activeProvider = provider;
+  console.log("Provider set to:", provider);
+}
+
+// server.ts
+var import_drizzle_orm2 = require("drizzle-orm");
+
+// server/db/enterpriseService.ts
+var ClinicalDataService = class {
+  // 15 seconds Cache TTL to eliminate redundant db queries
+  constructor(repository) {
+    this.cache = /* @__PURE__ */ new Map();
+    this.cacheTTL = 15e3;
+    this.repository = repository;
+  }
+  async getCollection(collectionName, bypassCache = false) {
+    const cached = this.cache.get(collectionName);
+    const now = Date.now();
+    if (cached && !bypassCache && now - cached.timestamp < this.cacheTTL) {
+      return cached.data;
+    }
+    const data = await this.repository.fetchCollection(collectionName);
+    this.cache.set(collectionName, { data, timestamp: now });
+    return data;
+  }
+  async saveItem(collectionName, item) {
+    const success = await this.repository.saveItem(collectionName, item);
+    if (success) {
+      this.cache.delete(collectionName);
+    }
+    return success;
+  }
+  async deleteItem(collectionName, id) {
+    const success = await this.repository.deleteItem(collectionName, id);
+    if (success) {
+      this.cache.delete(collectionName);
+    }
+    return success;
+  }
+  async bulkSync(collectionNames) {
+    const result = {};
+    const promises = collectionNames.map(async (name) => {
+      try {
+        result[name] = await this.getCollection(name);
+      } catch (err) {
+        console.error(`Error syncing collection ${name} in bulkSync:`, err);
+        result[name] = [];
+      }
+    });
+    await Promise.all(promises);
+    return result;
+  }
+};
+var clinicalDataService = new ClinicalDataService(getAdapter());
 
 // server.ts
 import_dotenv.default.config();
 var serverSettings = {};
-if (import_fs.default.existsSync("server-settings.json")) {
+if (import_fs2.default.existsSync("server-settings.json")) {
   try {
-    serverSettings = JSON.parse(import_fs.default.readFileSync("server-settings.json", "utf8"));
+    serverSettings = JSON.parse(import_fs2.default.readFileSync("server-settings.json", "utf8"));
+    if (serverSettings.activeProvider) {
+      setProvider(serverSettings.activeProvider);
+      console.log(`\u{1F4E1} Restored database provider on startup: ${serverSettings.activeProvider}`);
+    }
   } catch (e) {
     console.error("Error reading server-settings.json", e);
   }
@@ -88,8 +551,8 @@ var supabaseKey = process.env.SUPABASE_SECRET_KEY || serverSettings.supabaseKey;
 var supabaseAdmin = supabaseUrl && supabaseKey ? (0, import_supabase_js.createClient)(supabaseUrl, supabaseKey) : null;
 global.supabaseAdmin = supabaseAdmin;
 function getMedicationFallback(search_query) {
-  const query2 = (search_query || "").toLowerCase().trim();
-  if (query2.includes("aspirin") || query2.includes("\u0627\u0633\u0628\u0631\u064A\u0646") || query2.includes("\u0623\u0633\u0628\u064A\u0631\u064A\u0646")) {
+  const query = (search_query || "").toLowerCase().trim();
+  if (query.includes("aspirin") || query.includes("\u0627\u0633\u0628\u0631\u064A\u0646") || query.includes("\u0623\u0633\u0628\u064A\u0631\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -119,7 +582,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query2.includes("nitro") || query2.includes("\u0646\u064A\u062A\u0631\u0648") || query2.includes("\u0646\u064A\u062A\u0631\u0648\u062C\u0644\u064A\u0633\u0631\u064A\u0646")) {
+  if (query.includes("nitro") || query.includes("\u0646\u064A\u062A\u0631\u0648") || query.includes("\u0646\u064A\u062A\u0631\u0648\u062C\u0644\u064A\u0633\u0631\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -148,7 +611,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query2.includes("heparin") || query2.includes("\u0647\u064A\u0628\u0627\u0631\u064A\u0646")) {
+  if (query.includes("heparin") || query.includes("\u0647\u064A\u0628\u0627\u0631\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -177,7 +640,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query2.includes("warfarin") || query2.includes("\u0648\u0627\u0631\u0641\u0627\u0631\u064A\u0646") || query2.includes("coumadin") || query2.includes("\u0643\u0648\u0645\u0627\u062F\u064A\u0646")) {
+  if (query.includes("warfarin") || query.includes("\u0648\u0627\u0631\u0641\u0627\u0631\u064A\u0646") || query.includes("coumadin") || query.includes("\u0643\u0648\u0645\u0627\u062F\u064A\u0646")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -206,7 +669,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query2.includes("insulin") || query2.includes("\u0623\u0646\u0633\u0648\u0644\u064A\u0646") || query2.includes("\u0627\u0646\u0633\u0648\u0644\u064A\u0646") || query2.includes("humalog") || query2.includes("lantus")) {
+  if (query.includes("insulin") || query.includes("\u0623\u0646\u0633\u0648\u0644\u064A\u0646") || query.includes("\u0627\u0646\u0633\u0648\u0644\u064A\u0646") || query.includes("humalog") || query.includes("lantus")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -235,7 +698,7 @@ function getMedicationFallback(search_query) {
       }
     };
   }
-  if (query2.includes("lasix") || query2.includes("\u0644\u0627\u0632\u0643\u0633") || query2.includes("furosemide") || query2.includes("\u0641\u0648\u0631\u0648\u0633\u064A\u0645\u064A\u062F")) {
+  if (query.includes("lasix") || query.includes("\u0644\u0627\u0632\u0643\u0633") || query.includes("furosemide") || query.includes("\u0641\u0648\u0631\u0648\u0633\u064A\u0645\u064A\u062F")) {
     return {
       "search_result": {
         "original_query": search_query,
@@ -499,9 +962,9 @@ function getIsbarFallback(data, isAr) {
   }
 }
 async function startServer() {
-  const app2 = (0, import_express.default)();
+  const app = (0, import_express.default)();
   const PORT = 3e3;
-  app2.use(import_express.default.json());
+  app.use(import_express.default.json());
   let aiClient = null;
   function getAiClient() {
     if (!aiClient) {
@@ -520,13 +983,13 @@ async function startServer() {
     }
     return aiClient;
   }
-  app2.post("/api/ai/analyze-medication", async (req, res) => {
+  app.post("/api/ai/analyze-medication", async (req, res) => {
     const { search_query } = req.body;
     if (!search_query || typeof search_query !== "string" || search_query.trim() === "") {
       return res.status(400).json({ success: false, error: "Invalid medication name." });
     }
     try {
-      const client = getAiClient();
+      const client2 = getAiClient();
       const systemInstruction = `
 You are a digital clinical pharmacist system responsible for medication safety review and labeling.
 Your task is to receive the medication name, auto-correct spelling, classify it, and determine safety labels (High-Alert / LASA) and nursing monitoring instructions.
@@ -556,8 +1019,8 @@ Output ONLY a JSON object based on this schema:
       let result;
       for (let i = 0; i < 3; i++) {
         try {
-          result = await client.models.generateContent({
-            model: "gemini-3.5-flash",
+          result = await client2.models.generateContent({
+            model: "gemini-2.5-flash",
             contents: search_query,
             config: {
               systemInstruction,
@@ -584,19 +1047,19 @@ Output ONLY a JSON object based on this schema:
       }
       res.json({ success: true, medication: responseJson });
     } catch (error) {
-      console.warn("Medication AI Model unavailable/failed. Activating high-fidelity fallback. Error:", error.message || error);
+      console.log("Medication AI Model offline fallback activated.");
       const responseJson = getMedicationFallback(search_query);
       res.json({ success: true, medication: responseJson, fallback: true });
     }
   });
-  app2.post("/api/ai/check-interaction", async (req, res) => {
+  app.post("/api/ai/check-interaction", async (req, res) => {
     const { med1, med2, lang } = req.body;
     if (!med1 || !med2) {
       return res.status(400).json({ success: false, error: "Please provide both medication names." });
     }
     const isAr = lang === "ar";
     try {
-      const client = getAiClient();
+      const client2 = getAiClient();
       const systemInstruction = `
 You are a senior clinical pharmacist specializing in drug safety and drug-drug interactions.
 Analyze the interaction between Medication 1 and Medication 2.
@@ -612,8 +1075,8 @@ Output ONLY a JSON object based on this schema:
 }
 Output localized text in the requested language: ${isAr ? "Arabic" : "English"}.
 `;
-      const response = await client.models.generateContent({
-        model: "gemini-3.5-flash",
+      const response = await client2.models.generateContent({
+        model: "gemini-2.5-flash",
         contents: `Analyze interaction between: "${med1}" and "${med2}"`,
         config: {
           systemInstruction,
@@ -630,19 +1093,19 @@ Output localized text in the requested language: ${isAr ? "Arabic" : "English"}.
       }
       res.json({ success: true, analysis: responseJson });
     } catch (error) {
-      console.warn("Interaction AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
+      console.log("Interaction AI Model offline fallback activated.");
       const responseJson = getInteractionFallback(med1, med2, isAr);
       res.json({ success: true, analysis: responseJson, fallback: true });
     }
   });
-  app2.post("/api/ai/iv-compatibility", async (req, res) => {
+  app.post("/api/ai/iv-compatibility", async (req, res) => {
     const { drug1, drug2, fluid, lang } = req.body;
     if (!drug1 || !drug2) {
       return res.status(400).json({ success: false, error: "Please provide both drugs." });
     }
     const isAr = lang === "ar";
     try {
-      const client = getAiClient();
+      const client2 = getAiClient();
       const systemInstruction = `
 You are an IV therapy specialist pharmacist. Determine if Drug 1 and Drug 2 are physically and chemically compatible for Y-site co-administration, optionally considering the base fluid if provided.
 Output ONLY a JSON object based on this schema:
@@ -653,8 +1116,8 @@ Output ONLY a JSON object based on this schema:
 }
 Output text in: ${isAr ? "Arabic" : "English"}.
 `;
-      const response = await client.models.generateContent({
-        model: "gemini-3.5-flash",
+      const response = await client2.models.generateContent({
+        model: "gemini-2.5-flash",
         contents: `Drug 1: ${drug1}, Drug 2: ${drug2}, Base Fluid: ${fluid || "None"}`,
         config: {
           systemInstruction,
@@ -664,19 +1127,19 @@ Output text in: ${isAr ? "Arabic" : "English"}.
       });
       res.json({ success: true, result: JSON.parse(response.text) });
     } catch (error) {
-      console.warn("IV Compatibility AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
+      console.log("IV Compatibility AI Model offline fallback activated.");
       const responseJson = getIvCompatibilityFallback(drug1, drug2, fluid || "", isAr);
       res.json({ success: true, result: responseJson, fallback: true });
     }
   });
-  app2.post("/api/ai/medication-counseling", async (req, res) => {
+  app.post("/api/ai/medication-counseling", async (req, res) => {
     const { medication, lang } = req.body;
     if (!medication) {
       return res.status(400).json({ success: false, error: "Please provide medication." });
     }
     const isAr = lang === "ar";
     try {
-      const client = getAiClient();
+      const client2 = getAiClient();
       const systemInstruction = `
 You are a patient education pharmacist. Create a simple, patient-friendly counseling sheet for the given medication. 
 Use plain language (no complex medical jargon).
@@ -692,8 +1155,8 @@ Output ONLY a JSON object based on this schema:
 }
 Output text in: ${isAr ? "Arabic" : "English"}.
 `;
-      const response = await client.models.generateContent({
-        model: "gemini-3.5-flash",
+      const response = await client2.models.generateContent({
+        model: "gemini-2.5-flash",
         contents: `Medication: ${medication}`,
         config: {
           systemInstruction,
@@ -703,55 +1166,60 @@ Output text in: ${isAr ? "Arabic" : "English"}.
       });
       res.json({ success: true, counseling: JSON.parse(response.text) });
     } catch (error) {
-      console.warn("Medication Counseling AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
+      console.log("Medication Counseling AI Model offline fallback activated.");
       const responseJson = getCounselingFallback(medication, isAr);
       res.json({ success: true, counseling: responseJson, fallback: true });
     }
   });
-  app2.get("/api/health", (req, res) => {
+  app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
-  app2.post("/api/v1/patients", async (req, res) => {
+  app.post("/api/v1/patients", async (req, res) => {
     try {
-      await savePatient(req.body);
+      await clinicalDataService.saveItem("patients", req.body);
       res.status(201).json({ success: true });
     } catch (err) {
       res.status(500).json({ success: false, error: "Failed to save patient" });
     }
   });
-  app2.get("/api/v1/patients/search", async (req, res) => {
+  app.get("/api/v1/patients/search", async (req, res) => {
     const queryStr = req.query.q;
-    const patients = await new Promise((resolve) => syncPatients(resolve));
-    const filtered = patients.filter((p) => p.mrn?.includes(queryStr) || p.national_id?.includes(queryStr) || p.phone_mobile?.includes(queryStr));
-    res.json({ success: true, data: filtered });
-  });
-  app2.post("/api/v1/encounters", async (req, res) => {
     try {
-      await saveEncounter(req.body);
+      const patients2 = await clinicalDataService.getCollection("patients");
+      const filtered = patients2.filter((p) => p.mrn?.includes(queryStr) || p.national_id?.includes(queryStr) || p.phone_mobile?.includes(queryStr));
+      res.json({ success: true, data: filtered });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to search patients" });
+    }
+  });
+  app.post("/api/v1/encounters", async (req, res) => {
+    try {
+      await clinicalDataService.saveItem("encounters", req.body);
       res.status(201).json({ success: true });
     } catch (err) {
       res.status(500).json({ success: false, error: "Failed to save encounter" });
     }
   });
-  app2.put("/api/v1/encounters/:id/check-in", async (req, res) => {
+  app.put("/api/v1/encounters/:id/check-in", async (req, res) => {
     try {
-      await saveEncounter({ ...req.body, id: req.params.id, status: "CHECKED_IN" });
+      await clinicalDataService.saveItem("encounters", { ...req.body, id: req.params.id, status: "CHECKED_IN" });
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ success: false, error: "Failed to check in" });
     }
   });
-  app2.post("/api/settings/update-provider", (req, res) => {
-    const { provider, settings } = req.body;
-    console.log("Updating provider:", provider, "with settings:", Object.keys(settings));
-    if (provider && settings) {
+  app.post("/api/settings/update-provider", (req, res) => {
+    const { provider, settings: settings3 } = req.body;
+    console.log("Updating provider:", provider, "with settings:", Object.keys(settings3));
+    if (provider && settings3) {
       try {
         if (provider === "SUPABASE") {
-          const { supabaseUrl: supabaseUrl2, supabaseKey: supabaseKey2 } = settings;
+          const { supabaseUrl: supabaseUrl2, supabaseKey: supabaseKey2 } = settings3;
           if (!supabaseUrl2.startsWith("http")) throw new Error("Invalid Supabase URL: Must start with http");
           global.supabaseAdmin = (0, import_supabase_js.createClient)(supabaseUrl2, supabaseKey2);
         }
-        import_fs.default.writeFileSync("server-settings.json", JSON.stringify({ activeProvider: provider, settings }));
+        import_fs2.default.writeFileSync("server-settings.json", JSON.stringify({ activeProvider: provider, settings: settings3 }));
+        setProvider(provider);
         console.log("Database settings updated and persisted for:", provider);
         return res.json({ success: true, message: "Database settings updated." });
       } catch (e) {
@@ -761,11 +1229,11 @@ Output text in: ${isAr ? "Arabic" : "English"}.
     }
     return res.status(400).json({ success: false, error: "Invalid provider or settings." });
   });
-  app2.get("/api/settings/get-settings", (req, res) => {
-    if (import_fs.default.existsSync("server-settings.json")) {
+  app.get("/api/settings/get-settings", (req, res) => {
+    if (import_fs2.default.existsSync("server-settings.json")) {
       try {
-        const settings = JSON.parse(import_fs.default.readFileSync("server-settings.json", "utf8"));
-        return res.json({ success: true, settings });
+        const settings3 = JSON.parse(import_fs2.default.readFileSync("server-settings.json", "utf8"));
+        return res.json({ success: true, settings: settings3 });
       } catch (e) {
         return res.status(500).json({ success: false, error: "Error reading settings" });
       }
@@ -848,11 +1316,11 @@ Your question: "${data.query}"
 *Since the live AI model is temporarily busy, please consult with the shift supervisor or attending physician in accordance with hospital policies.*`;
     }
   }
-  app2.post("/api/ai/analyze-clinical", async (req, res) => {
+  app.post("/api/ai/analyze-clinical", async (req, res) => {
     const { type, data, lang } = req.body;
     const isAr = lang === "ar";
     try {
-      const client = getAiClient();
+      const client2 = getAiClient();
       let targetPrompt = "";
       if (type === "news2") {
         targetPrompt = `
@@ -949,8 +1417,8 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
       let lastError;
       for (let i = 0; i < 3; i++) {
         try {
-          response = await client.models.generateContent({
-            model: "gemini-3.5-flash",
+          response = await client2.models.generateContent({
+            model: "gemini-2.5-flash",
             contents: targetPrompt,
             config: {
               temperature: 0.3
@@ -967,21 +1435,21 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
         }
       }
       if (!response) throw lastError;
-      const text = response.text || "";
-      res.json({ success: true, analysis: text });
+      const text2 = response.text || "";
+      res.json({ success: true, analysis: text2 });
     } catch (error) {
-      console.warn("Clinical Safety AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
-      let text = "";
+      console.log("Clinical Safety AI Model offline fallback activated.");
+      let text2 = "";
       if (type === "news2") {
-        text = getNews2Fallback(data, isAr);
+        text2 = getNews2Fallback(data, isAr);
       } else if (type === "isbar") {
-        text = getIsbarFallback(data, isAr);
+        text2 = getIsbarFallback(data, isAr);
       } else if (type === "department_insights") {
-        text = getDepartmentInsightsFallback(data, isAr);
+        text2 = getDepartmentInsightsFallback(data, isAr);
       } else if (type === "department_chat") {
-        text = getDepartmentChatFallback(data, isAr);
+        text2 = getDepartmentChatFallback(data, isAr);
       } else {
-        text = isAr ? `### \u{1F4CB} \u062A\u062F\u0642\u064A\u0642 \u0633\u0631\u064A\u0631\u064A \u0627\u062D\u062A\u064A\u0627\u0637\u064A
+        text2 = isAr ? `### \u{1F4CB} \u062A\u062F\u0642\u064A\u0642 \u0633\u0631\u064A\u0631\u064A \u0627\u062D\u062A\u064A\u0627\u0637\u064A
 
 **\u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0644\u0645\u0629:**
 \`\`\`json
@@ -997,22 +1465,22 @@ ${JSON.stringify(data, null, 2)}
 
 Live AI analysis model is currently undergoing automatic maintenance. Please review parameters manually according to hospital protocol.`;
       }
-      res.json({ success: true, analysis: text, fallback: true });
+      res.json({ success: true, analysis: text2, fallback: true });
     }
   });
-  app2.get("/api/ping", (req, res) => {
+  app.get("/api/ping", (req, res) => {
     res.json({ success: true, timestamp: Date.now() });
   });
-  const DB_FILE_PATH = import_path.default.join(process.cwd(), "hospital_fallback_database.json");
+  const DB_FILE_PATH = import_path2.default.join(process.cwd(), "hospital_fallback_database.json");
   let providerStores = {
     SUPABASE: {},
     POCKETBASE: {},
     LOCAL_HOST: {},
     APPWRITE: {}
   };
-  if (import_fs.default.existsSync(DB_FILE_PATH)) {
+  if (import_fs2.default.existsSync(DB_FILE_PATH)) {
     try {
-      const savedData = JSON.parse(import_fs.default.readFileSync(DB_FILE_PATH, "utf8"));
+      const savedData = JSON.parse(import_fs2.default.readFileSync(DB_FILE_PATH, "utf8"));
       providerStores = { ...providerStores, ...savedData };
       console.log("\u2705 Success: Persistent fallback database loaded from disk.");
     } catch (e) {
@@ -1021,27 +1489,30 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
   }
   function persistFallbackDatabase() {
     try {
-      import_fs.default.writeFileSync(DB_FILE_PATH, JSON.stringify(providerStores, null, 2));
+      import_fs2.default.writeFileSync(DB_FILE_PATH, JSON.stringify(providerStores, null, 2));
     } catch (e) {
       console.error("Warning: Failed to save fallback database to disk", e);
     }
   }
   let sseClients = [];
-  app2.get("/api/db/stream", (req, res) => {
+  app.get("/api/db/stream", (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.setHeader("Content-Encoding", "none");
     res.flushHeaders();
+    res.write(":\n\n");
     sseClients.push(res);
     req.on("close", () => {
-      sseClients = sseClients.filter((client) => client !== res);
+      sseClients = sseClients.filter((client2) => client2 !== res);
     });
   });
   function broadcastUpdate(provider, collectionName) {
     const payload = JSON.stringify({ provider, collectionName, timestamp: (/* @__PURE__ */ new Date()).toISOString() });
-    sseClients.forEach((client) => {
+    sseClients.forEach((client2) => {
       try {
-        client.write(`data: ${payload}
+        client2.write(`data: ${payload}
 
 `);
       } catch (err) {
@@ -1049,138 +1520,325 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
       }
     });
   }
-  app2.get("/api/db/:provider/:collection", async (req, res) => {
-    const { provider, collection: collectionName } = req.params;
-    const upperProvider = provider.toUpperCase();
-    const admin = global.supabaseAdmin || supabaseAdmin;
-    if (upperProvider === "SUPABASE") {
-      if (!admin) {
-        console.error("SUPABASE admin client is not initialized.");
-        return res.status(500).json({ success: false, error: "Supabase client not initialized." });
-      }
-      try {
-        console.log(`[Supabase] GET collection: ${collectionName}`);
-        const { data, error } = await admin.from(collectionName).select("*");
-        if (error) {
-          console.error(`[Supabase] GET error for ${collectionName}:`, error);
-          throw error;
-        }
-        console.log(`[Supabase] GET success: ${data ? data.length : 0} items`);
-        return res.json({ success: true, data });
-      } catch (err) {
-        console.error(`SUPABASE API Error for ${collectionName}:`, JSON.stringify(err, null, 2));
-        return res.status(500).json({ success: false, error: err.message, details: err.details || err.hint });
-      }
+  app.post("/api/db/:provider/bulk-sync", async (req, res) => {
+    console.log("--> Received bulk-sync for provider", req.params.provider, "collections:", req.body.collections);
+    console.log("--> Received bulk-sync for provider", req.params.provider, "collections:", req.body.collections);
+    const { collections } = req.body;
+    if (!collections || !Array.isArray(collections)) {
+      return res.status(400).json({ success: false, error: "Invalid 'collections' array" });
     }
-    if (!providerStores[upperProvider]) {
-      return res.status(404).json({ success: false, error: "Database provider not supported." });
+    try {
+      console.log("Starting bulkSync service call...");
+      console.log("Starting bulkSync service call...");
+      const data = await clinicalDataService.bulkSync(collections);
+      console.log("bulkSync service call completed.");
+      console.log("bulkSync service call completed.");
+      return res.json({ success: true, data });
+    } catch (err) {
+      console.error("Error doing bulk sync:", err);
+      return res.status(500).json({ success: false, error: err.message });
     }
-    if (!providerStores[upperProvider][collectionName]) {
-      providerStores[upperProvider][collectionName] = [];
-    }
-    res.json({ success: true, data: providerStores[upperProvider][collectionName] });
   });
-  app2.post("/api/db/:provider/:collection", async (req, res) => {
-    const { provider, collection: collectionName } = req.params;
-    const upperProvider = provider.toUpperCase();
+  app.get("/api/db/:provider/:collection", async (req, res) => {
+    const { collection: collectionName } = req.params;
+    try {
+      const data = await clinicalDataService.getCollection(collectionName);
+      return res.json({ success: true, data });
+    } catch (err) {
+      console.error(`Error fetching collection ${collectionName} from PostgreSQL:`, err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+  app.post("/api/db/:provider/:collection", async (req, res) => {
+    const { collection: collectionName } = req.params;
     const item = req.body;
-    const admin = global.supabaseAdmin || supabaseAdmin;
-    if (upperProvider === "SUPABASE") {
-      if (!admin) {
-        console.error("SUPABASE admin client is not initialized.");
-        return res.status(500).json({ success: false, error: "Supabase client not initialized." });
-      }
-      try {
-        console.log(`[Supabase] POST collection: ${collectionName}, ID: ${item.id}`);
-        const { data, error } = await admin.from(collectionName).upsert(item).select();
-        if (error) {
-          console.error(`[Supabase] POST error for ${collectionName}:`, error);
-          throw error;
-        }
-        console.log(`[Supabase] POST success`);
-        broadcastUpdate(upperProvider, collectionName);
-        return res.json({ success: true, item: data?.[0] || item });
-      } catch (err) {
-        console.error(`SUPABASE API Error (POST) for ${collectionName}:`, JSON.stringify(err, null, 2));
-        return res.status(500).json({ success: false, error: err.message, details: err.details || err.hint });
-      }
-    }
-    if (!providerStores[upperProvider]) {
-      return res.status(404).json({ success: false, error: "Database provider not supported." });
-    }
     if (!item || !item.id) {
       return res.status(400).json({ success: false, error: "Item must contain an 'id' field." });
     }
-    if (!providerStores[upperProvider][collectionName]) {
-      providerStores[upperProvider][collectionName] = [];
+    try {
+      await clinicalDataService.saveItem(collectionName, item);
+      broadcastUpdate("LOCAL_HOST", collectionName);
+      return res.json({ success: true, item });
+    } catch (err) {
+      console.error(`Error saving ${collectionName} to PostgreSQL:`, err);
+      return res.status(500).json({ success: false, error: err.message });
     }
-    const index = providerStores[upperProvider][collectionName].findIndex((x) => x.id === item.id);
-    if (index >= 0) {
-      providerStores[upperProvider][collectionName][index] = {
-        ...providerStores[upperProvider][collectionName][index],
-        ...item,
-        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-      };
-    } else {
-      providerStores[upperProvider][collectionName].push({
-        ...item,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-      });
-    }
-    persistFallbackDatabase();
-    broadcastUpdate(upperProvider, collectionName);
-    res.json({ success: true, item });
   });
-  app2.delete("/api/db/:provider/:collection/:id", async (req, res) => {
-    const { provider, collection: collectionName, id } = req.params;
-    const upperProvider = provider.toUpperCase();
-    const admin = global.supabaseAdmin || supabaseAdmin;
-    if (upperProvider === "SUPABASE") {
-      if (!admin) {
-        console.error("SUPABASE admin client is not initialized.");
-        return res.status(500).json({ success: false, error: "Supabase client not initialized." });
+  app.delete("/api/db/:provider/:collection/:id", async (req, res) => {
+    const { collection: collectionName, id } = req.params;
+    try {
+      await clinicalDataService.deleteItem(collectionName, id);
+      broadcastUpdate("LOCAL_HOST", collectionName);
+      return res.json({ success: true });
+    } catch (err) {
+      console.error(`Error deleting ${id} from ${collectionName} in PostgreSQL:`, err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+  app.use(import_express.default.json());
+  app.get("/api/patients", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("patients");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.post("/api/patients", async (req, res) => {
+    try {
+      const patient = req.body;
+      await clinicalDataService.saveItem("patients", patient);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.delete("/api/patients/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await clinicalDataService.deleteItem("patients", id);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.get("/api/prescriptions", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("prescriptions");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.post("/api/prescriptions", async (req, res) => {
+    try {
+      const p = req.body;
+      await clinicalDataService.saveItem("prescriptions", p);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.get("/api/invoices", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("invoices");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.post("/api/invoices", async (req, res) => {
+    try {
+      const i = req.body;
+      await clinicalDataService.saveItem("invoices", i);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const n = req.body;
+      await clinicalDataService.saveItem("notifications", n);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("notifications");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.post("/api/notifications/clear", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (ids && ids.length > 0) {
+        for (const id of ids) {
+          await clinicalDataService.deleteItem("notifications", id);
+        }
       }
-      try {
-        const { error } = await admin.from(collectionName).delete().eq("id", id);
-        if (error) throw error;
-        broadcastUpdate(upperProvider, collectionName);
-        return res.json({ success: true });
-      } catch (err) {
-        console.error(`SUPABASE API Error (DELETE) for ${collectionName}:`, JSON.stringify(err, null, 2));
-        return res.status(500).json({ success: false, error: err.message, details: err.details || err.hint });
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.get("/api/messages", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("messages");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.post("/api/messages", async (req, res) => {
+    try {
+      const m = req.body;
+      await clinicalDataService.saveItem("messages", m);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  app.post("/api/messages/clear", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (ids && ids.length > 0) {
+        for (const id of ids) {
+          await clinicalDataService.deleteItem("messages", id);
+        }
       }
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
     }
-    if (!providerStores[upperProvider]) {
-      return res.status(404).json({ success: false, error: "Database provider not supported." });
+  });
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const data = await clinicalDataService.getCollection("settings");
+      const matched = data.find((r) => r.key === key || r.id === key);
+      res.json(matched || null);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
     }
-    if (!providerStores[upperProvider][collectionName]) {
-      providerStores[upperProvider][collectionName] = [];
+  });
+  app.post("/api/settings", async (req, res) => {
+    try {
+      const s = req.body;
+      await clinicalDataService.saveItem("settings", s);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
     }
-    const initialLength = providerStores[upperProvider][collectionName].length;
-    providerStores[upperProvider][collectionName] = providerStores[upperProvider][collectionName].filter((x) => x.id !== id);
-    if (providerStores[upperProvider][collectionName].length !== initialLength) {
-      persistFallbackDatabase();
-      broadcastUpdate(upperProvider, collectionName);
-    }
-    res.json({ success: true });
   });
   if (process.env.NODE_ENV !== "production") {
     const vite = await (0, import_vite.createServer)({
       server: { middlewareMode: true },
       appType: "spa"
     });
-    app2.use(vite.middlewares);
+    app.use(vite.middlewares);
     console.log("Vite dev middleware loaded.");
   } else {
-    const distPath = import_path.default.join(process.cwd(), "dist");
-    app2.use(import_express.default.static(distPath));
-    app2.get("*", (req, res) => {
-      res.sendFile(import_path.default.join(distPath, "index.html"));
+    const distPath = import_path2.default.join(process.cwd(), "dist");
+    app.use(import_express.default.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(import_path2.default.join(distPath, "index.html"));
     });
     console.log("Serving static files from dist.");
   }
-  app2.listen(PORT, "0.0.0.0", () => {
+  try {
+    console.log("Checking if PostgreSQL database needs seeding...");
+    const existingUsers = await db.select().from(collectionsStore).where((0, import_drizzle_orm2.eq)(collectionsStore.collectionName, "users"));
+    if (existingUsers.length === 0) {
+      console.log("Seeding system users to collectionsStore table...");
+      const mockUsers = [
+        {
+          id: "user-it",
+          nameAr: "\u0645. \u0639\u0627\u062F\u0644 \u0627\u0644\u0634\u0631\u064A\u0641 (\u0631\u0626\u064A\u0633 \u0642\u0633\u0645 \u0646\u0638\u0645 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062A IT)",
+          nameEn: "Eng. Adel El-Sherif (Head of IT & Digital Systems)",
+          role: "it",
+          avatarInitials: "IT",
+          department: "INFORMATION TECHNOLOGY / IT",
+          staffId: "2026",
+          pin: "2026",
+          email: "it-support@baheya.org",
+          supervisorId: "user-admin"
+        },
+        {
+          id: "user-nurse",
+          nameAr: "\u0623. \u0641\u0627\u0637\u0645\u0629 \u0627\u0644\u0632\u0647\u0631\u0627\u0621 (\u0627\u0633\u062A\u0627\u0641 \u0627\u0644\u062A\u0645\u0631\u064A\u0636)",
+          nameEn: "Sister Fatima El-Zahraa (Staff Nurse)",
+          role: "staff",
+          avatarInitials: "FZ",
+          department: "EMERGENCY UNIT",
+          staffId: "2525",
+          pin: "2525",
+          email: "fatima@baheya.org",
+          supervisorId: "user-head-nurse"
+        }
+      ];
+      for (const u of mockUsers) {
+        await db.insert(collectionsStore).values({
+          id: u.id,
+          collectionName: "users",
+          data: u,
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      }
+      console.log("System users seeded.");
+    }
+    const existingPatients = await db.select().from(patients);
+    if (existingPatients.length === 0) {
+      console.log("Seeding mock patients and workflows...");
+      const patientsToSeed = [
+        {
+          id: "p1",
+          mrn: "MRN-001",
+          nameAr: "\u0623\u062D\u0645\u062F \u0645\u062D\u0645\u062F \u0639\u0644\u064A",
+          nameEn: "Ahmed Mohamed Ali",
+          age: 39,
+          gender: "male",
+          phone: "01001234567",
+          status: "registered",
+          insurance: "Cash",
+          clinicalData: {
+            dob: "1985-05-20",
+            nationality: "Egyptian",
+            nationalId: "28505200100123",
+            currentWorkflowStage: "registration",
+            workflowId: "WF-INIT-001"
+          }
+        },
+        {
+          id: "p2",
+          mrn: "MRN-002",
+          nameAr: "\u0633\u0627\u0631\u0629 \u0645\u062D\u0645\u0648\u062F \u062D\u0633\u0646",
+          nameEn: "Sara Mahmoud Hassan",
+          age: 33,
+          gender: "female",
+          phone: "01122334455",
+          status: "triage",
+          insurance: "Bupa",
+          clinicalData: {
+            dob: "1992-11-10",
+            nationality: "Egyptian",
+            nationalId: "29211100100555",
+            currentWorkflowStage: "triage",
+            workflowId: "WF-INIT-002"
+          }
+        }
+      ];
+      for (const p of patientsToSeed) {
+        await db.insert(patients).values(p);
+        const wf = {
+          id: p.clinicalData.workflowId,
+          patientId: p.id,
+          patientMRN: p.mrn,
+          startTime: (/* @__PURE__ */ new Date()).toISOString(),
+          currentStage: p.clinicalData.currentWorkflowStage,
+          status: "active",
+          history: [{
+            stage: "registration",
+            startTime: (/* @__PURE__ */ new Date()).toISOString()
+          }]
+        };
+        await db.insert(collectionsStore).values({
+          id: p.clinicalData.workflowId,
+          collectionName: "hospital_workflow_instances",
+          data: wf,
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      }
+      console.log("Mock patients & workflows seeded successfully.");
+    }
+  } catch (seedError) {
+    console.error("Auto-seeding warning (non-fatal):", seedError);
+  }
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
 }
