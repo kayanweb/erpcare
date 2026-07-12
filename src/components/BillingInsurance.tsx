@@ -9,22 +9,22 @@ interface Props {
 
 export default function BillingInsurance({ language }: Props) {
   const isAr = language === "ar";
-  const { invoices: realInvoices, patients, updateInvoiceStatus } = useHIS();
+  const { invoices: realInvoices, patients, updateInvoiceStatus, cpoeOrders, prescriptions } = useHIS();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [paidInvoiceIds, setPaidInvoiceIds] = useState<string[]>([]);
 
   // Seed default billing data for demonstration if no DB invoices
   const defaultInvoices = [
-    { id: "INV-2026-001", patientId: "mock1", patientName: isAr ? "سارة حسن" : "Sara Hassan", mrn: "MRN-00012346", date: "2026-06-25", amount: 850, status: paidInvoiceIds.includes("INV-2026-001") ? ("paid" as const) : ("unpaid" as const) },
+    { id: "INV-2026-001", patientId: "mock1", patientName: isAr ? "سارة حسن" : "Sara Hassan", mrn: "MRN-00012346", date: "2026-06-25", amount: 850, status: paidInvoiceIds?.includes("INV-2026-001") ? ("paid" as const) : ("unpaid" as const) },
     { id: "INV-2026-002", patientId: "mock2", patientName: isAr ? "أحمد ياسين" : "Ahmed Yassin", mrn: "MRN-100234", date: "2026-06-25", amount: 1500, status: "paid" as const },
-    { id: "INV-2026-003", patientId: "mock3", patientName: isAr ? "منى طارق" : "Mona Tarek", mrn: "MRN-00012359", date: "2026-06-24", amount: 3200, status: paidInvoiceIds.includes("INV-2026-003") ? ("paid" as const) : ("unpaid" as const) },
+    { id: "INV-2026-003", patientId: "mock3", patientName: isAr ? "منى طارق" : "Mona Tarek", mrn: "MRN-00012359", date: "2026-06-24", amount: 3200, status: paidInvoiceIds?.includes("INV-2026-003") ? ("paid" as const) : ("unpaid" as const) },
   ];
 
   // Convert real database invoices into visual invoice structure
   const processedInvoices = realInvoices.map(inv => {
     const p = patients.find(pat => pat.id === inv.patientId);
-    const isPaidLocally = paidInvoiceIds.includes(inv.id);
+    const isPaidLocally = paidInvoiceIds?.includes(inv.id);
     return {
       id: inv.id,
       patientId: inv.patientId,
@@ -42,11 +42,11 @@ export default function BillingInsurance({ language }: Props) {
 
   // Filter based on search query
   const filteredInvoices = allInvoices.filter(inv => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery?.toLowerCase();
     return (
-      inv.id.toLowerCase().includes(query) ||
-      inv.patientName.toLowerCase().includes(query) ||
-      inv.mrn.toLowerCase().includes(query)
+      inv.id?.toLowerCase()?.includes(query) ||
+      inv.patientName?.toLowerCase()?.includes(query) ||
+      inv.mrn?.toLowerCase()?.includes(query)
     );
   });
 
@@ -54,43 +54,71 @@ export default function BillingInsurance({ language }: Props) {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>(
     filteredInvoices[0]?.id || "INV-2026-001"
   );
-
   const activeInvoice = allInvoices.find(inv => inv.id === selectedInvoiceId) || allInvoices[0];
 
   // Dynamic invoice items construction
   const getInvoiceItems = (id: string, amount: number) => {
     const items = [];
-    if (id.includes("reg")) {
-      items.push({ name: isAr ? "رسوم الاستقبال والتسجيل والترميز" : "Reception, Registration & Coding Fee", qty: 1, price: amount });
-    } else if (id.includes("triage")) {
-      items.push({ name: isAr ? "تقييم الفرز والعلامات الحيوية للطوارئ" : "Emergency Triage Assessment & Vitals", qty: 1, price: amount });
-    } else if (id.includes("ecg")) {
-      items.push({ name: isAr ? "تخطيط القلب STAT ECG 12-Lead" : "STAT 12-Lead Electrocardiogram", qty: 1, price: amount });
-    } else if (id.includes("enz")) {
-      items.push({ name: isAr ? "تحليل المعمل للأنزيمات والتروبونين" : "Troponin I & Cardiac Enzyme Panel", qty: 1, price: amount });
-    } else if (id.includes("rad")) {
-      items.push({ name: isAr ? "تصوير أشعة الصدر المتنقلة STAT" : "STAT Mobile Chest Radiography", qty: 1, price: amount });
-    } else if (id.includes("nurse")) {
-      items.push({ name: isAr ? "إجراءات التمريض وإعطاء الأدوية العاجلة" : "Emergency Nurse Care & Drug Infusion", qty: 1, price: amount });
-    } else {
-      // Default mock invoice items or general items
-      if (id === "INV-2026-001") {
-        items.push(
-          { name: isAr ? "استشارة أمراض القلب" : "Cardiology Consultation", qty: 1, price: 300 },
-          { name: isAr ? "فحص دم CBC كامل" : "Complete Blood Count (CBC)", qty: 1, price: 150 },
-          { name: isAr ? "تصوير أشعة على الصدر" : "Chest X-Ray Diagnostic", qty: 1, price: 400 }
-        );
-      } else if (id === "INV-2026-002") {
-        items.push(
-          { name: isAr ? "عناية الرعاية المركزة اليومية" : "ICU Daily Care Services", qty: 1, price: 1200 },
-          { name: isAr ? "مستلزمات صيدلية وأدوية وريدية" : "IV Medication & Consumables", qty: 1, price: 300 }
-        );
-      } else {
-        items.push(
-          { name: isAr ? "زيارة العيادة الخارجية والاستشارة" : "OPD Consultation Visit", qty: 1, price: amount }
-        );
+    
+    // Check if this is a real patient invoice
+    if (activeInvoice?.isReal) {
+      items.push({ name: isAr ? "رسوم استشارة وإقامة (قياسية)" : "Standard Consultation & Stay Rate", qty: 1, price: 150 });
+      
+      const patId = activeInvoice.patientId;
+      // Add CPOE Orders
+      const patOrders = (cpoeOrders || []).filter((o: any) => o.visitId === patId || o.mrn === activeInvoice.mrn);
+      patOrders.forEach((o: any) => {
+        items.push({
+          name: `${o.orderType} Order: ${o.orderName}`,
+          qty: 1,
+          price: o.orderType === "Surgery" ? 2500 : o.orderType === "Radiology" ? 400 : 100
+        });
+      });
+      // Add Legacy Prescriptions
+      const patRx = (prescriptions || []).filter(rx => rx.patientId === patId);
+      patRx.forEach(rx => {
+        items.push({
+          name: `Pharmacy: ${rx.medication}`,
+          qty: rx.qty || 1,
+          price: 50
+        });
+      });
+      // Add Legacy Orders
+      const legacyPat = patients.find(p => p.id === patId);
+      if (legacyPat && legacyPat.orders) {
+        legacyPat.orders.forEach((o: any) => {
+          items.push({
+             name: `${o.type} Order: ${o.name}`,
+             qty: 1,
+             price: o.type === "RAD" ? 400 : 100
+          });
+        });
+      }
+      
+      // Compute total dynamically to override default amount if items exist
+      if (items.length > 1) {
+        return items;
       }
     }
+    
+    // Default mock invoice items or general items
+    if (id === "INV-2026-001") {
+      items.push(
+        { name: isAr ? "استشارة أمراض القلب" : "Cardiology Consultation", qty: 1, price: 300 },
+        { name: isAr ? "فحص دم CBC كامل" : "Complete Blood Count (CBC)", qty: 1, price: 150 },
+        { name: isAr ? "تصوير أشعة على الصدر" : "Chest X-Ray Diagnostic", qty: 1, price: 400 }
+      );
+    } else if (id === "INV-2026-002") {
+      items.push(
+        { name: isAr ? "عناية الرعاية المركزة اليومية" : "ICU Daily Care Services", qty: 1, price: 1200 },
+        { name: isAr ? "مستلزمات صيدلية وأدوية وريدية" : "IV Medication & Consumables", qty: 1, price: 300 }
+      );
+    } else {
+      items.push(
+        { name: isAr ? "زيارة العيادة الخارجية والاستشارة" : "OPD Consultation Visit", qty: 1, price: amount }
+      );
+    }
+    
     return items;
   };
 
@@ -109,7 +137,7 @@ export default function BillingInsurance({ language }: Props) {
       await updateInvoiceStatus(activeInvoice.id, "paid");
     }
     
-    toast.success(isAr ? "تم تحصيل الدفعة بنجاح وتحديث الفاتورة والسجل المالي كـ مدفوعة" : "Payment collected, invoice and financial ledger updated to PAID");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Payment collected, invoice and financial ledger updated to PAID", titleAr: "تم تحصيل الدفعة بنجاح وتحديث الفاتورة والسجل المالي كـ مدفوعة", type: "form" } }));
   };
 
   return (

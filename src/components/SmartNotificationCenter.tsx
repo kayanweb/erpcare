@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AlertCircle, AlertTriangle, Info, CheckCircle, BellOff } from "lucide-react";
-import { SystemNotification, syncNotifications, markAsRead } from "../lib/notificationService";
+import { SystemNotification, syncNotifications, markAsRead, deleteNotification } from "../lib/notificationService";
+import { Trash2 } from "lucide-react";
 
 interface Props {
   language: "ar" | "en";
@@ -79,7 +80,66 @@ export default function SmartNotificationCenter({ language, currentUser, onNavig
               key={n.id}
               onClick={() => {
                 if (!n.read) markAsRead(n.id);
-                if (n.link && onNavigate) onNavigate(n.link);
+                if (onNavigate) {
+                  if (n.link) {
+                    onNavigate(n.link);
+                  } else {
+                    // Smart keyword fallback routing
+                    const txt = ((n.titleEn || "") + " " + (n.messageEn || "") + " " + (n.titleAr || "") + " " + (n.messageAr || ""))?.toLowerCase();
+                    if (
+                      txt?.includes("admission") || 
+                      txt?.includes("admit") || 
+                      txt?.includes("ward") || 
+                      txt?.includes("transfer") || 
+                      txt?.includes("تنويم") || 
+                      txt?.includes("نقل") || 
+                      txt?.includes("سرير")
+                    ) {
+                      onNavigate("admin_support", "bed_management");
+                    } else if (
+                      txt?.includes("surgery") || 
+                      txt?.includes("operation") || 
+                      txt?.includes("عملية") || 
+                      txt?.includes("جراحة")
+                    ) {
+                      onNavigate("inpatient_critical", "ot");
+                    } else if (
+                      txt?.includes("lab") || 
+                      txt?.includes("result") || 
+                      txt?.includes("cbc") || 
+                      txt?.includes("troponin") || 
+                      txt?.includes("تحليل") || 
+                      txt?.includes("نتائج") || 
+                      txt?.includes("معمل")
+                    ) {
+                      onNavigate("outpatient", "emr_core");
+                    } else if (
+                      txt?.includes("emergency") || 
+                      txt?.includes("er") || 
+                      txt?.includes("طوارئ")
+                    ) {
+                      onNavigate("clinical_front", "er");
+                    } else if (
+                      txt?.includes("bill") || 
+                      txt?.includes("invoice") || 
+                      txt?.includes("rcm") || 
+                      txt?.includes("فاتورة") || 
+                      txt?.includes("دفع") || 
+                      txt?.includes("مالي")
+                    ) {
+                      onNavigate("admin_support", "billing");
+                    } else if (
+                      txt?.includes("pharmacy") || 
+                      txt?.includes("medication") || 
+                      txt?.includes("دواء") || 
+                      txt?.includes("صيدلية")
+                    ) {
+                      onNavigate("clinical_services", "pharmacy");
+                    } else {
+                      onNavigate("outpatient", "emr_core");
+                    }
+                  }
+                }
               }}
               className={`border rounded-xl p-3 relative overflow-hidden transition-all cursor-pointer group ${getColorClasses(n.type, n.read)}`}
             >
@@ -90,10 +150,12 @@ export default function SmartNotificationCenter({ language, currentUser, onNavig
                 </div>
                 <div className="flex-1">
                   <h4 className={`text-xs font-bold flex items-center justify-between gap-2 ${n.read ? "text-slate-400" : ""}`}>
+                    <div className="flex items-center gap-2">
                     {isAr ? n.titleAr : n.titleEn}
                     {!n.read && n.type === "critical" && (
                       <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-mono animate-pulse shrink-0">CRITICAL</span>
-                    )}
+                    )}</div>
+                    <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} className="text-slate-500 hover:text-rose-400 transition"><Trash2 className="w-3.5 h-3.5" /></button>
                   </h4>
                   <p className={`text-[10px] mt-1 font-semibold leading-relaxed ${n.read ? "text-slate-500" : "text-slate-300"}`}>
                     {isAr ? n.messageAr : n.messageEn}

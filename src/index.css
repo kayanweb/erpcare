@@ -176,12 +176,12 @@
 }
 
 .custom-main-scroll::-webkit-scrollbar-thumb {
-  background: #ec4899; /* Pink 500 brand accent */
+  background: #6366f1; /* Indigo 500 */
   border-radius: 9999px;
-  border: 2px solid #f1f5f9; /* Creates a beautiful inset border simulation */
+  border: 2px solid #f1f5f9;
 }
 
 .custom-main-scroll::-webkit-scrollbar-thumb:hover {
-  background: #db2777; /* Pink 600 */
+  background: #4f46e5; /* Indigo 600 */
 }
 

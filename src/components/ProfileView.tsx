@@ -44,6 +44,16 @@ interface AdminRequestRecord {
 
 export default function ProfileView({ user, language, hospitalSettings, systemUsers = [], currentUser }: ProfileViewProps) {
   const isAr = language === "ar";
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="text-slate-500 font-medium">
+          {isAr ? "جاري تحميل البيانات..." : "Loading user data..."}
+        </div>
+      </div>
+    );
+  }
   
   // Profile Lock Logic
   // Only the user themselves, 'it', or 'manager' roles can view the profile completely.
@@ -125,7 +135,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
           const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const date = new Date(`${dateStr}T12:00:00`);
           const weekday = date.toLocaleDateString(isAr ? "ar-EG" : "en-US", { weekday: "short" });
-          const isWeekend = weekday.includes("جمعة") || weekday.includes("سبت") || weekday.includes("Fri") || weekday.includes("Sat");
+          const isWeekend = weekday?.includes("جمعة") || weekday?.includes("سبت") || weekday?.includes("Fri") || weekday?.includes("Sat");
           list.push({
             dayKey: `curr-${d}`,
             label: `${d}/${month}`,
@@ -142,7 +152,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
           const dateStr = `${nextYear}-${String(nextMonth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const date = new Date(`${dateStr}T12:00:00`);
           const weekday = date.toLocaleDateString(isAr ? "ar-EG" : "en-US", { weekday: "short" });
-          const isWeekend = weekday.includes("جمعة") || weekday.includes("سبت") || weekday.includes("Fri") || weekday.includes("Sat");
+          const isWeekend = weekday?.includes("جمعة") || weekday?.includes("سبت") || weekday?.includes("Fri") || weekday?.includes("Sat");
           list.push({
             dayKey: `next-${d}`,
             label: `${d}/${nextMonth}`,
@@ -160,7 +170,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
           const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const date = new Date(`${dateStr}T12:00:00`);
           const weekday = date.toLocaleDateString(isAr ? "ar-EG" : "en-US", { weekday: "short" });
-          const isWeekend = weekday.includes("جمعة") || weekday.includes("سبت") || weekday.includes("Fri") || weekday.includes("Sat");
+          const isWeekend = weekday?.includes("جمعة") || weekday?.includes("سبت") || weekday?.includes("Fri") || weekday?.includes("Sat");
           list.push({
             dayKey: String(d),
             label: String(d),
@@ -229,7 +239,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
           updated[item.dayKey] = { shift: "OFF", reason: isAr ? "راحة استشفاء" : "Rest Off" };
         }
       } else if (type === "OFF") {
-        if (item.weekday.includes("جمعة") || item.weekday.includes("Fri")) {
+        if (item.weekday?.includes("جمعة") || item.weekday?.includes("Fri")) {
           updated[item.dayKey] = { shift: "OFF", reason: isAr ? "راحة الجمعة المعتمدة" : "Friday Off" };
         }
       } else if (type === "CLEAR") {
@@ -589,7 +599,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5 justify-center sm:justify-start">
                 <span className="bg-white/10 text-rose-200 border border-white/20 text-[9px] px-2.5 py-0.5 rounded-full font-bold uppercase">
-                  {user.role} GATEWAY
+                  {user?.role} GATEWAY
                 </span>
                 <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] px-2.5 py-0.5 rounded-full font-bold">
                   Active Operational Bio
@@ -600,7 +610,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
 
           <div className="text-center sm:text-left bg-black/30 p-3 rounded-xl border border-white/10 shrink-0">
             <span className="block text-[8px] uppercase tracking-widest text-slate-400">{isAr ? "رتبة الكادر التشغيلي" : "STAFF CLASSIFICATION"}</span>
-            <span className="text-md font-black block tracking-widest font-mono text-pink-400 mt-0.5">{user.role.toUpperCase()}</span>
+            <span className="text-md font-black block tracking-widest font-mono text-pink-400 mt-0.5">{(user?.role || "").toUpperCase()}</span>
           </div>
         </div>
       </div>
@@ -1184,7 +1194,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
                         <div className="text-right">
                           <h4 className="text-xs font-black text-slate-800">
                             {isAr 
-                              ? `تعديل رغبة الوردية للخلية (${activeDayKey.includes("curr") ? `يوم ${activeDayKey.split("-")[1]} الحالي` : activeDayKey.includes("next") ? `يوم ${activeDayKey.split("-")[1]} القادم` : `يوم ${activeDayKey}`})`
+                              ? `تعديل رغبة الوردية للخلية (${activeDayKey?.includes("curr") ? `يوم ${activeDayKey.split("-")[1]} الحالي` : activeDayKey?.includes("next") ? `يوم ${activeDayKey.split("-")[1]} القادم` : `يوم ${activeDayKey}`})`
                               : `Edit Shift Desire for Day ${activeDayKey}`}
                           </h4>
                           <span className="text-[9.5px] text-slate-450 block mt-0.5">
@@ -1384,7 +1394,7 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
                           <div>
                             <span className="font-bold text-slate-705">
                               {isAr 
-                                ? `يوم (${wish.dayKey.includes("curr") || wish.dayKey.includes("next") ? wish.dayKey.split("-")[1] : wish.dayKey}) - جدول ${wish.targetMonth}` 
+                                ? `يوم (${wish.dayKey?.includes("curr") || wish.dayKey?.includes("next") ? wish.dayKey.split("-")[1] : wish.dayKey}) - جدول ${wish.targetMonth}` 
                                 : `Day (${wish.dayKey}) of cycle ${wish.targetMonth}`}
                             </span>
                             <p className="text-slate-450 mt-1 font-semibold">

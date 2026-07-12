@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Calendar, Activity, CreditCard, UserPlus, Search, BedDouble, ArrowRightLeft, Clock, CheckCircle2, ShieldAlert, LogOut, Edit, Trash2 } from "lucide-react";
+import { Users, Calendar, Activity, CreditCard, UserPlus, Search, BedDouble, ArrowRightLeft, Clock, CheckCircle2, ShieldAlert, LogOut, Edit, Trash2, RefreshCcw } from "lucide-react";
 import { useHIS, Patient } from "../context/HISContext";
 import { toast } from "sonner";
 
@@ -19,31 +19,34 @@ export default function PatientRegistration({ language, departments = [] }: Prop
   // Registration Form State
   const [firstName, setFirstName] = useState("");
   const [fatherName, setFatherName] = useState("");
+  const [arabicName, setArabicName] = useState("");
   const [phone, setPhone] = useState("");
   const [insurance, setInsurance] = useState("Cash");
   const [gender, setGender] = useState("male");
   const [isSaving, setIsSaving] = useState(false);
   const [editingPatientId, setEditingPatientId] = useState<string | null>(null);
   const [directorySearchQuery, setDirectorySearchQuery] = useState("");
+  const [showDischarged, setShowDischarged] = useState(false);
   const [aptSearchQuery, setAptSearchQuery] = useState("");
 
   const handleRegister = async () => {
-    if (!firstName || !phone) {
+    if ((!firstName && !arabicName) || !phone) {
       return toast.error(isAr ? "يرجى تعبئة الحقول المطلوبة (الاسم، الهاتف)" : "Please fill required fields (Name, Phone)");
     }
     setIsSaving(true);
     
-    const fullName = fatherName ? `${firstName} ${fatherName}` : firstName;
+    const fullNameEn = fatherName ? `${firstName} ${fatherName}` : (firstName || arabicName);
+    const fullNameAr = arabicName || fullNameEn;
 
     if (editingPatientId) {
       await updatePatient(editingPatientId, {
-        nameEn: fullName,
-        nameAr: fullName,
+        nameEn: fullNameEn,
+        nameAr: fullNameAr,
         gender: gender as any,
         phone: phone,
         insurance: insurance as any
       });
-      toast.success(isAr ? "تم تحديث بيانات المريض" : "Patient updated successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient updated successfully", titleAr: "تم تحديث بيانات المريض", type: "form" } }));
       setEditingPatientId(null);
     } else {
       const newId = "p" + Date.now();
@@ -51,19 +54,25 @@ export default function PatientRegistration({ language, departments = [] }: Prop
       await addPatient({
         id: newId,
         mrn: newMrn,
-        nameEn: fullName,
-        nameAr: fullName, // simple fallback
+        nameEn: fullNameEn,
+        nameAr: fullNameAr, // simple fallback
         age: 30, // mock
         gender: gender as any,
         phone: phone,
         status: "registered",
-        insurance: insurance as any
+        insurance: insurance as any,
+        clinicalData: {
+          currentWorkflowStage: "registration",
+          workflowId: `WF-${Date.now()}`,
+          dob: "1990-01-01" // mock
+        }
       });
       toast.success(isAr ? `تم حفظ المريض بنجاح! : ${newMrn}` : `Patient registered successfully! MRN: ${newMrn}`);
     }
     
     setFirstName("");
     setFatherName("");
+    setArabicName("");
     setPhone("");
     setIsSaving(false);
     setActiveSubTab("directory");
@@ -73,6 +82,7 @@ export default function PatientRegistration({ language, departments = [] }: Prop
     const parts = p.nameEn.split(" ");
     setFirstName(parts[0] || "");
     setFatherName(parts.slice(1).join(" ") || "");
+    setArabicName(p.nameAr || "");
     setPhone(p.phone);
     setGender(p.gender);
     setInsurance(p.insurance);
@@ -83,7 +93,14 @@ export default function PatientRegistration({ language, departments = [] }: Prop
   const handleDelete = async (id: string) => {
     if (confirm(isAr ? "هل أنت متأكد من حذف هذا المريض؟" : "Are you sure you want to delete this patient?")) {
       await deletePatient(id);
-      toast.success(isAr ? "تم حذف المريض" : "Patient deleted");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient deleted", titleAr: "تم حذف المريض", type: "form" } }));
+    }
+  };
+
+  const handleReRegister = async (id: string) => {
+    if (confirm(isAr ? "هل تريد إعادة تسجيل هذا المريض لزيارة جديدة؟" : "Do you want to re-register this patient for a new visit?")) {
+      await updatePatientStatus(id, "registered");
+      toast.success(isAr ? "تم إعادة تفعيل ملف المريض" : "Patient file reactivated");
     }
   };
 
@@ -105,7 +122,7 @@ export default function PatientRegistration({ language, departments = [] }: Prop
           <button onClick={() => setActiveSubTab("directory")} className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeSubTab === "directory" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
             <Users className="w-4 h-4" /> {isAr ? "دليل المرضى" : "Patient Directory"}
           </button>
-          <button onClick={() => { setEditingPatientId(null); setFirstName(""); setFatherName(""); setPhone(""); setActiveSubTab("register"); }} className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeSubTab === "register" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+          <button onClick={() => window.dispatchEvent(new CustomEvent('openPatientRegistration'))} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5">
             <UserPlus className="w-4 h-4" /> {isAr ? "تسجيل ملف جديد" : "New Patient"}
           </button>
           <button onClick={() => setActiveSubTab("appointments")} className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeSubTab === "appointments" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
@@ -127,16 +144,27 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                <h3 className="font-black text-slate-800 flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-500" /> {isAr ? "سجل المرضى المسجلين" : "Registered Patients Directory"}
                </h3>
-               <div className="relative w-full sm:w-64">
-                 <Search className={`w-4 h-4 text-slate-400 absolute top-2.5 ${isAr ? "right-3" : "left-3"}`} />
-                 <input 
-                   type="text" 
-                   value={directorySearchQuery} 
-                   onChange={(e) => setDirectorySearchQuery(e.target.value)} 
-                   placeholder={isAr ? "بحث بالاسم، الهوية، الهاتف، الملف..." : "Search by name, ID, phone, MRN..."} 
-                   className={`w-full bg-white border border-slate-250 rounded-xl py-1.5 text-xs outline-none focus:border-indigo-500 font-bold ${isAr ? "pr-9 pl-3 text-right" : "pl-9 pr-3 text-left"}`} 
-                 />
-               </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={showDischarged} 
+                      onChange={(e) => setShowDischarged(e.target.checked)}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    {isAr ? "إظهار المرضى المغادرين" : "Include Discharged"}
+                  </label>
+                  <div className="relative w-full sm:w-64">
+                    <Search className={`w-4 h-4 text-slate-400 absolute top-2.5 ${isAr ? "right-3" : "left-3"}`} />
+                    <input 
+                      type="text" 
+                      value={directorySearchQuery} 
+                      onChange={(e) => setDirectorySearchQuery(e.target.value)} 
+                      placeholder={isAr ? "بحث بالاسم، الهوية، الهاتف، الملف..." : "Search by name, ID, phone, MRN..."} 
+                      className={`w-full bg-white border border-slate-250 rounded-xl py-1.5 text-xs outline-none focus:border-indigo-500 font-bold ${isAr ? "pr-9 pl-3 text-right" : "pl-9 pr-3 text-left"}`} 
+                    />
+                  </div>
+                </div>
              </div>
              <table className="w-full text-sm text-left" dir={isAr ? "rtl" : "ltr"}>
                 <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
@@ -151,17 +179,18 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {patients.filter(p => {
-                    const q = directorySearchQuery.toLowerCase().trim();
-                    if (!q) return true;
-                    return (
-                      (p.mrn && p.mrn.toLowerCase().includes(q)) ||
-                      (p.nameAr && p.nameAr.toLowerCase().includes(q)) ||
-                      (p.nameEn && p.nameEn.toLowerCase().includes(q)) ||
-                      (p.phone && p.phone.toLowerCase().includes(q)) ||
-                      (p.nationalId && p.nationalId.toLowerCase().includes(q))
+                    const q = directorySearchQuery?.toLowerCase().trim();
+                    const matchesStatus = showDischarged ? true : p.status !== "discharged";
+                    if (!q) return matchesStatus;
+                    return matchesStatus && (
+                      (p.mrn && p.mrn?.toLowerCase()?.includes(q)) ||
+                      (p.nameAr && p.nameAr?.toLowerCase()?.includes(q)) ||
+                      (p.nameEn && p.nameEn?.toLowerCase()?.includes(q)) ||
+                      (p.phone && p.phone?.toLowerCase()?.includes(q)) ||
+                      (p.nationalId && p.nationalId?.toLowerCase()?.includes(q))
                     );
                   }).map(p => (
-                    <tr key={p.id} className="hover:bg-slate-50">
+                    <tr key={p.id} className={`hover:bg-slate-50 ${p.status === 'discharged' ? 'opacity-60 bg-slate-50/30' : ''}`}>
                       <td className="px-4 py-3 font-mono font-bold text-slate-500">
                         <GlobalEntityLink entityName={p.mrn} entityId={p.id} entityType="patient" isAr={isAr} />
                       </td>
@@ -171,12 +200,28 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                       <td className="px-4 py-3 font-mono text-slate-600 text-xs">{p.phone}</td>
                       <td className="px-4 py-3 text-xs font-bold text-slate-600">{p.insurance}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className="bg-emerald-50 text-emerald-700 font-bold text-[10px] px-2 py-0.5 rounded border border-emerald-200">
-                          {p.status}
+                        <span className={`font-bold text-[10px] px-2 py-0.5 rounded border ${
+                          p.status === 'discharged' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+                          p.status === 'ward' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                          'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
+                          {p.status === 'discharged' ? (isAr ? "غادر المستشفى" : "Discharged") : 
+                           p.status === 'ward' ? (isAr ? "تنويم داخلي" : "Inpatient") :
+                           p.status === 'doctor' ? (isAr ? "عند الطبيب" : "With Doctor") :
+                           p.status === 'triage' ? (isAr ? "فرز طبي" : "Triage") : (isAr ? "مسجل" : "Registered")}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {p.status === 'discharged' && (
+                            <button 
+                              onClick={() => handleReRegister(p.id)} 
+                              className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition" 
+                              title={isAr ? "إعادة تسجيل" : "Re-register"}
+                            >
+                              <RefreshCcw className="w-4 h-4" />
+                            </button>
+                          )}
                           <button onClick={() => handleEdit(p)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition" title={isAr ? "تعديل" : "Edit"}>
                             <Edit className="w-4 h-4" />
                           </button>
@@ -239,7 +284,7 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                       </div>
                       <div className="md:col-start-2 md:col-span-3">
                         <label className="text-[11px] text-slate-500 font-bold block mb-1">{isAr ? "الاسم بالعربية (Arabic Name)" : "Arabic Name"}</label>
-                        <input type="text" placeholder={isAr ? "الاسم الرباعي باللغة العربية" : "Full Arabic Name"} className="w-full bg-white border border-slate-300 focus:border-blue-500 rounded-lg p-2.5 text-xs outline-none text-right" dir="rtl" />
+                        <input type="text" value={arabicName} onChange={e => setArabicName(e.target.value)} placeholder={isAr ? "الاسم الرباعي باللغة العربية" : "Full Arabic Name"} className="w-full bg-white border border-slate-300 focus:border-blue-500 rounded-lg p-2.5 text-xs outline-none text-right" dir="rtl" />
                       </div>
                     </div>
                   </section>
@@ -459,14 +504,14 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                   { time: '10:30 AM', status: 'available', mrn: '', patientName: '', doctorName: '', phone: '' },
                   { time: '10:45 AM', status: 'available', mrn: '', patientName: '', doctorName: '', phone: '' }
                 ].filter(slot => {
-                  const q = aptSearchQuery.toLowerCase().trim();
+                  const q = aptSearchQuery?.toLowerCase().trim();
                   if (!q) return true;
                   return (
-                    slot.time.toLowerCase().includes(q) ||
-                    slot.mrn.toLowerCase().includes(q) ||
-                    slot.patientName.toLowerCase().includes(q) ||
-                    slot.doctorName.toLowerCase().includes(q) ||
-                    slot.phone.includes(q)
+                    slot.time?.toLowerCase()?.includes(q) ||
+                    slot.mrn?.toLowerCase()?.includes(q) ||
+                    slot.patientName?.toLowerCase()?.includes(q) ||
+                    slot.doctorName?.toLowerCase()?.includes(q) ||
+                    slot.phone?.includes(q)
                   );
                 }).map((slot) => {
                   const time = slot.time;
@@ -535,9 +580,9 @@ export default function PatientRegistration({ language, departments = [] }: Prop
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(bed => {
                     let bedStatus = "vacant";
-                    if ([2, 5, 8, 9].includes(bed)) bedStatus = "occupied";
-                    if ([3].includes(bed)) bedStatus = "dirty";
-                    if ([12].includes(bed)) bedStatus = "blocked";
+                    if ([2, 5, 8, 9]?.includes(bed)) bedStatus = "occupied";
+                    if ([3]?.includes(bed)) bedStatus = "dirty";
+                    if ([12]?.includes(bed)) bedStatus = "blocked";
 
                     const bedColors = {
                       vacant: "bg-emerald-50 border-emerald-200 text-emerald-800 hover:border-emerald-400 cursor-pointer",

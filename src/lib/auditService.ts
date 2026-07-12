@@ -1,12 +1,4 @@
-import { 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  query, 
-  orderBy,
-  limit
-} from "firebase/firestore";
-import { db } from "../firebase";
+import { subscribeToClinicalData, saveDataPermanently } from "./realTimeService";
 
 export interface AuditEntry {
   id: string;
@@ -30,28 +22,28 @@ const AUDIT_COLLECTION = "hospital_audit_trail";
  * Logs a new audit entry
  */
 export async function logAudit(entry: Omit<AuditEntry, "id" | "timestamp" | "ipAddress" | "userAgent">) {
-  const newEntry = {
+  const auditId = `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const newEntry: AuditEntry = {
     ...entry,
+    id: auditId,
     timestamp: new Date().toISOString(),
     // These would ideally come from the server in a real app
     ipAddress: "127.0.0.1", 
     userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Node.js"
   };
-  await addDoc(collection(db, AUDIT_COLLECTION), newEntry);
+  await saveDataPermanently(AUDIT_COLLECTION, newEntry);
 }
 
 /**
  * Sync audit trail for admin view
  */
 export function syncAuditTrail(onData: (entries: AuditEntry[]) => void) {
-  const q = query(
-    collection(db, AUDIT_COLLECTION),
-    orderBy("timestamp", "desc"),
-    limit(200)
+  return subscribeToClinicalData<AuditEntry>(
+    AUDIT_COLLECTION,
+    (entries) => {
+      const sorted = [...entries].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+      onData(sorted.slice(0, 200));
+    },
+    (err) => console.error("Audit trail sync error:", err)
   );
-
-  return onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditEntry));
-    onData(data);
-  });
 }

@@ -96,9 +96,9 @@ export default function DrugMasterIndex({
 
   const filtered = drugs.filter(
     (d) =>
-      d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.atcClass.toLowerCase().includes(searchTerm.toLowerCase()),
+      d.name?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      d.code?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      d.atcClass?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
   );
 
   return (

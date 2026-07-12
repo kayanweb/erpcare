@@ -93,7 +93,7 @@ export const DocumentManager: React.FC<Props> = ({ patientId, language }) => {
       };
       setDocs([newDoc, ...docs]);
       setIsUploading(false);
-      toast.success(isAr ? "تم رفع الملف بنجاح" : "File uploaded successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "File uploaded successfully", titleAr: "تم رفع الملف بنجاح", type: "form" } }));
     }, 2000);
   };
 
@@ -165,13 +165,13 @@ export const DocumentManager: React.FC<Props> = ({ patientId, language }) => {
       <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {docs.filter(doc => {
-            const q = searchTerm.toLowerCase().trim();
+            const q = searchTerm?.toLowerCase().trim();
             if (!q) return true;
             return (
-              doc.name.toLowerCase().includes(q) ||
-              doc.id.toLowerCase().includes(q) ||
-              doc.category.toLowerCase().includes(q) ||
-              doc.uploadedBy.toLowerCase().includes(q)
+              doc.name?.toLowerCase()?.includes(q) ||
+              doc.id?.toLowerCase()?.includes(q) ||
+              doc.category?.toLowerCase()?.includes(q) ||
+              doc.uploadedBy?.toLowerCase()?.includes(q)
             );
           }).map(doc => (
             <div key={doc.id} className="group bg-white p-5 rounded-3xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-50 transition-all cursor-pointer relative">

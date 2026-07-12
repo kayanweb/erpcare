@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { GlobalEntityLink } from "./GlobalEntityLink";
 import {
   Activity,
   AlertTriangle,
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 import { syncSetting, saveSetting, getSetting, saveHISNotification } from "../lib/firestoreService";
 import { toast } from "sonner";
+import DepartmentTasks from "./DepartmentTasks";
 
 interface ICUCase {
   id: string;
@@ -223,12 +225,12 @@ export default function ICUDashboard({ language }: { language: "ar" | "en" }) {
   }, [activeForm, selectedPatient]);
 
   const updateVitals = async (id: string, newVitals: any) => {
-    const next = patients.map((p) =>
+    const next = (patients || []).map((p) =>
       p.id === id ? { ...p, vitals: { ...p.vitals, ...newVitals } } : p,
     );
     setPatients(next);
     await saveSetting("his_icu_cases", next);
-    toast.success(isAr ? "تم تحديث العلامات الحيوية" : "Vitals updated");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Vitals updated", titleAr: "تم تحديث العلامات الحيوية", type: "form" } }));
   };
 
   const handleConfirmAction = async (e: React.FormEvent) => {
@@ -460,7 +462,7 @@ export default function ICUDashboard({ language }: { language: "ar" | "en" }) {
     await saveHISNotification(notifObj);
     localStorage.removeItem("his_notifications_cleared");
 
-    toast.success(isAr ? "تم حفظ البيانات الطبية بنجاح وإرسال إشعار للنظام" : "Clinical data logged successfully & broadcasted to HIS");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Clinical data logged successfully & broadcasted to HIS", titleAr: "تم حفظ البيانات الطبية بنجاح وإرسال إشعار للنظام", type: "form" } }));
     setActiveForm(null);
     setFormData({});
   };
@@ -470,14 +472,14 @@ export default function ICUDashboard({ language }: { language: "ar" | "en" }) {
     const remainingLogs = icuLogs.filter(l => l.patientId !== selectedPatient.id);
     setIcuLogs(remainingLogs);
     await saveSetting("his_icu_logs", remainingLogs);
-    toast.success(isAr ? "تم إخلاء سجلات المريض الحالية" : "Current patient's clinical records cleared");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Current patient's clinical records cleared", titleAr: "تم إخلاء سجلات المريض الحالية", type: "form" } }));
   };
 
   const filtered = patients.filter(
     (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.bedId.toLowerCase().includes(searchTerm.toLowerCase()),
+      p.name?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      p.mrn?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      p.bedId?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
   );
 
   const selectedPatientLogs = icuLogs.filter(l => l.patientId === selectedPatient?.id);
@@ -536,7 +538,7 @@ export default function ICUDashboard({ language }: { language: "ar" | "en" }) {
         {/* Bed View */}
         <div className="lg:col-span-2 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtered.map((patient) => (
+            {(filtered || []).map((patient) => (
               <div
                 key={patient.id}
                 onClick={() => setSelectedPatient(patient)}
@@ -551,7 +553,9 @@ export default function ICUDashboard({ language }: { language: "ar" | "en" }) {
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-800 leading-tight">
-                        {patient.name}
+                        <GlobalEntityLink entityId={patient.mrn} entityName={patient.name} entityType="patient" isAr={isAr}>
+                          {patient.name}
+                        </GlobalEntityLink>
                       </h3>
                       <p className="text-xs font-mono text-slate-500">
                         {patient.mrn}
@@ -621,6 +625,14 @@ export default function ICUDashboard({ language }: { language: "ar" | "en" }) {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mt-6">
+            <h2 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+              <ClipboardList className="h-6 w-6 text-indigo-600" />
+              {isAr ? "المهام الطبية" : "Clinical Tasks"}
+            </h2>
+            <DepartmentTasks language={language} departmentId="icu" departmentName={isAr ? "العناية المركزة" : "Intensive Care Unit"} />
           </div>
         </div>
 
@@ -807,7 +819,7 @@ export default function ICUDashboard({ language }: { language: "ar" | "en" }) {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
-                          {selectedPatientLogs.map((log) => (
+                          {(selectedPatientLogs || []).map((log) => (
                             <tr key={log.id} className="hover:bg-slate-50/50">
                               <td className="p-2 whitespace-nowrap">
                                 <span className="px-1.5 py-0.5 rounded text-[9px] uppercase bg-slate-100 text-slate-800 font-black border border-slate-200">

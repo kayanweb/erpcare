@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { GlobalEntityLink } from "./GlobalEntityLink";
 import {
   FileBarChart,
   CheckCircle2,
@@ -80,7 +81,7 @@ export default function RCMClaims({ language }: { language: "ar" | "en" }) {
       const next = claims.filter(c => c.id !== id);
       setClaims(next);
       await saveSetting("his_rcm_claims", next);
-      toast.success(isAr ? "تم الحذف بنجاح" : "Deleted successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Deleted successfully", titleAr: "تم الحذف بنجاح", type: "form" } }));
     }
   };
 
@@ -106,7 +107,7 @@ export default function RCMClaims({ language }: { language: "ar" | "en" }) {
     setClaims(next);
     await saveSetting("his_rcm_claims", next);
     setShowModal(false);
-    toast.success(isAr ? "تم حفظ المطالبة بنجاح" : "Claim saved successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Claim saved successfully", titleAr: "تم حفظ المطالبة بنجاح", type: "form" } }));
   };
 
   const openAddModal = () => {
@@ -222,13 +223,19 @@ export default function RCMClaims({ language }: { language: "ar" | "en" }) {
             {claims.map((c) => (
               <tr key={c.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-mono font-bold text-indigo-600">
-                  {c.id}
+                  <GlobalEntityLink entityName={c.id} entityType="invoice" isAr={isAr}>
+                    {c.id}
+                  </GlobalEntityLink>
                 </td>
                 <td className="px-4 py-3 font-bold text-slate-800">
-                  {c.patient}
+                  <GlobalEntityLink entityName={c.patient} entityType="patient" isAr={isAr}>
+                    {c.patient}
+                  </GlobalEntityLink>
                 </td>
                 <td className="px-4 py-3 font-bold text-slate-600 font-xs">
-                  {c.insurance}
+                  <GlobalEntityLink entityName={c.insurance} entityType="insurance" isAr={isAr}>
+                    {c.insurance}
+                  </GlobalEntityLink>
                 </td>
                 <td className="px-4 py-3 font-black text-slate-700">
                   {c.amount.toLocaleString()}

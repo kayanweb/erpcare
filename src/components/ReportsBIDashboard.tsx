@@ -117,7 +117,7 @@ export default function ReportsBIDashboard({ language }: Props) {
         // Just checking consistency logic
       }
       // Check for pregnancy/obstetrics checks if applicable, e.g. Male on Obs clinic
-      if (patient.gender === "male" && (patient.nameAr.includes("حامل") || patient.insurance.includes("Obstetrics"))) {
+      if (patient.gender === "male" && (patient.nameAr?.includes("حامل") || patient.insurance?.includes("Obstetrics"))) {
         isConsistent = false;
         issuesList.push({
           patientId: patient.id,
@@ -188,11 +188,7 @@ export default function ReportsBIDashboard({ language }: Props) {
   }, [patients, isAr]);
 
   const runLiveQualityAudit = () => {
-    toast.success(
-      isAr 
-        ? "تم تشغيل جولة فحص جودة البيانات بالكامل ومقارنتها بمعايير التدقيق بنجاح!" 
-        : "Data quality validation engine executed successfully against Ministry & WHO standards!"
-    );
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Data quality validation engine executed successfully against Ministry & WHO standards!", titleAr: "تم تشغيل جولة فحص جودة البيانات بالكامل ومقارنتها بمعايير التدقيق بنجاح!", type: "form" } }));
   };
 
   const filteredIssues = useMemo(() => {

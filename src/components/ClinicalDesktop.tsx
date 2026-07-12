@@ -42,9 +42,9 @@ export const ClinicalDesktop: React.FC<Props> = ({ currentUser }) => {
   }, []);
 
   const filteredPatients = patients.filter(p => 
-    p.nameAr.includes(searchTerm) || 
-    p.mrn.includes(searchTerm) || 
-    p.nameEn.toLowerCase().includes(searchTerm.toLowerCase())
+    p.nameAr?.includes(searchTerm) || 
+    p.mrn?.includes(searchTerm) || 
+    p.nameEn?.toLowerCase()?.includes(searchTerm?.toLowerCase())
   );
 
   if (!selectedPatient) {
@@ -310,7 +310,7 @@ export const ClinicalDesktop: React.FC<Props> = ({ currentUser }) => {
            )}
 
            {/* Placeholder for newly added tabs to show Enterprise vastness */}
-           {["orders", "medications", "lab_rad", "billing"].includes(activeSubTab) && (
+           {["orders", "medications", "lab_rad", "billing"]?.includes(activeSubTab) && (
              <div className="h-full bg-white rounded-2xl border border-slate-200 shadow-sm p-12 flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-right-4 duration-500">
                <div className="w-20 h-20 bg-indigo-50 text-indigo-300 rounded-3xl flex items-center justify-center mb-6">
                  {activeSubTab === "orders" && <ClipboardList className="w-10 h-10" />}

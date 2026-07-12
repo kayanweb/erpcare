@@ -126,7 +126,7 @@ export default function InfectionControlHub({ language, currentUser, systemUsers
     const allowedRoles = ["admin", "quality", "infection_control", "supervisor", "doctor"];
     const authorizerRole = (authorizer as any).role || "staff";
     
-    if (!allowedRoles.includes(authorizerRole) && (currentUser as any)?.role !== "admin") {
+    if (!allowedRoles?.includes(authorizerRole) && (currentUser as any)?.role !== "admin") {
       toast.warning(isAr ? "عذراً، صلاحياتك لا تسمح باعتماد مكافحة العدوى." : "Insufficient privileges for infection control sign-off.");
       // Soft restriction for demo, we'll let it pass but warn
     }
@@ -215,7 +215,7 @@ export default function InfectionControlHub({ language, currentUser, systemUsers
       const next = incidents.filter(i => i.id !== id);
       setIncidents(next);
       await saveSetting("baheya_infection_incidents", next);
-      toast.info("Deleted");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Deleted", titleAr: "Deleted", type: "form" } }));
     }
   };
 
@@ -223,7 +223,7 @@ export default function InfectionControlHub({ language, currentUser, systemUsers
     const next = incidents.map(i => i.id === id ? { ...i, status: newStatus } : i);
     setIncidents(next);
     await saveSetting("baheya_infection_incidents", next);
-    toast.success("Status updated");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Status updated", titleAr: "Status updated", type: "form" } }));
   };
 
   // Stats calculations
@@ -530,10 +530,10 @@ export default function InfectionControlHub({ language, currentUser, systemUsers
                     <div className="h-64 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={[
-                          { name: 'ICU', score: audits.find(a=>a.department.toUpperCase().includes('ICU'))?.handHygieneScore || 92 },
-                          { name: 'ER', score: audits.find(a=>a.department.toUpperCase().includes('ER'))?.handHygieneScore || 85 },
-                          { name: 'Wards', score: audits.find(a=>a.department.toUpperCase().includes('WARD'))?.handHygieneScore || 88 },
-                          { name: 'OR', score: audits.find(a=>a.department.toUpperCase().includes('OR'))?.handHygieneScore || 98 }
+                          { name: 'ICU', score: audits.find(a=>a.department.toUpperCase()?.includes('ICU'))?.handHygieneScore || 92 },
+                          { name: 'ER', score: audits.find(a=>a.department.toUpperCase()?.includes('ER'))?.handHygieneScore || 85 },
+                          { name: 'Wards', score: audits.find(a=>a.department.toUpperCase()?.includes('WARD'))?.handHygieneScore || 88 },
+                          { name: 'OR', score: audits.find(a=>a.department.toUpperCase()?.includes('OR'))?.handHygieneScore || 98 }
                         ]} margin={{top: 20}}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
@@ -628,9 +628,9 @@ export default function InfectionControlHub({ language, currentUser, systemUsers
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {incidents.filter(i => 
-                        i.department.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        i.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        i.description.toLowerCase().includes(searchTerm.toLowerCase())
+                        i.department?.toLowerCase()?.includes(searchTerm?.toLowerCase()) || 
+                        i.patientName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+                        i.description?.toLowerCase()?.includes(searchTerm?.toLowerCase())
                       ).map(inc => (
                         <tr key={inc.id} className="hover:bg-slate-50 transition cursor-pointer">
                           <td className="p-4 font-mono text-slate-500 font-bold">{inc.id}</td>

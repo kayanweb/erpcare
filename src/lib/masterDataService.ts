@@ -1,13 +1,4 @@
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  onSnapshot, 
-  query, 
-  orderBy,
-  addDoc
-} from "firebase/firestore";
-import { db } from "../firebase";
+import { subscribeToClinicalData, saveDataPermanently } from "./realTimeService";
 
 export interface MasterDataItem {
   id: string;
@@ -21,20 +12,38 @@ export interface MasterDataItem {
 const MASTER_DATA_COLLECTION = "hospital_master_data";
 
 export async function addMasterDataItem(data: Omit<MasterDataItem, "id">) {
-  return await addDoc(collection(db, MASTER_DATA_COLLECTION), data);
+  const masterId = `md-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const newItem: MasterDataItem = {
+    ...data,
+    id: masterId
+  };
+  return await saveDataPermanently(MASTER_DATA_COLLECTION, newItem);
 }
 
 export function syncMasterData(type: string, onData: (items: MasterDataItem[]) => void) {
-  const q = query(
-    collection(db, MASTER_DATA_COLLECTION), 
-    orderBy("nameEn", "asc")
+  return subscribeToClinicalData<MasterDataItem>(
+    MASTER_DATA_COLLECTION,
+    (items) => {
+      let filtered = items.filter(item => !type || item.type === type);
+      // Fallback to seeded data if empty
+      if (filtered.length === 0) {
+        if (type === "medication") filtered = SEEDED_MEDICATIONS;
+        else if (type === "lab") filtered = SEEDED_LABS;
+        else if (type === "radiology") filtered = SEEDED_RADS;
+      }
+      // Sort alphabetically
+      const sorted = [...filtered].sort((a, b) => (a.nameEn || "").localeCompare(b.nameEn || ""));
+      onData(sorted);
+    },
+    (err) => {
+      console.warn("Master data sync error, using static fallback:", err);
+      let fallback: MasterDataItem[] = [];
+      if (type === "medication") fallback = SEEDED_MEDICATIONS;
+      else if (type === "lab") fallback = SEEDED_LABS;
+      else if (type === "radiology") fallback = SEEDED_RADS;
+      onData(fallback);
+    }
   );
-  return onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as MasterDataItem))
-      .filter(item => !type || item.type === type);
-    onData(data);
-  });
 }
 
 // Pre-seeded local data for prototype if Firestore is empty

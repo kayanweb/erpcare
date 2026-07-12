@@ -6,17 +6,7 @@ import {
   ShieldAlert, Files, Dna, Key, Wrench, ListTodo, X, Printer, Copy, CheckCircle,
   Database, Trash2, RefreshCw
 } from "lucide-react";
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  orderBy, 
-  limit, 
-  deleteDoc, 
-  doc 
-} from "../lib/firestoreService";
-import { db } from "../lib/firebase";
+import { subscribeToClinicalData, saveDataPermanently, deleteDataPermanently } from "../lib/realTimeService";
 
 import AdvancedMedicalCalculators from "./AdvancedMedicalCalculators";
 
@@ -106,16 +96,18 @@ export default function NursingAdminToolbox({ language, currentUser }: NursingAd
   const fetchArchive = async () => {
     setArchiveLoading(true);
     try {
-      const q = query(collection(db, "nursing_tool_archive"), orderBy("createdAt", "desc"), limit(100));
-      const querySnapshot = await getDocs(q);
-      const list: any[] = [];
-      querySnapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
+      const unsub = subscribeToClinicalData<any>("nursing_tool_archive", (list) => {
+        unsub();
+        const sorted = [...list].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        setArchiveList(sorted.slice(0, 100));
+        setArchiveLoading(false);
+      }, (err) => {
+        unsub();
+        console.error("Error loading archive: ", err);
+        setArchiveLoading(false);
       });
-      setArchiveList(list);
     } catch (e) {
-      console.error("Error loading archive from firestore: ", e);
-    } finally {
+      console.error("Error loading archive: ", e);
       setArchiveLoading(false);
     }
   };
@@ -126,7 +118,7 @@ export default function NursingAdminToolbox({ language, currentUser }: NursingAd
 
   const handleDeleteRecord = async (recordId: string) => {
     try {
-      await deleteDoc(doc(db, "nursing_tool_archive", recordId));
+      await deleteDataPermanently("nursing_tool_archive", recordId);
       triggerToast(isAr ? "تم حذف السجل من الحفظ والأرشيف بنجاح!" : "Log deleted from persistent archive!");
       fetchArchive();
     } catch (e) {
@@ -933,7 +925,7 @@ export default function NursingAdminToolbox({ language, currentUser }: NursingAd
             )}
 
             {/* General fallback form fields when not specifically handled */}
-            {![8, 13, 14, 17, 49].includes(tool.id) && (
+            {![8, 13, 14, 17, 49]?.includes(tool.id) && (
               <>
                 <div className="space-y-1">
                   <label className="block text-xs font-bold text-slate-700">{isAr ? "ملاحظات إضافية للكادر:" : "Special Instructions:"}</label>
@@ -1019,7 +1011,8 @@ export default function NursingAdminToolbox({ language, currentUser }: NursingAd
         createdAt: new Date().toISOString()
       };
 
-      await addDoc(collection(db, "nursing_tool_archive"), record);
+      const recordId = `record-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      await saveDataPermanently("nursing_tool_archive", { id: recordId, ...record });
       triggerToast(isAr ? "تم حفظ النتيجة وتوثيق السجل في الأرشيف بنجاح!" : "Saved telemetry results and logged in Archive successfully!");
       fetchArchive();
       setSelectedTool(null);
@@ -1044,8 +1037,8 @@ export default function NursingAdminToolbox({ language, currentUser }: NursingAd
 
   // Filter tools to matching keyword
   const filteredTools = NURSING_TOOLS.filter(t => {
-    const q = toolSearch.toLowerCase();
-    return t.nameAr.toLowerCase().includes(q) || t.nameEn.toLowerCase().includes(q) || t.id.toString().includes(q);
+    const q = toolSearch?.toLowerCase();
+    return t.nameAr?.toLowerCase()?.includes(q) || t.nameEn?.toLowerCase()?.includes(q) || t.id.toString()?.includes(q);
   });
 
   return (
@@ -1326,6 +1319,17 @@ export default function NursingAdminToolbox({ language, currentUser }: NursingAd
                     <div className="flex gap-1.5 w-full justify-end mt-2 md:mt-0">
                       <button
                         onClick={() => {
+                          let hNameAr = "مستشفى الرعاية السريرية الموحدة";
+                          let hNameEn = "Hospital Integrated Nurse Audit Hub";
+                          try {
+                            const saved = localStorage.getItem("baheya_hospital_settings");
+                            if (saved) {
+                              const parsed = JSON.parse(saved);
+                              if (parsed.nameAr) hNameAr = parsed.nameAr;
+                              if (parsed.nameEn) hNameEn = parsed.nameEn;
+                            }
+                          } catch (e) {}
+
                           const w = window.open("", "_blank");
                           if (w) {
                             w.document.write(`
@@ -1344,7 +1348,7 @@ export default function NursingAdminToolbox({ language, currentUser }: NursingAd
                                 <body>
                                   <div class="header">
                                     <div class="title">${isAr ? rec.toolNameAr : rec.toolNameEn} (Report #${rec.toolId})</div>
-                                    <p>${isAr ? "مستشفى الرعاية السريرية الموحدة - بوابة التدقيق" : "Hospital Integrated Nurse Audit Hub"}</p>
+                                    <p>${isAr ? hNameAr + " - بوابة التدقيق" : hNameEn}</p>
                                   </div>
                                   <div class="item">
                                     <div class="label">${isAr ? "بواسطة الموظف:" : "Generated By:"}</div>

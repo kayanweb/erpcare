@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { GlobalEntityLink } from "./GlobalEntityLink";
 import {
   Search,
   Plus,
@@ -101,7 +102,7 @@ export default function AppointmentsManager({
     );
     setAppointments(next);
     await saveSetting("his_appointments", next);
-    toast.success(isAr ? "تم تحديث حالة الموعد" : "Appointment status updated");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Appointment status updated", titleAr: "تم تحديث حالة الموعد", type: "form" } }));
   };
 
   const handleDelete = async (id: string) => {
@@ -109,7 +110,7 @@ export default function AppointmentsManager({
       const next = appointments.filter(a => a.id !== id);
       setAppointments(next);
       await saveSetting("his_appointments", next);
-      toast.success(isAr ? "تم حذف الموعد" : "Appointment deleted");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Appointment deleted", titleAr: "تم حذف الموعد", type: "form" } }));
     }
   };
 
@@ -141,7 +142,7 @@ export default function AppointmentsManager({
     setAppointments(next);
     await saveSetting("his_appointments", next);
     setShowModal(false);
-    toast.success(isAr ? "تم الحفظ بنجاح" : "Saved successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Saved successfully", titleAr: "تم الحفظ بنجاح", type: "form" } }));
   };
 
   const openAddModal = () => {
@@ -167,9 +168,9 @@ export default function AppointmentsManager({
     .filter(
       (a) =>
         a.date === dateFilter &&
-        (a.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          a.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          a.doctorId.toLowerCase().includes(searchTerm.toLowerCase())),
+        (a.patientName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+          a.mrn?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+          a.doctorId?.toLowerCase()?.includes(searchTerm?.toLowerCase())),
     )
     .sort((a, b) => a.time.localeCompare(b.time));
 
@@ -388,16 +389,26 @@ export default function AppointmentsManager({
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-bold text-slate-800">
-                          {apt.patientName}
+                          <GlobalEntityLink entityId={apt.mrn} entityName={apt.patientName} entityType="patient" isAr={isAr}>
+                            {apt.patientName}
+                          </GlobalEntityLink>
                         </div>
                         <div className="text-xs font-mono text-slate-500">
-                          {apt.mrn}
+                          <GlobalEntityLink entityId={apt.mrn} entityName={apt.patientName} entityType="patient" isAr={isAr}>
+                            {apt.mrn}
+                          </GlobalEntityLink>
                         </div>
                       </td>
                       <td className="px-4 py-3 font-bold text-slate-700">
-                        <div>{apt.doctorId}</div>
+                        <div>
+                          <GlobalEntityLink entityName={apt.doctorId} entityType="doctor" isAr={isAr}>
+                            {apt.doctorId}
+                          </GlobalEntityLink>
+                        </div>
                         <div className="text-xs text-slate-500 font-normal">
-                          {apt.department}
+                          <GlobalEntityLink entityName={apt.department} entityType="department" isAr={isAr}>
+                            {apt.department}
+                          </GlobalEntityLink>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-xs">

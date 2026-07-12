@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { switchEnvironment } from "./lib/dbConfig";
 import { client as appwriteClient } from "./lib/appwriteService";
@@ -47,6 +48,7 @@ import {
   KeyRound,
   Bell,
   Radio,
+  CreditCard,
   Inbox,
   AlertTriangle,
   Send,
@@ -71,6 +73,8 @@ import {
   FileDigit,
   BookOpen,
   Server,
+  Globe,
+  Network
 } from "lucide-react";
 import {
   GoogleAuthProvider,
@@ -79,9 +83,8 @@ import {
   signInWithEmailAndPassword,
   signInWithPhoneNumber,
   RecaptchaVerifier,
-  ConfirmationResult,
-} from "firebase/auth";
-import { auth } from "./lib/firebase";
+  auth
+} from "./lib/firebaseAuthStub";
 import {
   FormTemplate,
   SavedRecord,
@@ -121,15 +124,40 @@ import PatientRegistration from "./components/PatientRegistration";
 import EMRDashboard from "./components/EMRDashboard";
 import PharmacyInventory from "./components/PharmacyInventory";
 import BillingInsurance from "./components/BillingInsurance";
+import LaboratoryDashboard from "./components/LaboratoryDashboard";
+import RadiologyDashboard from "./components/RadiologyDashboard";
+import BloodBankDashboard from "./components/BloodBankDashboard";
+import ICUDashboard from "./components/ICUDashboard";
+import ERDashboard from "./components/ERDashboard";
+import BedManagementDashboard from "./components/BedManagementDashboard";
+import MortuaryDashboard from "./components/MortuaryDashboard";
+import ERPDashboard from "./components/ERPDashboard";
+import HRDashboard from "./components/HRDashboard";
+import QualityDashboard from "./components/QualityDashboard";
+import InfectionControlHub from "./components/InfectionControlHub";
+import EnterpriseCommandCenter from "./components/EnterpriseCommandCenter";
+import CyberSecurityHub from "./components/CyberSecurityHub";
+import AIClinicalDecisionSupport from "./components/AIClinicalDecisionSupport";
+import NationalIntegrationHub from "./components/NationalIntegrationHub";
 import DocumentCenter from "./components/DocumentCenter";
+import HISSettingsPage from "./components/HISSettingsPage";
 import LISRISDashboard from "./components/LISRISDashboard";
 import WardNurseDashboard from "./components/WardNurseDashboard";
 import OperatingTheaterBoard from "./components/OperatingTheaterBoard";
 import HospitalInformationSystem from "./components/HospitalInformationSystem";
+import { DashboardRouter } from "./components/DashboardRouter";
+import { SmartFormBuilder } from "./components/SmartFormBuilder";
+import DynamicFormPlayground from "./components/DynamicFormPlayground";
+import PatientTrackingKardex from "./components/PatientTrackingKardex";
+import MedicalRecordsDashboard from "./components/MedicalRecordsDashboard";
 import SmartAIAssistant from "./components/SmartAIAssistant";
+import PatientPortalDashboard from "./components/PatientPortalDashboard";
 import EmployeeEvaluationSystem from "./components/EmployeeEvaluationSystem";
-import InfectionControlHub from "./components/InfectionControlHub";
+import AdvancedMedicalCalculators from "./components/AdvancedMedicalCalculators";
 import { ClinicalDesktop } from "./components/ClinicalDesktop";
+import { PatientChartModal } from "./components/PatientChartModal";
+import { EntityDetailModal } from "./components/EntityDetailModal";
+import GenericActionModal from "./components/GenericActionModal";
 import { HISProvider } from "./context/HISContext";
 import {
   FORM_TEMPLATES,
@@ -139,6 +167,9 @@ import {
 import { generatePDF } from "./lib/pdfGenerator";
 import { DynamicProfessionalLogo } from "./components/DynamicProfessionalLogo";
 import { LiveClock } from "./components/LiveClock";
+import { WSDGlobalSearch } from "./components/WSDGlobalSearch";
+import { RegistrationFieldsManager } from "./components/RegistrationFieldsManager";
+import { defaultRegistrationFields, RegistrationField } from "./data/defaultRegistrationFields";
 import { MultiTenantManager } from "./components/MultiTenantManager";
 import { DepartmentsDetailedManager } from "./components/DepartmentsDetailedManager";
 import {
@@ -461,7 +492,7 @@ DEPT_NAMES_MOCK.forEach((dept) => {
     department: dept,
     staffId: `40101`,
     pin: "4010",
-    email: `nurse.a.${dept.toLowerCase().replace(/\s+/g, "")}@baheya.org`,
+    email: `nurse.a.${dept?.toLowerCase().replace(/\s+/g, "")}@baheya.org`,
   });
   MOCK_USERS.push({
     id: `emp-dept-2-${dept}`,
@@ -472,7 +503,7 @@ DEPT_NAMES_MOCK.forEach((dept) => {
     department: dept,
     staffId: `40102`,
     pin: "4011",
-    email: `nurse.b.${dept.toLowerCase().replace(/\s+/g, "")}@hospital.org`,
+    email: `nurse.b.${dept?.toLowerCase().replace(/\s+/g, "")}@hospital.org`,
   });
 });
 
@@ -493,10 +524,10 @@ const doesTemplateMatchDepartment = (tpl: any, deptName: string): boolean => {
     dName === "EMERGENCY"
   ) {
     return (
-      deptUpper.includes("EMERGENCY") ||
-      deptUpper.includes("DRESSING") ||
-      codeUpper.includes("-ER-") ||
-      codeUpper.includes("-GEN-027")
+      deptUpper?.includes("EMERGENCY") ||
+      deptUpper?.includes("DRESSING") ||
+      codeUpper?.includes("-ER-") ||
+      codeUpper?.includes("-GEN-027")
     );
   }
   if (
@@ -504,49 +535,49 @@ const doesTemplateMatchDepartment = (tpl: any, deptName: string): boolean => {
     dName === "CHEMO DAYCARE" ||
     dName === "CHEMO"
   ) {
-    return deptUpper.includes("CHEMO") || codeUpper.includes("-CHEMO-");
+    return deptUpper?.includes("CHEMO") || codeUpper?.includes("-CHEMO-");
   }
   if (
-    dName.includes("ICU") ||
-    dName.includes("INTENSIVE CARE") ||
-    dName.includes("CRITICAL CARE")
+    dName?.includes("ICU") ||
+    dName?.includes("INTENSIVE CARE") ||
+    dName?.includes("CRITICAL CARE")
   ) {
-    return deptUpper.includes("ICU") || codeUpper.includes("-ICU-");
+    return deptUpper?.includes("ICU") || codeUpper?.includes("-ICU-");
   }
   if (
     dName === "ONCO-SURGICAL UNIT" ||
-    dName.includes("OPERATING") ||
-    dName.includes("SURGICAL") ||
-    dName.includes("SURGERY") ||
-    dName.includes("STERILIZATION")
+    dName?.includes("OPERATING") ||
+    dName?.includes("SURGICAL") ||
+    dName?.includes("SURGERY") ||
+    dName?.includes("STERILIZATION")
   ) {
     return (
-      deptUpper.includes("OPERATING") ||
-      deptUpper.includes("SURGERY") ||
-      deptUpper.includes("SURGICAL") ||
-      deptUpper.includes("STERILIZATION") ||
-      deptUpper.includes("RECOVERY") ||
-      codeUpper.includes("-OR-") ||
-      codeUpper.includes("-SURG-") ||
-      codeUpper.includes("-ENG-")
+      deptUpper?.includes("OPERATING") ||
+      deptUpper?.includes("SURGERY") ||
+      deptUpper?.includes("SURGICAL") ||
+      deptUpper?.includes("STERILIZATION") ||
+      deptUpper?.includes("RECOVERY") ||
+      codeUpper?.includes("-OR-") ||
+      codeUpper?.includes("-SURG-") ||
+      codeUpper?.includes("-ENG-")
     );
   }
   if (
     dName === "OUTPATIENT CLINIC" ||
-    dName.includes("OUTPATIENT") ||
-    dName.includes("CLINIC")
+    dName?.includes("OUTPATIENT") ||
+    dName?.includes("CLINIC")
   ) {
     return (
-      deptUpper.includes("CLINIC") ||
-      codeUpper.includes("-CLIN-") ||
-      codeUpper.includes("-OP-") ||
-      deptUpper.includes("OUTPATIENT") ||
-      tpl.id.includes("outpatient")
+      deptUpper?.includes("CLINIC") ||
+      codeUpper?.includes("-CLIN-") ||
+      codeUpper?.includes("-OP-") ||
+      deptUpper?.includes("OUTPATIENT") ||
+      tpl.id?.includes("outpatient")
     );
   }
 
   // Default fallback check
-  return deptUpper.includes(dName) || dName.includes(deptUpper);
+  return deptUpper?.includes(dName) || dName?.includes(deptUpper);
 };
 
 const DEFAULT_DUTY_TASKS: DailyDutyTask[] = [
@@ -788,6 +819,22 @@ export const SystemSettingsContext = React.createContext<{
   },
   setHospitalSettings: () => {},
 });
+const SmartFormBuilderToggle = ({ language }: { language: "ar" | "en" }) => {
+  const [tab, setTab] = useState<"builder" | "playground">("builder");
+  useEffect(() => {
+    const handler = (e: any) => {
+      setTab(e.detail);
+    };
+    window.addEventListener("toggle-form-tab", handler);
+    return () => window.removeEventListener("toggle-form-tab", handler);
+  }, []);
+  return tab === "builder" ? (
+    <SmartFormBuilder language={language} />
+  ) : (
+    <DynamicFormPlayground language={language} />
+  );
+};
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     return sessionStorage.getItem("hospital_isLoggedIn") === "true";
@@ -890,7 +937,7 @@ export default function App() {
 
 
   return (
-    <HISProvider>
+    <HISProvider isLoggedIn={isLoggedIn}>
       <SystemSettingsContext.Provider
         value={{ hospitalSettings, setHospitalSettings }}
       >
@@ -935,6 +982,46 @@ function AppContent({
     [],
     isLoggedIn,
   );
+  const [formData, setFormData] = useState<any>({});
+  
+  const [registrationFields, setRegistrationFields] = useState<RegistrationField[]>(() => {
+    try {
+      const saved = localStorage.getItem("patient_registration_config");
+      return saved ? JSON.parse(saved) : defaultRegistrationFields;
+    } catch (e) {
+      return defaultRegistrationFields;
+    }
+  });
+
+  const handleSaveRegistrationConfig = (updatedFields: RegistrationField[]) => {
+    setRegistrationFields(updatedFields);
+    localStorage.setItem("patient_registration_config", JSON.stringify(updatedFields));
+    saveSetting("patient_registration_config", updatedFields).catch(e => console.warn(e));
+  };
+  
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingRecord) {
+      setRecords((prev) =>
+        prev.map((r) => (r.id === editingRecord.id ? editingRecord : r)),
+      );
+      setEditingRecord(null);
+      setFormData({});
+      addSystemLog(`Record ${editingRecord.id} saved successfully`, "success");
+    } else {
+        const newRecord = { ...formData, id: `rec-${Date.now()}`, date: new Date().toISOString() };
+        setRecords((prev) => [...prev, newRecord]);
+        setEditingRecord(null);
+        setFormData({});
+        addSystemLog(`New record created successfully`, "success");
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    setRecords((prev) => prev.filter((r) => r.id !== id));
+    addSystemLog(`Record ${id} deleted`, "warning");
+  };
+  
   const [customTemplates, setCustomTemplates] = useFirestoreSync<FormTemplate>(
     syncCustomTemplates,
     [],
@@ -959,6 +1046,35 @@ function AppContent({
     currentValue: string;
     isDevice: boolean;
   } | null>(null);
+
+  const [activeEntityDetail, setActiveEntityDetail] = useState<{ entity: any; type: string } | null>(null);
+  const [activePatientChart, setActivePatientChart] = useState<{ patientId: string; patientName: string; initialTab?: string } | null>(null);
+
+  useEffect(() => {
+    const handleOpenPatientChart = (e: any) => {
+      setActivePatientChart({
+        patientId: e.detail.patientId || "N/A",
+        patientName: e.detail.patientName || "Unknown Patient",
+        initialTab: e.detail.initialTab || "summary"
+      });
+    };
+    const handleOpenGenericEntityModal = (e: any) => {
+      setActiveEntityDetail({
+        entity: {
+          id: e.detail.entityId || "N/A",
+          name: e.detail.entityName || e.detail.titleEn,
+          nameAr: e.detail.entityNameAr || e.detail.titleAr,
+        },
+        type: e.detail.type || "unknown"
+      });
+    };
+    window.addEventListener("openPatientChart", handleOpenPatientChart);
+    window.addEventListener("openGenericModal", handleOpenGenericEntityModal);
+    return () => {
+      window.removeEventListener("openPatientChart", handleOpenPatientChart);
+      window.removeEventListener("openGenericModal", handleOpenGenericEntityModal);
+    };
+  }, []);
 
   useEffect(() => {
     // Only check shift change every minute to avoid re-renders
@@ -989,6 +1105,7 @@ function AppContent({
     useState<SavedRecord | null>(null);
   const [historyDeptFilter, setHistoryDeptFilter] = useState<string>("");
   const [historyTemplateFilter, setHistoryTemplateFilter] = useState<string>("");
+  const [distributionDeptSearch, setDistributionDeptSearch] = useState<string>("");
   const [selectedHistoryRecordIds, setSelectedHistoryRecordIds] = useState<string[]>([]);
   const [userRegistrySearch, setUserRegistrySearch] = useState("");
   const [userRegistryPage, setUserRegistryPage] = useState(0);
@@ -1130,7 +1247,7 @@ function AppContent({
         const parsed = JSON.parse(stored);
         if (
           parsed.submitChecklist &&
-          parsed.submitChecklist.includes("president")
+          parsed.submitChecklist?.includes("president")
         ) {
           return parsed;
         }
@@ -1757,11 +1874,11 @@ function AppContent({
     | "system_settings"
     | "auth_settings"
     | "rbac"
-    | "cloud_settings"
     | "admin_ops"
     | "it_infra"
     | "dev_sandbox"
     | "dr_backup"
+    | "cloud_settings"
   >("system_settings");
 
   // Fix: Move DevSandbox hooks to top level
@@ -2025,7 +2142,7 @@ Full administrative override and emergency clinical execution privileges have be
     nameEn: "Hospital",
     taglineEn: "Care and healing",
     hisNameAr: "نظام معلومات المستشفى الموحد (HIS)",
-    hisNameEn: "Unified Hospital Information System (HIS)",
+    hisNameEn: "ERP Care HIS",
     hisTaglineAr: "رعاية ذكية آمنة وسريعة",
     hisTaglineEn: "Smart, Safe, and Rapid Care",
     hisThemeColor: "#0a4275",
@@ -2353,8 +2470,8 @@ Full administrative override and emergency clinical execution privileges have be
       },
       {
         id: "mod_wsd_console",
-        nameAr: "💻 لوحة الإدارة والدعم والبرمجة الأكاديمية (WSD CONSOLE)",
-        nameEn: "WSD Academic Console",
+        nameAr: "💻 لوحة الإدارة (WSD CONSOLE)",
+        nameEn: "WSD Console",
       },
       { id: "mod_profile", nameAr: "الصفحة الشخصية", nameEn: "Profile View" },
       {
@@ -2612,8 +2729,8 @@ Full administrative override and emergency clinical execution privileges have be
         },
         {
           id: "mod_wsd_console",
-          nameAr: "💻 لوحة الإدارة والدعم والبرمجة الأكاديمية (WSD CONSOLE)",
-          nameEn: "WSD Academic Console",
+          nameAr: "💻 لوحة الإدارة (WSD CONSOLE)",
+          nameEn: "WSD Console",
         },
         { id: "mod_profile", nameAr: "الصفحة الشخصية", nameEn: "Profile View" },
         {
@@ -2953,7 +3070,7 @@ Full administrative override and emergency clinical execution privileges have be
       Object.keys(defaults).forEach((permissionId) => {
         const rolesWithPerm = defaults[permissionId];
         rolesList.forEach((role) => {
-          const isEnabled = rolesWithPerm.includes(role.id);
+          const isEnabled = rolesWithPerm?.includes(role.id);
           itemsToSave.push({
             id: `${role.id}_${permissionId}`,
             roleId: role.id,
@@ -2973,7 +3090,7 @@ Full administrative override and emergency clinical execution privileges have be
 
   const checkPermission = (permissionId: string): boolean => {
     if (!currentUser) return false;
-    const roleId = currentUser.role || "staff";
+    const roleId = currentUser?.role || "staff";
 
     // Super admins and IT always bypass as safety
     if (roleId === "admin" || roleId === "it") return true;
@@ -3221,7 +3338,7 @@ Full administrative override and emergency clinical execution privileges have be
       if (freshUser) {
         const hasChanges =
           freshUser.status !== currentUser.status ||
-          freshUser.role !== currentUser.role ||
+          freshUser.role !== currentUser?.role ||
           JSON.stringify(freshUser.moduleOverrides || []) !==
             JSON.stringify(currentUser.moduleOverrides || []) ||
           JSON.stringify(freshUser.moduleDenials || []) !==
@@ -3303,10 +3420,10 @@ Full administrative override and emergency clinical execution privileges have be
               const isDirectedToMyDept =
                 n.targetDepartment &&
                 currentUser.department &&
-                currentUser.department.includes(n.targetDepartment);
+                currentUser.department?.includes(n.targetDepartment);
               const isAdminTargeted =
                 n.userId === "admin" &&
-                (currentUser.role === "admin" || currentUser.role === "it");
+                (currentUser?.role === "admin" || currentUser?.role === "it");
 
               if (
                 isGlobal ||
@@ -3358,9 +3475,9 @@ Full administrative override and emergency clinical execution privileges have be
     "it",
     "supervisor",
     "nursing_director",
-  ].includes(currentUser.role);
-  const canConfigureRoster = ["admin", "it", "nursing_director"].includes(
-    currentUser.role,
+  ]?.includes(currentUser?.role);
+  const canConfigureRoster = ["admin", "it", "nursing_director"]?.includes(
+    currentUser?.role,
   );
 
   useEffect(() => {
@@ -3499,15 +3616,15 @@ Full administrative override and emergency clinical execution privileges have be
         return { ...t, ...o };
       }
       return t;
-    }).filter((t) => !deactivatedTemplateIds.includes(t.id)),
+    }).filter((t) => !deactivatedTemplateIds?.includes(t.id)),
     ...customTemplates,
   ].filter((t) => {
     if (!currentUser) return true;
     const isNormalStaff =
-      currentUser.role !== "admin" &&
-      currentUser.role !== "quality" &&
-      currentUser.role !== "president" &&
-      currentUser.role !== "it";
+      currentUser?.role !== "admin" &&
+      currentUser?.role !== "quality" &&
+      currentUser?.role !== "president" &&
+      currentUser?.role !== "it";
 
     // Always permit newly created custom templates
     if (t.id.startsWith("custom-tpl-")) {
@@ -3517,7 +3634,7 @@ Full administrative override and emergency clinical execution privileges have be
     if (isNormalStaff) {
       // 1. If explicit permissions are configured for this nurse, restrict to those templates
       if (currentUser.permissions && currentUser.permissions.length > 0) {
-        return currentUser.permissions.includes(t.id);
+        return currentUser.permissions?.includes(t.id);
       }
 
       // 2. Use the unified, robust doesTemplateMatchDepartment function
@@ -3525,6 +3642,26 @@ Full administrative override and emergency clinical execution privileges have be
     }
     return true; // Supervisors, managers, and presidents can oversee/search all clinical sheets
   });
+
+  useEffect(() => {
+    const handleSwitchWSDTab = (e: any) => {
+      const { tab, templateId } = e.detail || {};
+      if (tab) {
+        setGatewaySystem("wsd");
+        setActiveTab(tab);
+        if (templateId && tab === "editor") {
+          const tpl = allAvailableTemplates.find((t) => t.id === templateId);
+          if (tpl) {
+            setSelectedTemplate(tpl);
+          }
+        }
+      }
+    };
+    window.addEventListener("switch-wsd-tab", handleSwitchWSDTab);
+    return () => {
+      window.removeEventListener("switch-wsd-tab", handleSwitchWSDTab);
+    };
+  }, [allAvailableTemplates]);
 
   // Load from local database (localStorage) and Firebase on mount
   useEffect(() => {
@@ -3549,7 +3686,7 @@ Full administrative override and emergency clinical execution privileges have be
           const appliedSettings = {
             ...storedSettings,
             hisNameAr: storedSettings.hisNameAr || "نظام معلومات المستشفى الموحد (HIS)",
-            hisNameEn: storedSettings.hisNameEn || "Unified Hospital Information System (HIS)",
+            hisNameEn: storedSettings.hisNameEn || "ERP Care HIS",
             hisTaglineAr: storedSettings.hisTaglineAr || "رعاية ذكية آمنة وسريعة",
             hisTaglineEn: storedSettings.hisTaglineEn || "Smart, Safe, and Rapid Care",
             hisThemeColor: storedSettings.hisThemeColor || "#0a4275",
@@ -3562,6 +3699,9 @@ Full administrative override and emergency clinical execution privileges have be
               sms: false,
               corporate: false,
             },
+            roles: storedSettings.roles || ["admin", "nurse", "doctor"],
+            jobTitles: storedSettings.jobTitles || ["Head Nurse", "General Practitioner", "Staff Nurse"],
+            tenants: storedSettings.tenants || [],
           };
           setHospitalSettings(appliedSettings);
           setSettingsForm(appliedSettings);
@@ -3804,7 +3944,7 @@ Full administrative override and emergency clinical execution privileges have be
       return;
     }
 
-    const role = currentUser.role;
+    const role = currentUser?.role;
     if (
       [
         "head_nurse",
@@ -3814,7 +3954,7 @@ Full administrative override and emergency clinical execution privileges have be
         "intern",
         "assistant",
         "secretary",
-      ].includes(role)
+      ]?.includes(role)
     ) {
       // Regular staff/nurse is STRICTLY LOCKED to their checklist portal, info, and roster page
       if (
@@ -3836,7 +3976,7 @@ Full administrative override and emergency clinical execution privileges have be
       }
     } else if (role === "quality") {
       // Supervisors can see checklists (duty), history, analytics, and guide
-      if (["settings", "it_panel", "his"].includes(activeTab)) {
+      if (["settings", "it_panel", "his"]?.includes(activeTab)) {
         setActiveTab("home");
       }
     } else {
@@ -3942,7 +4082,7 @@ Full administrative override and emergency clinical execution privileges have be
       "intern",
       "assistant",
       "secretary",
-    ].includes(currentUser.role);
+    ]?.includes(currentUser?.role);
     const todayStr = new Date().toISOString().slice(0, 10);
 
     // 1. Date Locking validation rules with IT Override Compliance Mode support
@@ -4032,19 +4172,19 @@ Full administrative override and emergency clinical execution privileges have be
     const bodyAr = notif.bodyAr || "";
     const bodyEn = notif.bodyEn || "";
     const textToMatch =
-      `${titleAr} ${titleEn} ${msgAr} ${msgEn} ${bodyAr} ${bodyEn}`.toLowerCase();
+      `${titleAr} ${titleEn} ${msgAr} ${msgEn} ${bodyAr} ${bodyEn}`?.toLowerCase();
 
     if (notif.targetTab) {
       if (notif.targetTab === "approval" || notif.targetTab === "rbac") {
         const isUserRelated =
-          textToMatch.includes("موافقة") ||
-          textToMatch.includes("حساب") ||
-          textToMatch.includes("صلاحية") ||
-          textToMatch.includes("تسجيل") ||
-          textToMatch.includes("مستخدم") ||
-          textToMatch.includes("user") ||
-          textToMatch.includes("account") ||
-          textToMatch.includes("credentials");
+          textToMatch?.includes("موافقة") ||
+          textToMatch?.includes("حساب") ||
+          textToMatch?.includes("صلاحية") ||
+          textToMatch?.includes("تسجيل") ||
+          textToMatch?.includes("مستخدم") ||
+          textToMatch?.includes("user") ||
+          textToMatch?.includes("account") ||
+          textToMatch?.includes("credentials");
         if (isUserRelated) {
           setActiveTab("it_panel");
           setItSubTab("rbac");
@@ -4065,113 +4205,113 @@ Full administrative override and emergency clinical execution privileges have be
     }
 
     if (
-      textToMatch.includes("صلاحية") ||
-      textToMatch.includes("صلاحيات") ||
-      textToMatch.includes("موافقة مستخدم") ||
-      textToMatch.includes("تفعيل حساب") ||
-      textToMatch.includes("دور") ||
-      textToMatch.includes("user approval") ||
-      textToMatch.includes("rbac") ||
-      textToMatch.includes("permission") ||
-      textToMatch.includes("approval") ||
-      textToMatch.includes("موافقة")
+      textToMatch?.includes("صلاحية") ||
+      textToMatch?.includes("صلاحيات") ||
+      textToMatch?.includes("موافقة مستخدم") ||
+      textToMatch?.includes("تفعيل حساب") ||
+      textToMatch?.includes("دور") ||
+      textToMatch?.includes("user approval") ||
+      textToMatch?.includes("rbac") ||
+      textToMatch?.includes("permission") ||
+      textToMatch?.includes("approval") ||
+      textToMatch?.includes("موافقة")
     ) {
       setActiveTab("it_panel");
       setItSubTab("rbac");
     } else if (
-      textToMatch.includes("ديوتي") ||
-      textToMatch.includes("مهمة") ||
-      textToMatch.includes("وظائف") ||
-      textToMatch.includes("duty") ||
-      textToMatch.includes("task")
+      textToMatch?.includes("ديوتي") ||
+      textToMatch?.includes("مهمة") ||
+      textToMatch?.includes("وظائف") ||
+      textToMatch?.includes("duty") ||
+      textToMatch?.includes("task")
     ) {
       setActiveTab("duty");
     } else if (
-      textToMatch.includes("شيت") ||
-      textToMatch.includes("جرد") ||
-      textToMatch.includes("نموذج") ||
-      textToMatch.includes("بوابة") ||
-      textToMatch.includes("سجل") ||
-      textToMatch.includes("checklist") ||
-      textToMatch.includes("form") ||
-      textToMatch.includes("sheet") ||
-      textToMatch.includes("ledger")
+      textToMatch?.includes("شيت") ||
+      textToMatch?.includes("جرد") ||
+      textToMatch?.includes("نموذج") ||
+      textToMatch?.includes("بوابة") ||
+      textToMatch?.includes("سجل") ||
+      textToMatch?.includes("checklist") ||
+      textToMatch?.includes("form") ||
+      textToMatch?.includes("sheet") ||
+      textToMatch?.includes("ledger")
     ) {
       setActiveTab("editor");
     } else if (
-      textToMatch.includes("توزيع") ||
-      textToMatch.includes("distribution") ||
-      textToMatch.includes("office")
+      textToMatch?.includes("توزيع") ||
+      textToMatch?.includes("distribution") ||
+      textToMatch?.includes("office")
     ) {
       setActiveTab("distribution");
     } else if (
-      textToMatch.includes("تحليل") ||
-      textToMatch.includes("إحصاء") ||
-      textToMatch.includes("جودة") ||
-      textToMatch.includes("analytics") ||
-      textToMatch.includes("dashboard") ||
-      textToMatch.includes("cqi") ||
-      textToMatch.includes("gap") ||
-      textToMatch.includes("فجوة")
+      textToMatch?.includes("تحليل") ||
+      textToMatch?.includes("إحصاء") ||
+      textToMatch?.includes("جودة") ||
+      textToMatch?.includes("analytics") ||
+      textToMatch?.includes("dashboard") ||
+      textToMatch?.includes("cqi") ||
+      textToMatch?.includes("gap") ||
+      textToMatch?.includes("فجوة")
     ) {
       setActiveTab("analytics");
     } else if (
-      textToMatch.includes("تاريخ") ||
-      textToMatch.includes("أرشيف") ||
-      textToMatch.includes("history") ||
-      textToMatch.includes("archive")
+      textToMatch?.includes("تاريخ") ||
+      textToMatch?.includes("أرشيف") ||
+      textToMatch?.includes("history") ||
+      textToMatch?.includes("archive")
     ) {
       setActiveTab("history");
     } else if (
-      textToMatch.includes("it") ||
-      textToMatch.includes("معلومات") ||
-      textToMatch.includes("دعم")
+      textToMatch?.includes("it") ||
+      textToMatch?.includes("معلومات") ||
+      textToMatch?.includes("دعم")
     ) {
       setActiveTab("it_panel");
     } else if (
-      textToMatch.includes("إعدادات") ||
-      textToMatch.includes("ضبط") ||
-      textToMatch.includes("settings")
+      textToMatch?.includes("إعدادات") ||
+      textToMatch?.includes("ضبط") ||
+      textToMatch?.includes("settings")
     ) {
       setActiveTab("settings");
     } else if (
-      textToMatch.includes("رغبة") ||
-      textToMatch.includes("رغبات") ||
-      textToMatch.includes("روستر") ||
-      textToMatch.includes("الروستر") ||
-      textToMatch.includes("roster") ||
-      textToMatch.includes("wish") ||
-      textToMatch.includes("wishes")
+      textToMatch?.includes("رغبة") ||
+      textToMatch?.includes("رغبات") ||
+      textToMatch?.includes("روستر") ||
+      textToMatch?.includes("الروستر") ||
+      textToMatch?.includes("roster") ||
+      textToMatch?.includes("wish") ||
+      textToMatch?.includes("wishes")
     ) {
       setActiveTab("roster");
     } else if (
-      textToMatch.includes("رسالة") ||
-      textToMatch.includes("رسائل") ||
-      textToMatch.includes("مراسلة") ||
-      textToMatch.includes("طلبات") ||
-      textToMatch.includes("message") ||
-      textToMatch.includes("messaging")
+      textToMatch?.includes("رسالة") ||
+      textToMatch?.includes("رسائل") ||
+      textToMatch?.includes("مراسلة") ||
+      textToMatch?.includes("طلبات") ||
+      textToMatch?.includes("message") ||
+      textToMatch?.includes("messaging")
     ) {
       setActiveTab("messaging");
     } else if (
-      textToMatch.includes("كود") ||
-      textToMatch.includes("طوارئ") ||
-      textToMatch.includes("عناية") ||
-      textToMatch.includes("code blue") ||
-      textToMatch.includes("emr") ||
-      textToMatch.includes("icu")
+      textToMatch?.includes("كود") ||
+      textToMatch?.includes("طوارئ") ||
+      textToMatch?.includes("عناية") ||
+      textToMatch?.includes("code blue") ||
+      textToMatch?.includes("emr") ||
+      textToMatch?.includes("icu")
     ) {
       setActiveTab("emr");
     } else if (
-      textToMatch.includes("نقل") ||
-      textToMatch.includes("transport") ||
-      textToMatch.includes("حركة")
+      textToMatch?.includes("نقل") ||
+      textToMatch?.includes("transport") ||
+      textToMatch?.includes("حركة")
     ) {
       setActiveTab("transport");
     } else if (
-      textToMatch.includes("بلاغ") ||
-      textToMatch.includes("ovr") ||
-      textToMatch.includes("حادث")
+      textToMatch?.includes("بلاغ") ||
+      textToMatch?.includes("ovr") ||
+      textToMatch?.includes("حادث")
     ) {
       setActiveTab("analytics");
     } else {
@@ -4226,7 +4366,7 @@ Full administrative override and emergency clinical execution privileges have be
 
   // Delete Record (Restricted to ADMIN/PRESIDENT)
   const handleDeleteRecord = (recordId: string) => {
-    if (currentUser.role !== "admin" && currentUser.role !== "president") {
+    if (currentUser?.role !== "admin" && currentUser?.role !== "president") {
       alert(
         language === "ar"
           ? "تنبيه الصلاحية: لا يمكن حذف المستندات إلا بواسطة أدمن النظام فقط لضمان سلامة مراقبة الجودة الطبية."
@@ -4338,7 +4478,7 @@ Full administrative override and emergency clinical execution privileges have be
     );
     if (!confirmation) return;
 
-    const updatedGrid = editingRecord.gridData.filter(
+    const updatedGrid = (editingRecord.gridData || []).filter(
       (_, idx) => idx !== index,
     );
     const reindexedGrid = updatedGrid.map((row, idx) => ({
@@ -4453,10 +4593,11 @@ Full administrative override and emergency clinical execution privileges have be
     ) as HTMLInputElement;
     if (!input) return;
     const val = input.value.trim();
-    if (!val || settingsForm.jobTitles.includes(val)) return;
+    const currentTitles = settingsForm.jobTitles || [];
+    if (!val || currentTitles?.includes(val)) return;
     setSettingsForm({
       ...settingsForm,
-      jobTitles: [...settingsForm.jobTitles, val],
+      jobTitles: [...currentTitles, val],
     });
     input.value = "";
   };
@@ -4587,7 +4728,7 @@ Full administrative override and emergency clinical execution privileges have be
 
   // Delete Custom Template
   const handleDeleteCustomTemplate = (id: string) => {
-    if (currentUser.role !== "admin" && currentUser.role !== "president") {
+    if (currentUser?.role !== "admin" && currentUser?.role !== "president") {
       alert(
         language === "ar"
           ? "تنبيه الصلاحية: لا يمكن حذف الشيتات المضافة إلا للآدمن."
@@ -4652,7 +4793,7 @@ Full administrative override and emergency clinical execution privileges have be
 
   // Deactivate/Hide standard template
   const handleToggleDeactivateTemplate = (id: string) => {
-    if (currentUser.role !== "admin" && currentUser.role !== "president") {
+    if (currentUser?.role !== "admin" && currentUser?.role !== "president") {
       alert(
         language === "ar"
           ? "تنبيه الصلاحية: هذه الإجراء يتطلب صلاحية الآدمن."
@@ -4662,12 +4803,12 @@ Full administrative override and emergency clinical execution privileges have be
     }
 
     let updatedDeactivated: string[];
-    const isDeactivated = deactivatedTemplateIds.includes(id);
+    const isDeactivated = deactivatedTemplateIds?.includes(id);
 
     if (isDeactivated) {
-      updatedDeactivated = deactivatedTemplateIds.filter((x) => x !== id);
+      updatedDeactivated = (deactivatedTemplateIds || []).filter((x) => x !== id);
     } else {
-      updatedDeactivated = [...deactivatedTemplateIds, id];
+      updatedDeactivated = [...(deactivatedTemplateIds || []), id];
     }
 
     setDeactivatedTemplateIds(updatedDeactivated);
@@ -5018,7 +5159,7 @@ Full administrative override and emergency clinical execution privileges have be
       const nextList = prevList.map((rost) => {
         return {
           ...rost,
-          rows: rost.rows.filter((r: any) => {
+          rows: (rost.rows || []).filter((r: any) => {
             const matchId = targetId && r.employeeId === targetId;
             const matchCode = targetCode && r.employeeCode === targetCode;
             return !(matchId || matchCode);
@@ -5101,7 +5242,7 @@ Full administrative override and emergency clinical execution privileges have be
         emp_id: cleanCode,
         nameAr: newRosterEmpNameAr.trim(),
         nameEn: newRosterEmpNameEn.trim(),
-        email: `${cleanCode.toLowerCase().replace("bhg-", "")}@hospital.org`,
+        email: `${cleanCode?.toLowerCase().replace("bhg-", "")}@hospital.org`,
         role: newRosterEmpRole as UserRole,
         department: selectedRosterDept,
         pin: pinToUse,
@@ -5541,12 +5682,12 @@ Full administrative override and emergency clinical execution privileges have be
       id: generatedId,
       nameAr: newUserForm.nameAr.trim(),
       nameEn: newUserForm.nameEn.trim(),
-      role: newUserForm.role as UserRole,
+      role: newUserForm?.role as UserRole,
       avatarInitials: initials,
       department: newUserForm.department.trim() || "EMERGENCY UNIT",
       staffId: newUserForm.staffId.trim(),
       pin: newUserForm.pin.trim() || "1234",
-      email: newUserForm.email.trim().toLowerCase(),
+      email: newUserForm.email.trim()?.toLowerCase(),
       emp_id: newUserForm.staffId.trim(),
       assigned_dept: newUserForm.department.trim() || "EMERGENCY UNIT",
       permissions: newUserForm.permissions || [],
@@ -5573,7 +5714,7 @@ Full administrative override and emergency clinical execution privileges have be
         "nursing_assistant",
         "secretary",
         "sec",
-      ].includes(newUser.role)
+      ]?.includes(newUser?.role)
     ) {
       setRosterList((prevList) => {
         const nextList = prevList.map((rost) => {
@@ -5591,8 +5732,8 @@ Full administrative override and emergency clinical execution privileges have be
                 employeeId: newUser.id,
                 employeeNameAr: newUser.nameAr,
                 employeeNameEn: newUser.nameEn,
-                roleTitleAr: resolveRoleTitles(newUser.role).ar,
-                roleTitleEn: resolveRoleTitles(newUser.role).en,
+                roleTitleAr: resolveRoleTitles(newUser?.role).ar,
+                roleTitleEn: resolveRoleTitles(newUser?.role).en,
                 employeeCode: newUser.staffId || newUser.pin,
                 shifts: {},
               };
@@ -5654,7 +5795,7 @@ Full administrative override and emergency clinical execution privileges have be
       setEditUserForm({
         nameAr: usr.nameAr,
         nameEn: usr.nameEn,
-        role: usr.role,
+        role: usr?.role,
         department: usr.department,
         staffId: usr.staffId,
         pin: usr.pin || "1234",
@@ -5737,12 +5878,12 @@ Full administrative override and emergency clinical execution privileges have be
           ...u,
           nameAr: editUserForm.nameAr.trim(),
           nameEn: editUserForm.nameEn.trim(),
-          role: editUserForm.role,
+          role: editUserForm?.role,
           avatarInitials: initials,
           department: editUserForm.department.trim(),
           staffId: editUserForm.staffId.trim(),
           pin: editUserForm.pin.trim() || "1234",
-          email: editUserForm.email.trim().toLowerCase(),
+          email: editUserForm.email.trim()?.toLowerCase(),
           emp_id: editUserForm.staffId.trim(),
           assigned_dept: editUserForm.department.trim(),
           permissions: editUserForm.permissions || [],
@@ -5837,7 +5978,7 @@ Full administrative override and emergency clinical execution privileges have be
       return;
     }
 
-    const admins = systemUsers.filter((u) => u.role === "admin");
+    const admins = systemUsers.filter((u) => u?.role === "admin");
     const targetUser = systemUsers.find((u) => u.id === userId);
     if (targetUser?.role === "admin" && admins.length <= 1) {
       alert(
@@ -5946,8 +6087,8 @@ Full administrative override and emergency clinical execution privileges have be
 
     // Quality Lock validation - ONLY prevent if the user is a normal staff or nurse.
     // Allowing editing if it is supervisor, manager, admin, quality, president.
-    const isNormalStaff = ["staff", "nurse", "normal"].includes(
-      currentUser.role.toLowerCase(),
+    const isNormalStaff = ["staff", "nurse", "normal"]?.includes(
+      currentUser?.role?.toLowerCase(),
     );
     if (isNormalStaff) {
       alert(
@@ -5961,22 +6102,22 @@ Full administrative override and emergency clinical execution privileges have be
     const rowData = editingRecord.gridData[rowIndex];
     const currentValue = rowData.days[dayKey] || "";
 
-    const itemEn = rowData.itemEn.toLowerCase();
-    const itemAr = rowData.itemAr.toLowerCase();
+    const itemEn = rowData.itemEn?.toLowerCase();
+    const itemAr = rowData.itemAr?.toLowerCase();
 
     // Devices & Equipment (Boolean)
     const isDevice =
-      itemEn.includes("device") ||
-      itemEn.includes("equipment") ||
-      itemEn.includes("shock") ||
-      itemEn.includes("tube") ||
-      itemEn.includes("monitor") ||
-      itemEn.includes("oxygen") ||
-      itemEn.includes("extinguisher") ||
-      itemAr.includes("جهاز") ||
-      itemAr.includes("مونيتور") ||
-      itemAr.includes("أسطوانة") ||
-      itemAr.includes("طفايات");
+      itemEn?.includes("device") ||
+      itemEn?.includes("equipment") ||
+      itemEn?.includes("shock") ||
+      itemEn?.includes("tube") ||
+      itemEn?.includes("monitor") ||
+      itemEn?.includes("oxygen") ||
+      itemEn?.includes("extinguisher") ||
+      itemAr?.includes("جهاز") ||
+      itemAr?.includes("مونيتور") ||
+      itemAr?.includes("أسطوانة") ||
+      itemAr?.includes("طفايات");
 
     setActiveCellEdit({
       rowIndex,
@@ -6020,7 +6161,7 @@ Full administrative override and emergency clinical execution privileges have be
     if (!editingRecord) return;
 
     // Quality Lock validation
-    if (currentUser.role === "quality") {
+    if (currentUser?.role === "quality") {
       alert(
         language === "ar"
           ? "تنبيه الجودة: المستند للقراءة فقط. لا يمكن ملء الخانات كمسؤول جودة."
@@ -6107,10 +6248,10 @@ Full administrative override and emergency clinical execution privileges have be
       console.error("Google sign-in error:", error);
       const msg = error?.message || "";
       const isConfigError =
-        msg.includes("api-key") ||
-        msg.includes("authDomain") ||
-        msg.includes("invalid-api") ||
-        msg.includes("valid-api-key");
+        msg?.includes("api-key") ||
+        msg?.includes("authDomain") ||
+        msg?.includes("invalid-api") ||
+        msg?.includes("valid-api-key");
 
       if (isConfigError) {
         setLoginError(
@@ -6130,11 +6271,11 @@ Full administrative override and emergency clinical execution privileges have be
 
   const handleFirebaseAuthSuccess = (fbUser: any) => {
     if (!fbUser) return;
-    const email = (fbUser.email || "").trim().toLowerCase();
+    const email = (fbUser.email || "").trim()?.toLowerCase();
 
     // Check if user already exists by email
     const matchedUser = systemUsers.find(
-      (u) => (u.email || "").trim().toLowerCase() === email,
+      (u) => (u.email || "").trim()?.toLowerCase() === email,
     );
 
     if (matchedUser) {
@@ -6268,7 +6409,7 @@ Full administrative override and emergency clinical execution privileges have be
       setLoginStaffId("");
       setLoginError(null);
       addSystemLog(
-        `User ${targetUser.nameEn} (${targetUser.role.toUpperCase()}) logged in successfully.`,
+        `User ${targetUser.nameEn} (${targetUser?.role?.toUpperCase()}) logged in successfully.`,
         "success",
       );
     } else {
@@ -6343,7 +6484,7 @@ Full administrative override and emergency clinical execution privileges have be
       department: department,
       staffId: cleanCode,
       pin: pin.trim(),
-      email: email.trim().toLowerCase(),
+      email: email.trim()?.toLowerCase(),
       emp_id: cleanCode,
       assigned_dept: department,
       permissions: ["checklist", "duty", "view_roster", "mod_profile"],
@@ -6359,7 +6500,7 @@ Full administrative override and emergency clinical execution privileges have be
     );
 
     // Auto-inject employee into roster rows for their designated department
-    if (["staff", "Staff", "head_nurse"].includes(role)) {
+    if (["staff", "Staff", "head_nurse"]?.includes(role)) {
       setRosterList((prevList) => {
         const nextList = prevList.map((rost) => {
           if (
@@ -6377,11 +6518,11 @@ Full administrative override and emergency clinical execution privileges have be
                 employeeNameAr: newUser.nameAr,
                 employeeNameEn: newUser.nameEn,
                 roleTitleAr:
-                  newUser.role === "head_nurse"
+                  newUser?.role === "head_nurse"
                     ? "رئيسة تمريض"
                     : "أخصائي تمريض (SN)",
                 roleTitleEn:
-                  newUser.role === "head_nurse"
+                  newUser?.role === "head_nurse"
                     ? "Head Nurse (HN)"
                     : "Staff Nurse (SN)",
                 employeeCode: newUser.staffId,
@@ -6468,7 +6609,7 @@ Full administrative override and emergency clinical execution privileges have be
     setRecoveryError(null);
     setRecoveryMsg(null);
 
-    const emailToSearch = recoveryEmailIn.trim().toLowerCase();
+    const emailToSearch = recoveryEmailIn.trim()?.toLowerCase();
     if (!emailToSearch) {
       setRecoveryError(
         language === "ar"
@@ -6479,7 +6620,7 @@ Full administrative override and emergency clinical execution privileges have be
     }
 
     const matchedUser = systemUsers.find(
-      (u) => (u.email || "").trim().toLowerCase() === emailToSearch,
+      (u) => (u.email || "").trim()?.toLowerCase() === emailToSearch,
     );
 
     if (!matchedUser) {
@@ -6494,7 +6635,7 @@ Full administrative override and emergency clinical execution privileges have be
     // Generate virtual mailbox notification
     const newMailItem = {
       id: `mail-${Date.now()}`,
-      sender: `security-noreply@${(hospitalSettings.nameEn || "hospital").toLowerCase().replace(/\s+/g, "")}.org`,
+      sender: `security-noreply@${(hospitalSettings.nameEn || "hospital")?.toLowerCase().replace(/\s+/g, "")}.org`,
       recipient: emailToSearch,
       subject:
         language === "ar"
@@ -6600,13 +6741,13 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
     // If user is regular clinical staff (not admin/quality/president/it), restrict access
     const isStaffLocked =
       currentUser &&
-      currentUser.role !== "admin" &&
-      currentUser.role !== "quality" &&
-      currentUser.role !== "president" &&
-      currentUser.role !== "it";
+      currentUser?.role !== "admin" &&
+      currentUser?.role !== "quality" &&
+      currentUser?.role !== "president" &&
+      currentUser?.role !== "it";
     if (isStaffLocked) {
       if (currentUser.permissions && currentUser.permissions.length > 0) {
-        if (!currentUser.permissions.includes(tpl.id)) {
+        if (!currentUser.permissions?.includes(tpl.id)) {
           return false;
         }
       } else if (currentUser.department) {
@@ -6617,13 +6758,13 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
     }
 
     // 1. Sidebar Search query
-    const q = templateSearchQuery.toLowerCase().trim();
+    const q = templateSearchQuery?.toLowerCase().trim();
     const matchesSearch =
       q === "" ||
-      tpl.titleAr.toLowerCase().includes(q) ||
-      tpl.titleEn.toLowerCase().includes(q) ||
-      tpl.code.toLowerCase().includes(q) ||
-      tpl.departmentDefault.toLowerCase().includes(q);
+      tpl.titleAr?.toLowerCase()?.includes(q) ||
+      tpl.titleEn?.toLowerCase()?.includes(q) ||
+      tpl.code?.toLowerCase()?.includes(q) ||
+      tpl.departmentDefault?.toLowerCase()?.includes(q);
 
     if (!matchesSearch) return false;
 
@@ -6635,31 +6776,31 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
 
       const matchesDept =
         deptUpper === fd ||
-        codeUpper.includes(
+        codeUpper?.includes(
           `-${fd.replace(" UNIT", "").replace(" CLINIC", "")}-`,
         ) ||
         (fd === "ER" &&
-          (codeUpper.includes("-ER-") ||
-            codeUpper.includes("-GEN-027") ||
-            deptUpper.includes("DRESSING") ||
-            deptUpper.includes("EMERGENCY"))) ||
-        (fd === "ICU" && codeUpper.includes("-ICU-")) ||
+          (codeUpper?.includes("-ER-") ||
+            codeUpper?.includes("-GEN-027") ||
+            deptUpper?.includes("DRESSING") ||
+            deptUpper?.includes("EMERGENCY"))) ||
+        (fd === "ICU" && codeUpper?.includes("-ICU-")) ||
         (fd === "OR" &&
-          (codeUpper.includes("-OR-") ||
-            codeUpper.includes("-SURG-") ||
-            codeUpper.includes("-ENG-") ||
-            deptUpper.includes("OPERATING") ||
-            deptUpper.includes("STERILIZATION"))) ||
+          (codeUpper?.includes("-OR-") ||
+            codeUpper?.includes("-SURG-") ||
+            codeUpper?.includes("-ENG-") ||
+            deptUpper?.includes("OPERATING") ||
+            deptUpper?.includes("STERILIZATION"))) ||
         (fd === "CHEMO" &&
-          (codeUpper.includes("-CHEMO-") || deptUpper.includes("CHEMO"))) ||
+          (codeUpper?.includes("-CHEMO-") || deptUpper?.includes("CHEMO"))) ||
         (fd === "RAD" &&
-          (codeUpper.includes("-RAD-") || deptUpper.includes("RADIOLOGY"))) ||
+          (codeUpper?.includes("-RAD-") || deptUpper?.includes("RADIOLOGY"))) ||
         (fd === "PED" &&
-          (codeUpper.includes("-PED-") || deptUpper.includes("PEDIATRIC"))) ||
+          (codeUpper?.includes("-PED-") || deptUpper?.includes("PEDIATRIC"))) ||
         (fd === "PHA" &&
-          (codeUpper.includes("-PHA-") || deptUpper.includes("PHARMACY"))) ||
+          (codeUpper?.includes("-PHA-") || deptUpper?.includes("PHARMACY"))) ||
         (fd === "QLTY" &&
-          (codeUpper.includes("-QLTY-") || deptUpper.includes("QUALITY")));
+          (codeUpper?.includes("-QLTY-") || deptUpper?.includes("QUALITY")));
 
       if (!matchesDept) return false;
     }
@@ -6669,7 +6810,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
       const yearStr = selectedYearFilter;
       const tplYear = tpl.issueDate || "";
       const matchesYear =
-        tplYear.includes(yearStr) || tpl.code.includes(yearStr);
+        tplYear?.includes(yearStr) || tpl.code?.includes(yearStr);
       if (!matchesYear) return false;
     }
 
@@ -6681,13 +6822,13 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
     // If user is regular clinical staff (not admin/quality/president/it), restrict to their department/permitted templates
     const isStaffLocked =
       currentUser &&
-      currentUser.role !== "admin" &&
-      currentUser.role !== "quality" &&
-      currentUser.role !== "president" &&
-      currentUser.role !== "it";
+      currentUser?.role !== "admin" &&
+      currentUser?.role !== "quality" &&
+      currentUser?.role !== "president" &&
+      currentUser?.role !== "it";
     if (isStaffLocked) {
       if (currentUser.permissions && currentUser.permissions.length > 0) {
-        if (!currentUser.permissions.includes(r.templateId)) {
+        if (!currentUser.permissions?.includes(r.templateId)) {
           return false;
         }
       } else if (currentUser.department) {
@@ -6695,8 +6836,8 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
         const rName = (r.department || "").toUpperCase();
         if (
           dName !== rName &&
-          !rName.includes(dName) &&
-          !dName.includes(rName)
+          !rName?.includes(dName) &&
+          !dName?.includes(rName)
         ) {
           return false;
         }
@@ -6704,17 +6845,17 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
     }
 
     const template = allAvailableTemplates.find((t) => t.id === r.templateId);
-    const searchLow = searchQuery.toLowerCase().trim();
+    const searchLow = searchQuery?.toLowerCase().trim();
     return (
-      r.department.toLowerCase().includes(searchLow) ||
-      r.staffName.toLowerCase().includes(searchLow) ||
-      r.staffId.toLowerCase().includes(searchLow) ||
-      (r.patientName && r.patientName.toLowerCase().includes(searchLow)) ||
-      (r.patientMRN && r.patientMRN.toLowerCase().includes(searchLow)) ||
-      (r.notes && r.notes.toLowerCase().includes(searchLow)) ||
-      (template && template.titleAr.toLowerCase().includes(searchLow)) ||
-      (template && template.titleEn.toLowerCase().includes(searchLow)) ||
-      r.date.includes(searchLow)
+      r.department?.toLowerCase()?.includes(searchLow) ||
+      r.staffName?.toLowerCase()?.includes(searchLow) ||
+      r.staffId?.toLowerCase()?.includes(searchLow) ||
+      (r.patientName && r.patientName?.toLowerCase()?.includes(searchLow)) ||
+      (r.patientMRN && r.patientMRN?.toLowerCase()?.includes(searchLow)) ||
+      (r.notes && r.notes?.toLowerCase()?.includes(searchLow)) ||
+      (template && template.titleAr?.toLowerCase()?.includes(searchLow)) ||
+      (template && template.titleEn?.toLowerCase()?.includes(searchLow)) ||
+      r.date?.includes(searchLow)
     );
   });
 
@@ -7348,7 +7489,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           : "Clinical Role & Permission Level:"}
                       </label>
                       <select
-                        value={signupForm.role}
+                        value={signupForm?.role}
                         onChange={(e) =>
                           setSignupForm({ ...signupForm, role: e.target.value })
                         }
@@ -7987,6 +8128,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
           currentUser={currentUser}
           systemUsers={systemUsers}
           hospitalSettings={hospitalSettings}
+          setHospitalSettings={setHospitalSettings}
           departments={departments}
           onLogout={handleLogout}
           onLanguageToggle={() => setLanguage(language === "ar" ? "en" : "ar")}
@@ -7999,6 +8141,37 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
           setNotifications={setNotifications}
           handleNotificationClick={handleNotificationClick}
           onViewProfile={setViewingUserProfileUser}
+          rosterList={rosterList}
+          setRosterList={rawSetRosterList}
+          rosterWishes={rosterWishes}
+          records={records}
+          allAvailableTemplates={allAvailableTemplates}
+          resolvedGaps={resolvedGaps}
+          handleToggleGapState={handleToggleGapState}
+          addSystemLog={addSystemLog}
+          checkPermission={checkPermission}
+          selectedRosterDept={selectedRosterDept}
+          setSelectedRosterDept={setSelectedRosterDept}
+          editingGapKey={editingGapKey}
+          setEditingGapKey={setEditingGapKey}
+          gapResolutionNote={gapResolutionNote}
+
+          editingRecord={editingRecord}
+          setEditingRecord={setEditingRecord}
+          selectedTemplate={selectedTemplate}
+          setSelectedTemplate={setSelectedTemplate}
+          formData={formData}
+          setFormData={setFormData}
+          handleCreateNew={handleCreateNew}
+          handleSave={handleSave}
+          handleDelete={handleDelete}
+
+          setGapResolutionNote={setGapResolutionNote}
+          handleSaveGapResolution={handleSaveGapResolution}
+          allAvailableTemplatesLoaded={true}
+          setGatewaySystem={setGatewaySystem}
+          setActiveTab={setActiveTab}
+          setRecords={setRecords}
         />
         <SmartAIAssistant language={language} currentUser={currentUser} />
       </div>
@@ -8007,7 +8180,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
 
   return (
     <div
-      className={`min-h-screen flex flex-col md:flex-row font-sans ${language === "ar" ? "rtl" : "ltr"} ${gatewaySystem === "his" ? "bg-slate-950" : "bg-slate-50"} print:block print:min-h-0 print:h-auto print:p-0 print:m-0`}
+      className={`min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row font-sans ${language === "ar" ? "rtl" : "ltr"} ${gatewaySystem === "his" ? "bg-slate-950" : "bg-slate-50"} print:block print:min-h-0 print:h-auto print:p-0 print:m-0`}
       dir={language === "ar" ? "rtl" : "ltr"}
     >
       {/* Mobile Backdrop */}
@@ -8063,18 +8236,18 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
               <div className="text-[10px] text-slate-500 font-medium mt-1 leading-snug">
                 <div className="flex items-center gap-1.5 text-slate-300">
                   <span
-                    className={`w-1.5 h-1.5 rounded-full ${currentUser.role === "admin" ? "bg-red-500 animate-pulse" : currentUser.role === "quality" ? "bg-amber-400" : currentUser.role === "president" ? "bg-purple-500" : "bg-emerald-400"}`}
+                    className={`w-1.5 h-1.5 rounded-full ${currentUser?.role === "admin" ? "bg-red-500 animate-pulse" : currentUser?.role === "quality" ? "bg-amber-400" : currentUser?.role === "president" ? "bg-purple-500" : "bg-emerald-400"}`}
                   ></span>
                   <span>
-                    {currentUser.role === "admin"
+                    {currentUser?.role === "admin"
                       ? language === "ar"
                         ? "المدير (إدارة العمليات)"
                         : "Operations Manager"
-                      : currentUser.role === "quality"
+                      : currentUser?.role === "quality"
                         ? language === "ar"
                           ? "المشرف (مراقب الجودة)"
                           : "Quality Supervisor"
-                        : currentUser.role === "president"
+                        : currentUser?.role === "president"
                           ? language === "ar"
                             ? "الرئيس (مجلس الإدارة)"
                             : "Board President"
@@ -8097,439 +8270,371 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
         </div>
 
         {/* Sidebar Tabs - Dynamically restricted based on User Roles */}
-        <nav className="flex-1 py-4 space-y-1">
-          <div className="px-6 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest font-sans">
-            {language === "ar" ? "تصفح الأبواب" : "Clinical Ledger Navigation"}
+        <nav className="flex-1 py-4 space-y-4 overflow-y-auto max-h-[calc(100vh-180px)] px-2">
+          {/* Group 1: تصفح الأبواب (Browse Chapters) */}
+          <div className="space-y-1">
+            <div className="px-4 mb-2.5 text-[11px] font-bold text-sky-400 uppercase tracking-wider font-sans">
+              {language === "ar" ? "أنظمة الإدارة والتشغيل (WSD)" : "Management & Operations (WSD)"}
+            </div>
+
+            {/* 1. مكتب الطبيب المتكامل (العمليات) [NEW badge] */}
+            <button
+              onClick={() => setActiveTab("clinical_desktop")}
+              className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                activeTab === "clinical_desktop" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <Stethoscope className="h-4 w-4 shrink-0 text-rose-400" />
+              <span className="flex-1 text-right">{language === "ar" ? "مكتب الطبيب المتكامل (العمليات)" : "Integrated Physician Desk"}</span>
+              <span className="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                NEW
+              </span>
+            </button>
+
+            {/* 2. أدوات التمريض الإدارية */}
+            {checkPermission("mod_roster_view") && (
+              <button
+                onClick={() => setActiveTab("nursing_toolbox")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "nursing_toolbox" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <ClipboardList className="h-4 w-4 shrink-0 text-sky-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "أدوات التمريض الإدارية" : "Nursing Admin Toolbox"}</span>
+              </button>
+            )}
+
+            {/* 3. لوحة تحكم المشرف والسوبر فايزر [SUPER badge] */}
+            {checkPermission("mod_roster_view") && (
+              <button
+                onClick={() => setActiveTab("supervisor")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "supervisor" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "لوحة تحكم المشرف والسوبر فايزر" : "Supervisor Command Board"}</span>
+                <span className="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                  SUPER
+                </span>
+              </button>
+            )}
+
+            {/* 4. سجل الأدوية الذكي */}
+            {checkPermission("mod_roster_view") && (
+              <button
+                onClick={() => setActiveTab("medication_ledger")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "medication_ledger" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Pill className="h-4 w-4 shrink-0 text-teal-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "سجل الأدوية الذكي" : "Smart Medication Ledger"}</span>
+              </button>
+            )}
+
+            {/* 5. تعبئة وجرد الشيتات الطبية [N+200 badge] */}
+            {checkPermission("mod_forms_fill") && (
+              <button
+                onClick={() => {
+                  setActiveTab("editor");
+                  if (!editingRecord) handleCreateNew(selectedTemplate.id);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "editor" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <CheckSquare className="h-4 w-4 shrink-0 text-rose-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "تعبئة وجرد الشيتات الطبية" : "Clinical Sheets Ledger"}</span>
+                <span className="bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                  N+200
+                </span>
+              </button>
+            )}
+
+            {/* 6. مكتـب توزيـع الشيتـات الطبية [MAP badge] */}
+            {checkPermission("mod_forms_dist") && (
+              <button
+                onClick={() => setActiveTab("distribution")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "distribution" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <LayoutGrid className="h-4 w-4 shrink-0 text-purple-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "مكتـب توزيـع الشيتـات الطبية" : "Clinical Sheets Distribution"}</span>
+                <span className="bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                  MAP
+                </span>
+              </button>
+            )}
+
+            {/* 7. جدول نوبتجيات وورديات التمريض [ROSTER badge] */}
+            {checkPermission("mod_roster_view") && (
+              <button
+                onClick={() => setActiveTab("roster")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "roster" ? "bg-blue-600 text-white font-bold shadow-md" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Calendar className="h-4 w-4 shrink-0 text-teal-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "جدول نوبتجيات وورديات التمريض" : "Nursing Shifts Roster"}</span>
+                <span className="bg-purple-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                  ROSTER
+                </span>
+              </button>
+            )}
+
+            {/* 8. إعدادات الروستر */}
+            {checkPermission("mod_roster_config") && (
+              <button
+                onClick={() => setActiveTab("roster_config")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "roster_config" ? "bg-blue-600 text-white font-bold shadow-md" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Settings className="h-4 w-4 shrink-0 text-amber-500" />
+                <span className="flex-1 text-right">{language === "ar" ? "إعدادات الروستر" : "Roster Config"}</span>
+              </button>
+            )}
+
+            {/* 8.5. إعدادات اسم المستشفى (HIS) */}
+            {checkPermission("mod_settings") && (
+              <button
+                onClick={() => setActiveTab("his_settings")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "his_settings" ? "bg-blue-600 text-white font-bold shadow-md" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Globe className="h-4 w-4 shrink-0 text-indigo-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "إعدادات اسم المستشفى (HIS)" : "HIS Name Settings"}</span>
+              </button>
+            )}
+
+            {/* 9. شيت وجبات المرضى والموظفين [MEALS badge] */}
+            {checkPermission("mod_meals") && (
+              <button
+                onClick={() => setActiveTab("meals")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "meals" ? "bg-blue-600 text-white font-bold shadow-md" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Coffee className="h-4 w-4 shrink-0 text-orange-500" />
+                <span className="flex-1 text-right">{language === "ar" ? "شيت وجبات المرضى والموظفين" : "Meals & Nutrition Log"}</span>
+                <span className="bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                  MEALS
+                </span>
+              </button>
+            )}
+
+            {/* 10. حركة نقل المرضى [MOVE badge] */}
+            {checkPermission("mod_transport") && (
+              <button
+                onClick={() => setActiveTab("transport")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "transport" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Layers className="h-4 w-4 shrink-0 text-indigo-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "حركة ونقل المرضى" : "Patient Transport"}</span>
+                <span className="bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                  MOVE
+                </span>
+              </button>
+            )}
+
+            {/* 11. لوحة الجودة والتحليلات البصرية [CQI badge] */}
+            {checkPermission("mod_quality") && (
+              <button
+                onClick={() => setActiveTab("analytics")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "analytics" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <TrendingUp className="h-4 w-4 shrink-0 text-orange-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "لوحة الجودة والتحليلات البصرية" : "Quality Analytics Hub"}</span>
+                <span className="bg-fuchsia-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                  CQI
+                </span>
+              </button>
+            )}
+
+            {/* 12. سجلات الأرشيف المحفوظة */}
+            {checkPermission("mod_archives") && (
+              <button
+                onClick={() => setActiveTab("history")}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                  activeTab === "history" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Database className="h-4 w-4 shrink-0 text-blue-400" />
+                <span className="flex-1 text-right">{language === "ar" ? "سجلات الأرشيف المحفوظة" : "Saved Records Store"}</span>
+              </button>
+            )}
           </div>
 
-          {/* NEW: Integrated Clinical Desktop (Workflow Engine) */}
-          <button
-            onClick={() => setActiveTab("clinical_desktop")}
-            className={`w-full flex items-center gap-3 px-6 py-4 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-              activeTab === "clinical_desktop"
-                ? "bg-pink-600 text-white font-bold shadow-md"
-                : "text-slate-300 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <Stethoscope
-              className={`h-4 w-4 shrink-0 ${activeTab === "clinical_desktop" ? "text-white" : "text-pink-400"}`}
-            />
-            <span className="flex-1">
-              {language === "ar"
-                ? "مكتب الطبيب المتكامل (العمليات)"
-                : "Integrated Clinical Desktop"}
-            </span>
-            <span className="bg-white/20 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
-              NEW
-            </span>
-          </button>
-
-          {/* 1.1 Nursing Admin Toolbox */}
-          {checkPermission("mod_nursing_admin") && (
-            <button
-              onClick={() => setActiveTab("nursing_toolbox")}
-              className={`w-full flex items-center gap-3 px-6 py-4 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "nursing_toolbox"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <ClipboardCheck
-                className={`h-4 w-4 shrink-0 ${activeTab === "nursing_toolbox" ? "text-indigo-400" : "text-slate-500"}`}
-              />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "أدوات التمريض الإدارية"
-                  : "Nursing Admin Tools"}
-              </span>
-            </button>
-          )}
-
-          {/* 1.2 Supervisor & Admin Dashboard */}
-          {checkPermission("mod_supervisor") && (
-            <button
-              onClick={() => setActiveTab("supervisor")}
-              className={`w-full flex items-center gap-3 px-6 py-4 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "supervisor"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <ShieldCheck
-                className={`h-4 w-4 shrink-0 ${activeTab === "supervisor" ? "text-indigo-400" : "text-slate-500"}`}
-              />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "لوحة تحكم المشرف والسوبر فايزر"
-                  : "Supervisor Dashboard"}
-              </span>
-              <span className="bg-emerald-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
-                SUPER
-              </span>
-            </button>
-          )}
-
-          {/* 1.3 Medication Intelligence Ledger */}
-          {checkPermission("mod_medication") && (
-            <button
-              onClick={() => setActiveTab("medication_ledger")}
-              className={`w-full flex items-center gap-3 px-6 py-4 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "medication_ledger"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Database
-                className={`h-4 w-4 shrink-0 ${activeTab === "medication_ledger" ? "text-indigo-400" : "text-slate-500"}`}
-              />
-              <span className="flex-1">
-                {language === "ar" ? "سجل الأدوية الذكي" : "Smart Med Ledger"}
-              </span>
-            </button>
-          )}
-
-          {/* 2. Clinical Sheets Ledger */}
-          {checkPermission("mod_forms_fill") && (
-            <button
-              onClick={() => {
-                setActiveTab("editor");
-                if (!editingRecord) handleCreateNew(selectedTemplate.id);
-              }}
-              className={`w-full flex items-center gap-3 px-6 py-4 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "editor"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <CheckSquare
-                className={`h-4 w-4 shrink-0 ${activeTab === "editor" ? "text-pink-400" : "text-slate-500"}`}
-              />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "تعبئة وجرد الشيتات الطبية"
-                  : "Clinical Sheets Ledger"}
-              </span>
-              <span className="bg-pink-600/30 text-pink-400 text-[8px] px-1 py-0.5 rounded-full font-black uppercase">
-                200+ N
-              </span>
-            </button>
-          )}
-
-          {/* 2.5 Dynamic Clinical Sheet Distribution Office & Forms Navigator */}
-          {checkPermission("mod_forms_dist") && (
-            <button
-              onClick={() => setActiveTab("distribution")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "distribution"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <LayoutGrid className="h-4 w-4 shrink-0 text-pink-500" />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "مكتـب توزيـع الشيتـات الطبية"
-                  : "Clinical Sheets Distribution"}
-              </span>
-              <span className="bg-amber-500/20 text-amber-500 text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                Map
-              </span>
-            </button>
-          )}
-
-          {/* 2.6 Nursing Schedule Shift Roster (طبق الأصل من المطبوع) - Accessible to ALL */}
-          {checkPermission("mod_roster_view") && (
-            <button
-              onClick={() => setActiveTab("roster")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "roster"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Calendar className="h-4 w-4 shrink-0 text-pink-500 animate-pulse" />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "جدول نوبتجيات وورديات التمريض"
-                  : "Nursing Shifts Roster"}
-              </span>
-              <span className="bg-pink-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold animate-pulse">
-                ROSTER
-              </span>
-            </button>
-          )}
-
-          {checkPermission("mod_roster_config") && (
-            <button
-              onClick={() => setActiveTab("roster_config")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "roster_config"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Settings className="h-4 w-4 shrink-0 text-amber-500" />
-              <span className="flex-1">
-                {language === "ar" ? "إعدادات الروستر" : "Roster Config"}
-              </span>
-            </button>
-          )}
-
-          {/* Meals Delivery Log */}
-          {checkPermission("mod_meals") && (
-            <button
-              onClick={() => setActiveTab("meals")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "meals"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Coffee
-                className={`h-4 w-4 shrink-0 ${activeTab === "meals" ? "text-orange-400" : "text-slate-500"}`}
-              />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "شيت وجبات المرضى والموظفين"
-                  : "Meals & Nutrition"}
-              </span>
-              <span className="bg-orange-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
-                MEALS
-              </span>
-            </button>
-          )}
-
-          {/* Transportation Log */}
-          {checkPermission("mod_transport") && (
-            <button
-              onClick={() => setActiveTab("transport")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "transport"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <ArrowLeftRight
-                className={`h-4 w-4 shrink-0 ${activeTab === "transport" ? "text-indigo-400" : "text-slate-500"}`}
-              />
-              <span className="flex-1">
-                {language === "ar" ? "حركة نقل المرضى" : "Patient Transport"}
-              </span>
-              <span className="bg-indigo-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
-                MOVE
-              </span>
-            </button>
-          )}
-
-          {/* 3. Analytics Hub */}
-          {checkPermission("mod_quality") && (
-            <button
-              onClick={() => setActiveTab("analytics")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "analytics"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <TrendingUp className="h-4 w-4 shrink-0 text-pink-500" />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "لوحة الجودة والتحليلات البصرية"
-                  : "Quality Analytics Hub"}
-              </span>
-              <span className="bg-pink-600/30 text-pink-400 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                CQI
-              </span>
-            </button>
-          )}
-
-          {/* 4. Saved Records Store */}
-          {checkPermission("mod_archives") && (
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "history"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <FileSpreadsheet className="h-4 w-4 shrink-0 text-pink-500" />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "سجلات الأرشيف المحفوظة"
-                  : "Saved Records Store"}
-              </span>
-              {records.length > 0 && (
-                <span className="bg-pink-600/30 text-pink-400 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">
-                  {records.length}
-                </span>
-              )}
-            </button>
-          )}
-
-          {/* 5. Unified System Admin & WSD Console */}
+          {/* Group 2: WSD Console Area */}
           {checkPermission("mod_wsd_console") && (
+            <div className="space-y-1 pt-2 border-t border-[#042442]">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("it_panel");
+                  setItSubTab("system_settings");
+                }}
+                className={`w-full text-right p-3 rounded-xl border flex items-center justify-between gap-2.5 mb-2 shadow-md transition-all cursor-pointer hover:scale-[1.02] ${
+                  activeTab === "it_panel"
+                    ? "bg-pink-600 border-pink-400 text-white font-black"
+                    : "bg-[#0f62fe] border-blue-400/30 text-white font-semibold hover:bg-blue-600"
+                }`}
+              >
+                <span className="text-xs font-black flex items-center gap-2">
+                  <span>💻</span>
+                  <span>{language === "ar" ? "لوحة الإدارة والبرمجة الأكاديمية" : "WSD Academic & IT Console"}</span>
+                </span>
+                <span className="bg-violet-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 tracking-wider">
+                  {language === "ar" ? "اضغط للدخول" : "ENTER"}
+                </span>
+              </button>
+
+              {/* WSD Sub-items list */}
+              <div className="space-y-1 pl-1 pr-1">
+                {/* 13.5. لوحة الإدارة والبرمجة الأكاديمية */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("it_panel");
+                    setItSubTab("system_settings");
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "it_panel" ? "bg-pink-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Server className="h-4 w-4 shrink-0 text-pink-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "لوحة البرمجة الأكاديمية والتحكم (IT)" : "Academic Console & Control"}</span>
+                </button>
+
+                {/* 14. الصفحة الشخصية */}
+                <button
+                  onClick={() => setActiveTab("profile")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "profile" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <User className="h-4 w-4 shrink-0 text-sky-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "الصفحة الشخصية" : "User Profile View"}</span>
+                </button>
+
+                {/* 15. الأدوات والآلات الحسابية */}
+                <button
+                  onClick={() => setActiveTab("medical_tools")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "medical_tools" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Activity className="h-4 w-4 shrink-0 text-rose-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "أدوات طبية متقدمة" : "Advanced Medical Tools"}</span>
+                </button>
+
+                {/* 16. تعديل وتصميم النماذج السريرية */}
+                <button
+                  onClick={() => setActiveTab("form_builder")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "form_builder" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Settings className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "تعديل وتصميم النماذج السريرية" : "Form Builder & Design"}</span>
+                </button>
+
+                {/* 17. المراسلات والطلبات */}
+                <button
+                  onClick={() => setActiveTab("messaging")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "messaging" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <MessageSquare className="h-4 w-4 shrink-0 text-teal-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "نظام الرسائل والإشعارات" : "Messaging & Notifications"}</span>
+                </button>
+
+                {/* 18. تقييم الموظفين */}
+                <button
+                  onClick={() => setActiveTab("evaluations")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "evaluations" ? "bg-blue-600 text-white font-bold shadow-md" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Award className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "تقييم الموظفين" : "Employee Evaluations"}</span>
+                </button>
+
+                {/* 19. تتبع مشروع HIS */}
+                <button
+                  onClick={() => setActiveTab("project_implementation")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "project_implementation" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Layers className="h-4 w-4 shrink-0 text-blue-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "تتبع مشروع HIS" : "HIS Project Tracking"}</span>
+                </button>
+
+                {/* 19.1. مركز المستندات */}
+                <button
+                  onClick={() => setActiveTab("document_center")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "document_center" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <FileText className="h-4 w-4 shrink-0 text-cyan-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "مركز المستندات" : "Document Center"}</span>
+                </button>
+                {/* 19.2. الفواتير والتأمين */}
+                <button
+                  onClick={() => setActiveTab("billing")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "billing" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Database className="h-4 w-4 shrink-0 text-green-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "الفواتير والتأمين" : "Billing & Insurance"}</span>
+                </button>
+                {/* 20. لوحة الإدارة والدعم */}
+                <button
+                  onClick={() => setActiveTab("admin_dashboard")}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "admin_dashboard" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Database className="h-4 w-4 shrink-0 text-amber-500" />
+                  <span className="flex-1 text-right">{language === "ar" ? "لوحة الإدارة والدعم" : "Admin & IT Dashboard"}</span>
+                </button>
+
+                {/* 21. النماذج والشيتات */}
+                <button
+                  onClick={() => setActiveTab("manage_templates")}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
+                    activeTab === "manage_templates" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <FileText className="h-4 w-4 shrink-0 text-pink-400" />
+                  <span className="flex-1 text-right">{language === "ar" ? "النماذج والشيتات" : "Templates & Forms"}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-slate-800">
             <button
-              onClick={() => setActiveTab("it_panel")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "it_panel"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-right text-xs font-semibold text-rose-400 hover:bg-rose-950/20 hover:text-rose-200 transition-colors cursor-pointer rounded-lg"
             >
-              <Database className="h-4 w-4 shrink-0 text-pink-500" />
+              <Lock className="h-4 w-4 shrink-0 text-rose-500" />
               <span className="flex-1">
-                {language === "ar"
-                  ? "💻 لوحة الإدارة والدعم والبرمجة الأكاديمية"
-                  : "💻 Unified Admin & WSD Console"}
-              </span>
-              <span className="bg-pink-600/30 text-pink-400 text-[8px] px-1.5 py-0.5 rounded-full font-black animate-pulse uppercase">
-                WSD CONSOLE
+                {language === "ar" ? "تسجيل الخروج الآمن" : "Secure Log Out"}
               </span>
             </button>
-          )}
-
-          {/* Profile Tab */}
-          {checkPermission("mod_profile") && (
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "profile"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <User className="h-4 w-4 shrink-0 text-pink-500" />
-              <span className="flex-1">
-                {language === "ar" ? "الصفحة الشخصية" : "User Profile"}
-              </span>
-            </button>
-          )}
-
-          {/* Medical Tools Suite Tab */}
-          {checkPermission("mod_medical_tools") && (
-            <button
-              onClick={() => setActiveTab("medical_tools")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "medical_tools"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Stethoscope className="h-4 w-4 shrink-0 text-rose-500" />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "الأدوات والآلات الحسابية"
-                  : "Medical Tools & Calculators"}
-              </span>
-            </button>
-          )}
-          {/* Clinical Templates Builder */}
-          {checkPermission("mod_system_settings") && (
-            <button
-              onClick={() => setActiveTab("manage_templates")}
-              className={`w-full flex items-center gap-3 px-6 py-3 text-right text-xs font-semibold transition-all rounded-lg mx-2 ${
-                activeTab === "manage_templates"
-                  ? "bg-blue-600 text-white font-bold shadow-md"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Settings className="h-4 w-4 shrink-0 text-pink-500" />
-              <span className="flex-1">
-                {language === "ar"
-                  ? "تعديل وتصميم النماذج السريرية"
-                  : "Clinical Templates Builder"}
-              </span>
-            </button>
-          )}
-
-          {/* 6. Messaging & Requests - NEW */}
-          {checkPermission("mod_messaging") && (
-            <button
-              onClick={() => setActiveTab("messaging")}
-              className={`w-full flex items-center gap-3 px-6 py-2.5 text-right text-xs font-semibold transition-colors ${
-                activeTab === "messaging"
-                  ? "bg-slate-800 border-r-4 border-blue-500 text-blue-400 font-bold"
-                  : "text-slate-500 hover:bg-slate-800 hover:text-white"
-              }`}
-            >
-              <MessageSquare className="h-4 w-4 shrink-0 text-blue-500" />
-              <span>
-                {language === "ar"
-                  ? "المراسلات والطلبات"
-                  : "Messaging & Requests"}
-              </span>
-            </button>
-          )}
-
-          {checkPermission("mod_evaluations") && (
-            <button
-              onClick={() => setActiveTab("evaluations")}
-              className={`w-full flex items-center gap-3 px-6 py-2.5 text-right text-xs font-semibold transition-colors ${
-                activeTab === "evaluations"
-                  ? "bg-slate-800 border-r-4 border-amber-500 text-amber-400 font-bold"
-                  : "text-slate-500 hover:bg-slate-800 hover:text-white"
-              }`}
-            >
-              <Star className="h-4 w-4 shrink-0 text-amber-500" />
-              <span>
-                {language === "ar" ? "تقييم الموظفين" : "Employee Evaluations"}
-              </span>
-            </button>
-          )}
-
-          <button
-            onClick={() => setActiveTab("project_implementation")}
-            className={`w-full flex items-center gap-3 px-6 py-2.5 text-right text-xs font-semibold transition-colors ${
-              activeTab === "project_implementation"
-                ? "bg-slate-800 border-r-4 border-indigo-500 text-indigo-400 font-bold"
-                : "text-slate-500 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            <Server className="h-4 w-4 shrink-0 text-indigo-500" />
-            <span>
-              {language === "ar" ? "تتبع مشروع HIS" : "HIS Implementation Tracker"}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("admin_dashboard")}
-            className={`w-full flex items-center gap-3 px-6 py-2.5 text-right text-xs font-semibold transition-colors ${
-              activeTab === "admin_dashboard"
-                ? "bg-slate-800 border-r-4 border-blue-500 text-blue-400 font-bold"
-                : "text-slate-500 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            <Database className="h-4 w-4 shrink-0 text-blue-500" />
-            <span>
-              {language === "ar" ? "لوحة الإدارة والدعم" : "Admin Dashboard"}
-            </span>
-          </button>
-
-          {/* Document Center */}
-          <button
-            onClick={() => setActiveTab("document_center")}
-            className={`w-full flex items-center gap-3 px-6 py-2.5 text-right text-xs font-semibold transition-colors ${
-              activeTab === "document_center"
-                ? "bg-slate-800 border-r-4 border-pink-500 text-pink-400 font-bold"
-                : "text-slate-500 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            <Folder className="h-4 w-4 shrink-0 text-pink-500" />
-            <span>
-              {language === "ar" ? "النماذج والشيتات" : "Cloud Forms & Sheets"}
-            </span>
-          </button>
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-6 py-2.5 text-right text-xs font-semibold text-rose-400 hover:bg-rose-950/20 hover:text-rose-200 transition-colors cursor-pointer"
-          >
-            <Lock className="h-4 w-4 shrink-0 text-rose-500" />
-            <span>
-              {language === "ar" ? "تسجيل الخروج الآمن" : "Secure Log Out"}
-            </span>
-          </button>
+          </div>
         </nav>
 
         {/* Database offline status container */}
@@ -8642,9 +8747,11 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                 </p>
               </div>
             </div>
+
+            <WSDGlobalSearch language={language} systemUsers={systemUsers} allAvailableTemplates={allAvailableTemplates} setActiveTab={setActiveTab} />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 justify-end w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5 justify-end mt-2 md:mt-0 w-full md:w-auto">
             {/* Live Clock */}
             <LiveClock language={language} />
 
@@ -8683,7 +8790,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
             </div>
 
             {/* Admin Override */}
-            {currentUser.role === "admin" && (
+            {currentUser?.role === "admin" && (
               <button
                 onClick={handleBreakGlassAutoDetect}
                 className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 animate-pulse text-white font-extrabold text-[10px] py-1.5 px-3 rounded-xl shadow-lg shadow-rose-600/30 border border-rose-500/50 hover:shadow-xl hover:-translate-y-0.5 transition-all whitespace-nowrap cursor-pointer"
@@ -8725,8 +8832,8 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                       return true;
                     if (
                       notif.userId === "admin" &&
-                      (currentUser.role === "admin" ||
-                        currentUser.role === "it")
+                      (currentUser?.role === "admin" ||
+                        currentUser?.role === "it")
                     )
                       return true;
                     if (
@@ -8738,7 +8845,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                         "nursing_director",
                         "supervisor",
                         "quality",
-                      ].includes(currentUser.role)
+                      ]?.includes(currentUser?.role)
                     )
                       return true;
                     if (
@@ -8749,7 +8856,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                         "nursing_director",
                         "president",
                         "medical_director",
-                      ].includes(currentUser.role)
+                      ]?.includes(currentUser?.role)
                     )
                       return true;
                     return false;
@@ -8800,8 +8907,8 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           return true;
                         if (
                           notif.userId === "admin" &&
-                          (currentUser.role === "admin" ||
-                            currentUser.role === "it")
+                          (currentUser?.role === "admin" ||
+                            currentUser?.role === "it")
                         )
                           return true;
                         if (
@@ -8813,7 +8920,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             "nursing_director",
                             "supervisor",
                             "quality",
-                          ].includes(currentUser.role)
+                          ]?.includes(currentUser?.role)
                         )
                           return true;
                         if (
@@ -8824,7 +8931,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             "nursing_director",
                             "president",
                             "medical_director",
-                          ].includes(currentUser.role)
+                          ]?.includes(currentUser?.role)
                         )
                           return true;
                         return false;
@@ -9043,13 +9150,22 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
               <div className="text-xs font-bold text-emerald-600 flex items-center gap-1">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
                 <span className="uppercase text-[10px] tracking-wide font-mono">
-                  {currentUser.role.toUpperCase()} | SECURED
+                  {currentUser?.role?.toUpperCase()} | SECURED
                 </span>
               </div>
             </div>
           </div>
 
-          {activeTab === "home" && (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab + (itSubTab || '')}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="flex-1 flex flex-col gap-6 w-full min-h-full"
+            >
+              {activeTab === "home" && (
             <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
               <div className="bg-gradient-to-l from-[#0a4275] to-[#0d5c9e] rounded-3xl p-6 md:p-10 text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
@@ -9186,10 +9302,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
             (() => {
               const todayString = new Date().toISOString().split("T")[0];
               const isAdminOrQuality =
-                currentUser.role === "admin" ||
-                currentUser.role === "quality" ||
-                currentUser.role === "president" ||
-                currentUser.role === "it";
+                currentUser?.role === "admin" ||
+                currentUser?.role === "quality" ||
+                currentUser?.role === "president" ||
+                currentUser?.role === "it";
               const effectiveDutyDept = isAdminOrQuality
                 ? selectedDutyDept
                 : currentUser.department || "EMERGENCY UNIT";
@@ -9241,7 +9357,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                 });
 
                 const newChecklist: UnitDailyChecklist = {
-                  id: `cl-${effectiveDutyDept.replace(/\s+/g, "-").toLowerCase()}-${todayString}`,
+                  id: `cl-${effectiveDutyDept.replace(/\s+/g, "-")?.toLowerCase()}-${todayString}`,
                   department: effectiveDutyDept,
                   date: todayString,
                   completedByStaffName:
@@ -9863,7 +9979,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                       "ONCO-SURGICAL UNIT",
                                       "OUTPATIENT CLINIC",
                                       "INTENSIVE CARE UNIT (ICU)",
-                                    ].includes(unit) && unit}
+                                    ]?.includes(unit) && unit}
                                   </span>
                                 </div>
 
@@ -9947,7 +10063,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           );
                           const hasEmergency =
                             realEmergencyTeam &&
-                            Object.keys(realEmergencyTeam.roles || {}).length >
+                            Object.keys(realEmergencyTeam?.roles || {}).length >
                               0;
 
                           if (!hasDuties && !hasEmergency) return null;
@@ -10016,7 +10132,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                 )}
 
                                 {/* Right box: Emergency Code Blue Handover */}
-                                {hasEmergency && realEmergencyTeam.roles && (
+                                {hasEmergency && realEmergencyTeam?.roles && (
                                   <div className="space-y-1.5 border-t md:border-t-0 md:border-r border-slate-200 md:pr-4">
                                     <span className="text-[10px] font-black text-red-600 block">
                                       🚨{" "}
@@ -10025,7 +10141,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                         : "Active Code Blue & Emergency Responders:"}
                                     </span>
                                     <div className="space-y-1">
-                                      {realEmergencyTeam.roles
+                                      {realEmergencyTeam?.roles
                                         .codeBlueLeader && (
                                         <div className="text-[10px] text-slate-700 font-bold">
                                           •{" "}
@@ -10035,13 +10151,13 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                               : "Code Blue Leader:"}
                                           </span>{" "}
                                           {language === "ar"
-                                            ? realEmergencyTeam.roles
+                                            ? realEmergencyTeam?.roles
                                                 .codeBlueLeader.nameAr
-                                            : realEmergencyTeam.roles
+                                            : realEmergencyTeam?.roles
                                                 .codeBlueLeader.nameEn}
                                         </div>
                                       )}
-                                      {realEmergencyTeam.roles
+                                      {realEmergencyTeam?.roles
                                         .defibOperator && (
                                         <div className="text-[10px] text-slate-700 font-bold">
                                           •{" "}
@@ -10051,13 +10167,13 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                               : "Defib CPR Runner:"}
                                           </span>{" "}
                                           {language === "ar"
-                                            ? realEmergencyTeam.roles
+                                            ? realEmergencyTeam?.roles
                                                 .defibOperator.nameAr
-                                            : realEmergencyTeam.roles
+                                            : realEmergencyTeam?.roles
                                                 .defibOperator.nameEn}
                                         </div>
                                       )}
-                                      {realEmergencyTeam.roles
+                                      {realEmergencyTeam?.roles
                                         .airwayManager && (
                                         <div className="text-[10px] text-slate-700 font-bold">
                                           •{" "}
@@ -10067,9 +10183,9 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                               : "Airway Specialist:"}
                                           </span>{" "}
                                           {language === "ar"
-                                            ? realEmergencyTeam.roles
+                                            ? realEmergencyTeam?.roles
                                                 .airwayManager.nameAr
-                                            : realEmergencyTeam.roles
+                                            : realEmergencyTeam?.roles
                                                 .airwayManager.nameEn}
                                         </div>
                                       )}
@@ -10330,8 +10446,8 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                 </p>
                               </div>
 
-                              {rolePermissions.approveChecklist.includes(
-                                currentUser.role,
+                              {rolePermissions.approveChecklist?.includes(
+                                currentUser?.role,
                               ) ? (
                                 <div className="space-y-3">
                                   <div className="text-right space-y-1">
@@ -10382,8 +10498,8 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                       </div>
 
                       {/* 4. Administrator Dynamic Task Creator */}
-                      {rolePermissions.manageDutyTasks.includes(
-                        currentUser.role,
+                      {rolePermissions.manageDutyTasks?.includes(
+                        currentUser?.role,
                       ) && (
                         <form
                           onSubmit={addTask}
@@ -10397,7 +10513,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                               <ListPlus className="h-4.5 w-4.5 text-pink-600" />
                             </h4>
                             <span className="text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded-full uppercase font-mono">
-                              {currentUser.role.toUpperCase()} PRIVILEGE
+                              {currentUser?.role?.toUpperCase()} PRIVILEGE
                             </span>
                           </div>
 
@@ -10701,7 +10817,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                   n.type === "directive" &&
                   (n.targetDepartment === "ALL" ||
                     (n.targetDepartment &&
-                      userDept.includes(
+                      userDept?.includes(
                         n.targetDepartment.toUpperCase().trim(),
                       ))),
               );
@@ -10856,7 +10972,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                       "EMERGENCY UNIT",
                                       "CHEMO UNIT PREPN",
                                       "INTENSIVE CARE UNIT (ICU)",
-                                    ].includes(d),
+                                    ]?.includes(d),
                                 )
                                 .map((d) => ({ key: d, ar: d, en: d })),
                             ].map((item) => {
@@ -11127,9 +11243,9 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           </div>
 
                           {/* Inline list of current items in this editingRecord */}
-                          {currentUser.role &&
-                            !["staff", "normal", "nurse"].includes(
-                              currentUser.role.toLowerCase(),
+                          {currentUser?.role &&
+                            !["staff", "normal", "nurse"]?.includes(
+                              currentUser?.role?.toLowerCase(),
                             ) && (
                               <div className="mb-4 max-h-40 overflow-y-auto border border-slate-100 rounded-lg bg-slate-50 divide-y divide-slate-100 text-xs font-sans">
                                 {editingRecord.gridData.map((row, rIdx) => (
@@ -11192,9 +11308,9 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             )}
 
                           {/* Quick Input Panel for edit/add rows */}
-                          {currentUser.role &&
-                            !["staff", "normal", "nurse"].includes(
-                              currentUser.role.toLowerCase(),
+                          {currentUser?.role &&
+                            !["staff", "normal", "nurse"]?.includes(
+                              currentUser?.role?.toLowerCase(),
                             ) && (
                               <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-xl text-xs gap-3 grid grid-cols-1 md:grid-cols-12 items-end font-sans">
                                 <div className="md:col-span-4">
@@ -11467,11 +11583,11 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                     }
                                     disabled={
                                       !(
-                                        currentUser.role === "admin" ||
-                                        currentUser.role === "quality" ||
-                                        currentUser.role === "president" ||
-                                        currentUser.role === "head_nurse" ||
-                                        currentUser.role === "it"
+                                        currentUser?.role === "admin" ||
+                                        currentUser?.role === "quality" ||
+                                        currentUser?.role === "president" ||
+                                        currentUser?.role === "head_nurse" ||
+                                        currentUser?.role === "it"
                                       )
                                     }
                                     className="w-full bg-white border border-slate-200 rounded pr-8 pl-2 py-1 font-bold text-slate-800 print:text-black focus:outline-none focus:border-pink-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
@@ -11496,11 +11612,11 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                   }
                                   disabled={
                                     !(
-                                      currentUser.role === "admin" ||
-                                      currentUser.role === "quality" ||
-                                      currentUser.role === "president" ||
-                                      currentUser.role === "head_nurse" ||
-                                      currentUser.role === "it"
+                                      currentUser?.role === "admin" ||
+                                      currentUser?.role === "quality" ||
+                                      currentUser?.role === "president" ||
+                                      currentUser?.role === "head_nurse" ||
+                                      currentUser?.role === "it"
                                     )
                                   }
                                   className="w-full bg-white border border-slate-200 rounded px-2 py-1 font-mono font-bold text-slate-800 print:text-black focus:outline-none focus:border-pink-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
@@ -11938,7 +12054,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                             );
                                           } else if (
                                             typeof dayFocus === "string" &&
-                                            dayFocus.includes("-")
+                                            dayFocus?.includes("-")
                                           ) {
                                             const [start, end] = dayFocus
                                               .split("-")
@@ -12026,7 +12142,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                                 );
                                               } else if (
                                                 typeof dayFocus === "string" &&
-                                                dayFocus.includes("-")
+                                                dayFocus?.includes("-")
                                               ) {
                                                 const [start, end] = dayFocus
                                                   .split("-")
@@ -12120,7 +12236,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                             );
                                           } else if (
                                             typeof dayFocus === "string" &&
-                                            dayFocus.includes("-")
+                                            dayFocus?.includes("-")
                                           ) {
                                             const [start, end] = dayFocus
                                               .split("-")
@@ -13041,11 +13157,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                 <div className="flex justify-between items-center flex-row-reverse flex-wrap gap-4">
                   <div>
                     <span className="bg-pink-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-                      IT & DEV CONSOLE
+                      WSD ACADEMIC CONSOLE
                     </span>
                     <h2 className="text-xl font-black mt-1">
-                      💻 لوحة الإدارة والدعم والبرمجة الأكاديمية (Admin, IT &
-                      Developers Hub)
+                      💻 لوحة الإدارة الأكاديمية (WSD Console)
                     </h2>
                   </div>
                   <div className="flex gap-2 flex-wrap justify-end w-full lg:w-auto">
@@ -13054,11 +13169,11 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                         "system_settings",
                         "auth_settings",
                         "rbac",
-                        "cloud_settings",
                         "admin_ops",
                         "it_infra",
                         "dev_sandbox",
                         "dr_backup",
+                        "cloud_settings",
                       ] as const
                     ).map((tab) => (
                       <button
@@ -13066,25 +13181,25 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                         onClick={() => setItSubTab(tab)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                           itSubTab === tab
-                            ? "bg-pink-600 text-white shadow"
-                            : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                            ? "bg-pink-600 text-white shadow-md ring-2 ring-pink-400/50"
+                            : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
                         }`}
                       >
-                        {tab === "admin_ops"
-                          ? "الرقابة والامتثال - Legacy & Audit"
-                          : tab === "it_infra"
-                            ? "السيرفرات والعتاد - Infrastructure"
-                            : tab === "dev_sandbox"
-                              ? "مختبر المطور - Sandbox"
-                              : tab === "dr_backup"
-                                ? "التعافي من الكوارث - DR & Backups"
-                                : tab === "system_settings"
-                                  ? "الهوية - Branding & Loc"
-                                  : tab === "auth_settings"
-                                    ? "المصادقة - Auth & Gateways"
-                                    : tab === "rbac"
-                                      ? "الصلاحيات - RBAC Matrix"
-                                      : "الربط السحابي - Cloud Center"}
+                        {tab === "system_settings"
+                          ? (language === "ar" ? "🏥 إعدادات الهوية والأقسام" : "Hospital & Dept Settings")
+                          : tab === "auth_settings"
+                            ? (language === "ar" ? "🔑 طرق المصادقة" : "Auth Methods Settings")
+                            : tab === "rbac"
+                              ? (language === "ar" ? "🛡️ الصلاحيات والمستخدمين" : "Roles & Users Approval")
+                              : tab === "admin_ops"
+                                ? (language === "ar" ? "⚖️ الرقابة والامتثال" : "Compliance & Audit")
+                                : tab === "it_infra"
+                                  ? (language === "ar" ? "⚡ التدخل السيبراني" : "Cybersecurity Admin")
+                                  : tab === "dev_sandbox"
+                                    ? (language === "ar" ? "🧪 مختبر القواعد" : "Developer Sandbox")
+                                    : tab === "dr_backup"
+                                      ? (language === "ar" ? "💾 النسخ والطوارئ" : "Disaster Recovery")
+                                      : (language === "ar" ? "☁️ المزامنة السحابية" : "Cloud Sync Gateway")}
                       </button>
                     ))}
                   </div>
@@ -13324,7 +13439,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             </button>
                             {webhookTestStatus !== "IDLE" && (
                               <div
-                                className={`mt-2 p-2 rounded text-[10px] text-center font-mono font-bold ${webhookTestStatus.includes("SUCCESS") ? "bg-emerald-950 text-emerald-600 border border-emerald-900" : "bg-blue-950 text-blue-300 border border-blue-900"}`}
+                                className={`mt-2 p-2 rounded text-[10px] text-center font-mono font-bold ${webhookTestStatus?.includes("SUCCESS") ? "bg-emerald-950 text-emerald-600 border border-emerald-900" : "bg-blue-950 text-blue-300 border border-blue-900"}`}
                               >
                                 STATE: [{webhookTestStatus}]
                               </div>
@@ -13749,7 +13864,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                 matches...
                               </p>
                               <p
-                                className={`font-bold mt-2 pt-2 border-t border-slate-900 select-all ${ruleOutput.includes("SUCCESS") ? "text-emerald-600" : "text-rose-400"}`}
+                                className={`font-bold mt-2 pt-2 border-t border-slate-900 select-all ${ruleOutput?.includes("SUCCESS") ? "text-emerald-600" : "text-rose-400"}`}
                               >
                                 {ruleOutput}
                               </p>
@@ -13929,56 +14044,23 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
             </div>
           )}
 
-          {activeTab === "profile" && (
-            <ProfileView
-              user={currentUser}
-              language={language}
-              systemUsers={systemUsers}
-              currentUser={currentUser}
-            />
-          )}
-
-          {activeTab === "project_implementation" && (
-            <HISImplementationDashboard language={language} />
-          )}
-
-          {activeTab === "admin_dashboard" && (
-            <AdminDashboard
-              language={language}
-              itStrictComplianceMode={itStrictComplianceMode}
-              setItStrictComplianceMode={setItStrictComplianceMode}
-              itConflictResolutionWithNewest={itConflictResolutionWithNewest}
-              setItConflictResolutionWithNewest={
-                setItConflictResolutionWithNewest
-              }
-            />
-          )}
-
-          {activeTab === "document_center" && (
-            <DocumentCenter
-              language={language}
-              currentUser={currentUser}
-              systemUsers={systemUsers}
-            />
-          )}
-
-          {activeTab === "messaging" && (
-            <div className="p-4 bg-slate-50 min-h-[calc(100vh-80px)]" dir="rtl">
-              <MessagingDashboard
-                currentUser={currentUser}
-                systemUsers={systemUsers}
-                language={language}
-                rosterWishes={rosterWishes}
-                setRosterWishes={rawSetRosterWishes}
-                rosterList={rosterList}
-                setRosterList={rawSetRosterList}
-                addSystemLog={addSystemLog}
-                notifications={notifications}
-                setNotifications={setNotifications}
-                hospitalSettings={hospitalSettings}
-              />
-            </div>
-          )}
+          <DashboardRouter
+            activeTab={activeTab}
+            currentUser={currentUser}
+            language={language}
+            addSystemLog={addSystemLog}
+            itStrictComplianceMode={itStrictComplianceMode}
+            setItStrictComplianceMode={setItStrictComplianceMode}
+            itConflictResolutionWithNewest={itConflictResolutionWithNewest}
+            setItConflictResolutionWithNewest={setItConflictResolutionWithNewest}
+            rosterWishes={rosterWishes}
+            setRosterWishes={rawSetRosterWishes}
+            rosterList={rosterList}
+            setRosterList={rawSetRosterList}
+            notifications={notifications}
+            setNotifications={setNotifications}
+            hospitalSettings={hospitalSettings}
+          />
 
           {activeTab === "evaluations" && (
             <EmployeeEvaluationSystem
@@ -14098,6 +14180,25 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
             <PharmacyInventory language={language} />
           )}
 
+          {activeTab === "laboratory" && <LaboratoryDashboard language={language} />}
+          {activeTab === "radiology" && <RadiologyDashboard language={language} />}
+          {activeTab === "blood_bank" && <BloodBankDashboard language={language} />}
+
+          {activeTab === "icu" && <ICUDashboard language={language} />}
+          {activeTab === "er" && <ERDashboard language={language} />}
+          {activeTab === "bed_management" && <BedManagementDashboard language={language} />}
+          {activeTab === "mortuary" && <MortuaryDashboard language={language} />}
+          {activeTab === "erp" && <ERPDashboard language={language} />}
+          {activeTab === "hr" && <HRDashboard language={language} />}
+          {activeTab === "quality" && <QualityDashboard language={language} />}
+          {activeTab === "infection" && <InfectionControlHub language={language} currentUser={currentUser} systemUsers={systemUsers} hospitalSettings={hospitalSettings} />}
+          {activeTab === "ai_assistant" && <SmartAIAssistant language={language} currentUser={currentUser} />}
+          {activeTab === "patient_portal" && <PatientPortalDashboard language={language} />}
+          {activeTab === "enterprise_command" && <EnterpriseCommandCenter language={language} />}
+          {activeTab === "ai_cdss" && <AIClinicalDecisionSupport language={language} userRole={currentUser?.role} />}
+          {activeTab === "cybersecurity" && <CyberSecurityHub language={language} />}
+          {activeTab === "national_integration" && <NationalIntegrationHub language={language} />}
+
           {activeTab === "billing" && <BillingInsurance language={language} />}
 
           {activeTab === "ancillary" && <LISRISDashboard language={language} />}
@@ -14105,11 +14206,11 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
           {activeTab === "roster" &&
             (() => {
               const isTabSupervisor =
-                currentUser.role === "admin" ||
-                currentUser.role === "quality" ||
-                currentUser.role === "president" ||
-                currentUser.role === "head_nurse" ||
-                currentUser.role === "it";
+                currentUser?.role === "admin" ||
+                currentUser?.role === "quality" ||
+                currentUser?.role === "president" ||
+                currentUser?.role === "head_nurse" ||
+                currentUser?.role === "it";
               const isTabNormalNurse = !isTabSupervisor;
               const isRosterFullyLocked = cnoApproved && directorApproved;
 
@@ -15191,10 +15292,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             )}
 
                             {/* Interactive toggle if user has role */}
-                            {((rolePermissions.signoffRosterCno || []).includes(
+                            {((rolePermissions.signoffRosterCno || [])?.includes(
                               currentUser?.role || "",
                             ) ||
-                              ["admin", "it"].includes(
+                              ["admin", "it"]?.includes(
                                 currentUser?.role || "",
                               )) && (
                               <button
@@ -15359,10 +15460,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             )}
 
                             {/* Interactive toggle if user has role */}
-                            {((rolePermissions.signoffRosterCno || []).includes(
+                            {((rolePermissions.signoffRosterCno || [])?.includes(
                               currentUser?.role || "",
                             ) ||
-                              ["admin", "it"].includes(
+                              ["admin", "it"]?.includes(
                                 currentUser?.role || "",
                               )) && (
                               <button
@@ -15397,7 +15498,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                     </div>
 
                     {/* Flexible Signers & Promotions Configurator (For Management / Admin / IT) */}
-                    {["admin", "it", "president"].includes(
+                    {["admin", "it", "president"]?.includes(
                       currentUser?.role || "",
                     ) && (
                       <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-250 mt-3 no-print space-y-3">
@@ -16045,12 +16146,12 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                   "nursing_assistant",
                                   "secretary",
                                   "sec",
-                                ].includes(u.role),
+                                ]?.includes(u?.role),
                             );
 
                             // Filter roster rows to ONLY show users who are registered on the system (systemUsers)
                             const filteredRosterRows =
-                              activeDeptRoster.rows.filter((row: any) => {
+                              (activeDeptRoster.rows || []).filter((row: any) => {
                                 return systemUsers.some(
                                   (u) =>
                                     u.id === row.employeeId ||
@@ -16080,8 +16181,8 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                   employeeId: usr.id,
                                   employeeNameAr: usr.nameAr,
                                   employeeNameEn: usr.nameEn,
-                                  roleTitleAr: resolveRoleTitles(usr.role).ar,
-                                  roleTitleEn: resolveRoleTitles(usr.role).en,
+                                  roleTitleAr: resolveRoleTitles(usr?.role).ar,
+                                  roleTitleEn: resolveRoleTitles(usr?.role).en,
                                   employeeCode: usr.staffId || usr.pin,
                                   shifts: {},
                                 });
@@ -16103,10 +16204,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                   employeeNameAr: matchedUser.nameAr,
                                   employeeNameEn: matchedUser.nameEn,
                                   roleTitleAr: resolveRoleTitles(
-                                    matchedUser.role,
+                                    matchedUser?.role,
                                   ).ar,
                                   roleTitleEn: resolveRoleTitles(
-                                    matchedUser.role,
+                                    matchedUser?.role,
                                   ).en,
                                   employeeCode:
                                     matchedUser.staffId || matchedUser.pin,
@@ -16300,8 +16401,8 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                         {/* Management action controls */}
                                         {((
                                           rolePermissions.addRemoveStaff || []
-                                        ).includes(currentUser?.role || "") ||
-                                          ["admin", "it"].includes(
+                                        )?.includes(currentUser?.role || "") ||
+                                          ["admin", "it"]?.includes(
                                             currentUser?.role || "",
                                           )) && (
                                           <div className="flex items-center gap-1.5 mt-1.5 justify-end border-t border-slate-100 pt-1.5 no-print">
@@ -16392,14 +16493,14 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                             (
                                               rolePermissions.modifyRosterShifts ||
                                               []
-                                            ).includes(
+                                            )?.includes(
                                               currentUser?.role || "",
                                             ) ||
                                             [
                                               "admin",
                                               "it",
                                               "president",
-                                            ].includes(currentUser?.role || "");
+                                            ]?.includes(currentUser?.role || "");
                                           const isStaff =
                                             currentUser?.role === "staff" ||
                                             currentUser?.role === "Staff" ||
@@ -16487,14 +16588,14 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                             (
                                               rolePermissions.modifyRosterShifts ||
                                               []
-                                            ).includes(
+                                            )?.includes(
                                               currentUser?.role || "",
                                             ) ||
                                             [
                                               "admin",
                                               "it",
                                               "president",
-                                            ].includes(currentUser?.role || "");
+                                            ]?.includes(currentUser?.role || "");
                                           if (!isAdminRole) {
                                             alert(
                                               "Notice: You lack permissions to quick-clear shifts.",
@@ -17393,7 +17494,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                   </span>
                                 </div>
                                 <span className="text-[9px] text-slate-450 font-mono">
-                                  ROLE: {currentUser.role?.toUpperCase()} |
+                                  ROLE: {currentUser?.role?.toUpperCase()} |
                                   DEPT: {selectedRosterDept}
                                 </span>
                               </div>
@@ -17657,10 +17758,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                                 row.employeeCode ===
                                                   wish.employeeId ||
                                                 row.employeeNameEn
-                                                  .toLowerCase()
+                                                  ?.toLowerCase()
                                                   .trim() ===
                                                   wish.employeeNameEn
-                                                    .toLowerCase()
+                                                    ?.toLowerCase()
                                                     .trim(),
                                             );
                                             if (hasEmployee) {
@@ -17674,10 +17775,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                                       row.employeeCode ===
                                                         wish.employeeId ||
                                                       row.employeeNameEn
-                                                        .toLowerCase()
+                                                        ?.toLowerCase()
                                                         .trim() ===
                                                         wish.employeeNameEn
-                                                          .toLowerCase()
+                                                          ?.toLowerCase()
                                                           .trim()
                                                     ) {
                                                       return {
@@ -17710,10 +17811,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                                       wish.employeeId ||
                                                     (row.employeeNameEn &&
                                                       row.employeeNameEn
-                                                        .toLowerCase()
+                                                        ?.toLowerCase()
                                                         .trim() ===
                                                         wish.employeeNameEn
-                                                          .toLowerCase()
+                                                          ?.toLowerCase()
                                                           .trim()),
                                                 );
                                               if (hasEmployee) {
@@ -17728,10 +17829,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                                           wish.employeeId ||
                                                         (row.employeeNameEn &&
                                                           row.employeeNameEn
-                                                            .toLowerCase()
+                                                            ?.toLowerCase()
                                                             .trim() ===
                                                             wish.employeeNameEn
-                                                              .toLowerCase()
+                                                              ?.toLowerCase()
                                                               .trim())
                                                       ) {
                                                         return {
@@ -17968,10 +18069,10 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             return;
                           }
                           const hasPerm =
-                            currentUser.role === "admin" ||
-                            currentUser.role === "quality" ||
-                            currentUser.role === "president" ||
-                            currentUser.role === "it";
+                            currentUser?.role === "admin" ||
+                            currentUser?.role === "quality" ||
+                            currentUser?.role === "president" ||
+                            currentUser?.role === "it";
                           if (!hasPerm) {
                             alert(
                               language === "ar"
@@ -18181,23 +18282,43 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                 {/* 2. Departments Bento Grid Grid displaying clinical details and listing sheets */}
                 <div className="xl:col-span-2 space-y-6 text-right">
                   <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-right">
-                    <div className="border-b border-slate-100 pb-3 mb-4">
-                      <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest text-right font-sans">
-                        {language === "ar"
-                          ? "خرائط توزيع الاستمارات على الأقسام والوحدات الـ 16"
-                          : "Allotment Map of 16 Clinical Departments"}
-                      </h3>
-                      <p className="text-[10px] text-slate-500 leading-tight mt-1 text-right">
-                        {language === "ar"
-                          ? "اضغط على أي قسم لاستعراض الاستمارات الموزعة والنشطة لديه وتعبئة أي سجل فوري:"
-                          : "Click on any clinical wing to audit and fill its operational sheets:"}
-                      </p>
+                    <div className="border-b border-slate-100 pb-3 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest text-right font-sans">
+                          {language === "ar"
+                            ? "خرائط توزيع الاستمارات على الأقسام والوحدات الـ 16"
+                            : "Allotment Map of 16 Clinical Departments"}
+                        </h3>
+                        <p className="text-[10px] text-slate-500 leading-tight mt-1 text-right">
+                          {language === "ar"
+                            ? "اضغط على أي قسم لاستعراض الاستمارات الموزعة والنشطة لديه وتعبئة أي سجل فوري:"
+                            : "Click on any clinical wing to audit and fill its operational sheets:"}
+                        </p>
+                      </div>
+                      <div className="relative w-full md:w-64">
+                        <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <input
+                          type="text"
+                          value={distributionDeptSearch}
+                          onChange={(e) => setDistributionDeptSearch(e.target.value)}
+                          placeholder={language === "ar" ? "ابحث عن قسم..." : "Search departments..."}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pr-9 pl-3 text-xs font-semibold outline-none focus:ring-1 focus:ring-pink-500 text-slate-700 text-right"
+                        />
+                      </div>
                     </div>
 
                     {/* Bento Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {departments.map((dept, idx) => {
-                        // Find how many templates map to this department in allAvailableTemplates
+                    {departments.filter(dept => dept?.toLowerCase()?.includes(distributionDeptSearch?.toLowerCase())).length === 0 ? (
+                      <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                        <p className="text-sm font-bold">
+                          {language === "ar" ? "لم يتم العثور على أي قسم يطابق بحثك." : "No departments match your search."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {departments.filter(dept => dept?.toLowerCase()?.includes(distributionDeptSearch?.toLowerCase())).map((dept, idx) => {
+                          // Find how many templates map to this department in allAvailableTemplates
                         const deptTemplates = allAvailableTemplates.filter(
                           (t) => doesTemplateMatchDepartment(t, dept),
                         );
@@ -18227,10 +18348,16 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                 </span>
                               </div>
 
-                              {/* Title */}
-                              <h4 className="text-xs font-bold text-slate-900 leading-tight tracking-tight text-right uppercase">
-                                {dept}
-                              </h4>
+                              {/* Title and Status */}
+                              <div className="flex items-center justify-between mt-1 mb-1 flex-row-reverse">
+                                <h4 className="text-xs font-bold text-slate-900 leading-tight tracking-tight text-right uppercase line-clamp-1 flex-1 ml-2">
+                                  {dept}
+                                </h4>
+                                <span className={`flex items-center gap-1.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${deptTemplates.length > 0 || deptRecordsCount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${deptTemplates.length > 0 || deptRecordsCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                                  {deptTemplates.length > 0 || deptRecordsCount > 0 ? (language === "ar" ? "نشط" : "Active") : (language === "ar" ? "خامل" : "Inactive")}
+                                </span>
+                              </div>
 
                               <p className="text-[10px] text-slate-500 leading-none mt-1 text-right font-mono font-medium block">
                                 {language === "ar"
@@ -18303,10 +18430,58 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           </div>
                         );
                       })}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "form_builder" && (
+            <div className="space-y-6 animate-fade font-sans text-right max-w-7xl mx-auto pb-20 px-4 mt-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      const el = document.getElementById("form-builder-toggle");
+                      if (el) el.setAttribute("data-tab", "builder");
+                      const ev = new CustomEvent("toggle-form-tab", { detail: "builder" });
+                      window.dispatchEvent(ev);
+                    }} 
+                    className="px-4 py-2 text-xs font-bold rounded-lg transition-all bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    {language === "ar" ? "منشئ النماذج الذكي" : "Smart Form Builder"}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const el = document.getElementById("form-builder-toggle");
+                      if (el) el.setAttribute("data-tab", "playground");
+                      const ev = new CustomEvent("toggle-form-tab", { detail: "playground" });
+                      window.dispatchEvent(ev);
+                    }} 
+                    className="px-4 py-2 text-xs font-bold rounded-lg transition-all bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  >
+                    {language === "ar" ? "مستودع تجربة النماذج" : "Form Playground"}
+                  </button>
+                </div>
+                <h3 className="font-extrabold text-sm text-slate-900">{language === "ar" ? "منشئ النماذج الديناميكي (WSD)" : "Dynamic Form Engine"}</h3>
+              </div>
+              <div id="form-builder-toggle" data-tab="builder">
+                <SmartFormBuilderToggle language={language} />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "patient_tracking" && (
+            <div className="space-y-6 animate-fade font-sans text-right max-w-7xl mx-auto pb-20 px-4 mt-4">
+              <PatientTrackingKardex language={language} />
+            </div>
+          )}
+
+          {activeTab === "mr_dashboard" && (
+            <div className="space-y-6 animate-fade font-sans text-right max-w-7xl mx-auto pb-20 px-4 mt-4">
+              <MedicalRecordsDashboard />
             </div>
           )}
 
@@ -18376,7 +18551,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           >
                             {FORM_TEMPLATES.map((t) => {
                               const isDeactivated =
-                                deactivatedTemplateIds.includes(t.id);
+                                deactivatedTemplateIds?.includes(t.id);
                               const label =
                                 language === "ar" ? t.titleAr : t.titleEn;
                               return (
@@ -18419,7 +18594,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                             <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-250">
                               <div className="text-right">
                                 <p className="font-bold text-slate-800">
-                                  {deactivatedTemplateIds.includes(
+                                  {deactivatedTemplateIds?.includes(
                                     selectedTemplateToEdit,
                                   )
                                     ? "النموذج معطل ومخفي حالياً عن الكادر الطبي"
@@ -18438,14 +18613,14 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                   )
                                 }
                                 className={`px-4 py-1.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                                  deactivatedTemplateIds.includes(
+                                  deactivatedTemplateIds?.includes(
                                     selectedTemplateToEdit,
                                   )
                                     ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
                                     : "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
                                 }`}
                               >
-                                {deactivatedTemplateIds.includes(
+                                {deactivatedTemplateIds?.includes(
                                   selectedTemplateToEdit,
                                 )
                                   ? "إعادة تنشيط وتمكين الشيت"
@@ -19137,15 +19312,15 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                   {customTemplates.length > 0 &&
                     (() => {
                       const filteredTemplates = customTemplates.filter((t) => {
-                        const search = customTplSearch.toLowerCase().trim();
+                        const search = customTplSearch?.toLowerCase().trim();
                         const matchesSearch =
                           !search ||
-                          (t.titleAr || "").toLowerCase().includes(search) ||
-                          (t.titleEn || "").toLowerCase().includes(search) ||
-                          (t.code || "").toLowerCase().includes(search) ||
+                          (t.titleAr || "")?.toLowerCase()?.includes(search) ||
+                          (t.titleEn || "")?.toLowerCase()?.includes(search) ||
+                          (t.code || "")?.toLowerCase()?.includes(search) ||
                           (t.departmentDefault || "")
-                            .toLowerCase()
-                            .includes(search);
+                            ?.toLowerCase()
+                            ?.includes(search);
                         const matchesDept =
                           customTplDeptFilter === "ALL" ||
                           t.departmentDefault === customTplDeptFilter;
@@ -19276,7 +19451,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                 {currentPageTemplates.map((customTpl) => {
                                   const tplId = customTpl.id;
                                   const isDeactivated =
-                                    deactivatedTemplateIds.includes(tplId);
+                                    deactivatedTemplateIds?.includes(tplId);
                                   return (
                                     <div
                                       key={tplId}
@@ -19437,9 +19612,9 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
               const handleDeleteRecord = async (recordId: string) => {
                 const isAdminOrIt =
                   currentUser &&
-                  (currentUser.role === "admin" ||
-                    currentUser.role === "it" ||
-                    currentUser.role === "quality");
+                  (currentUser?.role === "admin" ||
+                    currentUser?.role === "it" ||
+                    currentUser?.role === "quality");
                 if (!isAdminOrIt) {
                   alert(
                     language === "ar"
@@ -19694,7 +19869,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           {selectedHistoryRecordIds.length > 0 && (
                             <button
                               onClick={() => {
-                                const selectedRecords = finalHistoryRecords.filter(r => selectedHistoryRecordIds.includes(r.id));
+                                const selectedRecords = finalHistoryRecords.filter(r => selectedHistoryRecordIds?.includes(r.id));
                                 selectedRecords.forEach(r => {
                                   const tpl = allAvailableTemplates.find((t) => t.id === r.templateId);
                                   if (tpl) {
@@ -19769,7 +19944,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                                         <input 
                                           type="checkbox" 
                                           className="w-4 h-4 text-pink-600 rounded border-slate-300 focus:ring-pink-500 cursor-pointer"
-                                          checked={selectedHistoryRecordIds.includes(r.id)}
+                                          checked={selectedHistoryRecordIds?.includes(r.id)}
                                           onChange={(e) => {
                                             if (e.target.checked) {
                                               setSelectedHistoryRecordIds(prev => [...prev, r.id]);
@@ -20977,14 +21152,14 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                       الأدوار (Roles):
                     </label>
                     <div className="border border-slate-150 rounded-lg p-2 max-h-40 overflow-y-auto space-y-1 bg-slate-50">
-                      {settingsForm.roles.map((role, idx) => (
+                      {(settingsForm.roles || []).map((role, idx) => (
                         <div
                           key={idx}
                           className="flex justify-between items-center bg-white px-3 py-1.5 rounded-md border border-slate-100 shadow-sm"
                         >
                           <button
                             onClick={() => {
-                              const newRoles = settingsForm.roles.filter(
+                              const newRoles = (settingsForm.roles || []).filter(
                                 (_, i) => i !== idx,
                               );
                               setSettingsForm({
@@ -21009,10 +21184,11 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           const val = (
                             e.target as HTMLInputElement
                           ).value.trim();
-                          if (!val || settingsForm.roles.includes(val)) return;
+                          const currentRoles = settingsForm.roles || [];
+                          if (!val || currentRoles?.includes(val)) return;
                           setSettingsForm({
                             ...settingsForm,
-                            roles: [...settingsForm.roles, val],
+                            roles: [...currentRoles, val],
                           });
                           (e.target as HTMLInputElement).value = "";
                         }
@@ -21047,7 +21223,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                      {settingsForm.jobTitles.map((title, idx) => (
+                      {(settingsForm.jobTitles || []).map((title, idx) => (
                         <div
                           key={idx}
                           className="flex justify-between items-center bg-slate-100 px-3 py-2 rounded-lg border border-slate-200"
@@ -21055,7 +21231,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                           <span className="font-medium text-xs">{title}</span>
                           <button
                             onClick={() => {
-                              const newTitles = settingsForm.jobTitles.filter(
+                              const newTitles = (settingsForm.jobTitles || []).filter(
                                 (_, i) => i !== idx,
                               );
                               setSettingsForm({
@@ -21073,1739 +21249,18 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                   </div>
                 </div>
               </div>
+
+              {/* Registration Fields Customizer */}
+              <RegistrationFieldsManager
+                language={language}
+                registrationFields={registrationFields}
+                onSave={handleSaveRegistrationConfig}
+              />
             </div>
           )}
 
-          {activeTab === "it_panel" && itSubTab === "rbac" && (
-            <div className="p-6 bg-slate-50 space-y-6 animate-fade text-right font-sans">
-              {/* Section 4: User Directory and Management (إدارة وتعديل وإضافة كادر المستخدمين الطبيين) */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 mt-6">
-                <div className="border-b border-slate-100 pb-3">
-                  <h3 className="text-xl font-black text-slate-900 flex items-center gap-2 justify-end">
-                    <span>
-                      إدارة وصلاحيات المستخدمين والكادر الطبي المتعمقة
-                    </span>
-                    <User className="h-5 w-5 text-pink-600" />
-                  </h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5 text-right font-sans">
-                    أضف كوادراً طبية جديدة (أطباء، رئيسيات تمريض، مسؤولي الجودة)
-                    لتمكينهم من تسجيل الجرودات، أو عدّل بيانات الكادر الحالي
-                    وصلاحياتهم. يتطلب هذا القسم صلاحيات مسؤول النظام (الأدمن).
-                  </p>
-                </div>
-
-                {!isSupervisor ? (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-right text-amber-800 flex items-start gap-2.5 justify-end font-sans">
-                    <div>
-                      <p className="font-bold">
-                        تنبيه الوصول الخاص بلوحة الإدارة
-                      </p>
-                      <p className="text-[10px] text-amber-700 mt-1">
-                        أنت مسجل الدخول بصفتك{" "}
-                        <span className="font-bold">
-                          (
-                          {language === "ar"
-                            ? currentUser.nameAr
-                            : currentUser.nameEn}
-                          )
-                        </span>
-                        . لرؤية وتعديل وإضافة المستخدمين وتفويض الصلاحيات، يرجى
-                        تبديل الحساب إلى كادر المشرفين المعتمدين بالفريق.
-                      </p>
-                    </div>
-                    <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0" />
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Sub-section 4.1: Add New User Form */}
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4 text-xs font-sans">
-                      <h4 className="font-bold text-pink-700 text-[11px] border-b pb-1">
-                        إضافة عضو جديد للكادر الطبي بالنظام:
-                      </h4>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-right">
-                        <div>
-                          <label className="block text-[9px] font-bold text-slate-450 mb-1">
-                            الاسم الكامل (بالعربية) *
-                          </label>
-                          <input
-                            type="text"
-                            value={newUserForm.nameAr}
-                            onChange={(e) =>
-                              setNewUserForm({
-                                ...newUserForm,
-                                nameAr: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                            placeholder="مثال: أ. هند أحمد"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[9px] font-bold text-slate-450 mb-1 font-mono">
-                            الاسم الكامل (بالإنجليزية) *
-                          </label>
-                          <input
-                            type="text"
-                            value={newUserForm.nameEn}
-                            onChange={(e) =>
-                              setNewUserForm({
-                                ...newUserForm,
-                                nameEn: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-mono text-slate-800 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                            placeholder="e.g. Sister Hind Ahmed"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[9px] font-bold text-slate-450 mb-1">
-                            كود الموظف المخصص (Staff ID) *
-                          </label>
-                          <input
-                            type="text"
-                            value={newUserForm.staffId}
-                            onChange={(e) =>
-                              setNewUserForm({
-                                ...newUserForm,
-                                staffId: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-mono uppercase font-black text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                            placeholder="e.g. BHG-NUR-101"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[9px] font-bold text-slate-450 mb-1">
-                            المستوى الوظيفي والصلاحيات *
-                          </label>
-                          <select
-                            value={newUserForm.role}
-                            onChange={(e) =>
-                              setNewUserForm({
-                                ...newUserForm,
-                                role: e.target.value as UserRole,
-                              })
-                            }
-                            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                          >
-                            <option value="staff">
-                              أخصائي تمريض (Regular Staff Nurse)
-                            </option>
-                            <option value="tech">
-                              فني تمريض (Nursing Technician / NT)
-                            </option>
-                            <option value="intern">
-                              تمريض امتياز (Intern Nurse / INT)
-                            </option>
-                            <option value="assistant">
-                              مساعد تمريض (Nursing Assistant / NA)
-                            </option>
-                            <option value="secretary">
-                              سكرتارية القسم (Department Secretary / SEC)
-                            </option>
-                            <option value="head_nurse">
-                              رئيسة تمريض / مشرفة قسم (Head Nurse)
-                            </option>
-                            <option value="quality">
-                              مسؤول رقابة جودة (Quality Auditor)
-                            </option>
-                            <option value="admin">
-                              مسؤول نظام كامل (Full Admin)
-                            </option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-[9px] font-bold text-slate-450 mb-1 font-sans">
-                            القسم الطبي الافتراضي *
-                          </label>
-                          <select
-                            value={newUserForm.department}
-                            onChange={(e) =>
-                              setNewUserForm({
-                                ...newUserForm,
-                                department: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                          >
-                            {departments.map((d, index) => (
-                              <option key={`${d}-${index}`} value={d}>
-                                {d}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-[9px] font-bold text-slate-450 mb-1">
-                            رمز المرور المخصص (PIN - 4 أرقام) *
-                          </label>
-                          <input
-                            type="text"
-                            maxLength={6}
-                            value={newUserForm.pin}
-                            onChange={(e) =>
-                              setNewUserForm({
-                                ...newUserForm,
-                                pin: e.target.value.replace(/\D/g, ""),
-                              })
-                            }
-                            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-mono text-center text-xs font-black tracking-widest text-slate-800 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                            placeholder="1234"
-                          />
-                        </div>
-
-                        <div className="md:col-span-2 lg:col-span-3">
-                          <label className="block text-[9px] font-bold text-slate-450 mb-1">
-                            البريد الإلكتروني المهني (Corporate Email) *
-                          </label>
-                          <input
-                            type="email"
-                            value={newUserForm.email}
-                            onChange={(e) =>
-                              setNewUserForm({
-                                ...newUserForm,
-                                email: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-mono text-slate-800 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                            placeholder="e.g. nurse.fatima@hospital.org"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end pt-1">
-                        <button
-                          onClick={handleAddSystemUser}
-                          className="px-5 py-2 bg-slate-850 hover:bg-slate-50 bg-slate-800 text-white font-extrabold rounded-lg shadow-md transition cursor-pointer flex items-center gap-1.5"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>
-                            {language === "ar"
-                              ? "تسجيل وتفعيل الموظف الجديد"
-                              : "Register & Activate Staff"}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Sub-section 4.2: Edit Existing User */}
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4 text-xs font-sans">
-                      <div className="border-b pb-1 flex items-center justify-between">
-                        <span className="font-mono bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded text-[9px] font-bold">
-                          CONTROL WORKSPACE
-                        </span>
-                        <h4 className="font-bold text-pink-700 text-[11px]">
-                          تحرير وتعديل بيانات مستخدم مسجّل حالياً:
-                        </h4>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 mb-1">
-                          اختر الموظف الطبي المراد إدارته:
-                        </label>
-                        <select
-                          onChange={(e) =>
-                            handleSelectUserToEdit(e.target.value)
-                          }
-                          value={selectedUserToEdit}
-                          className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                        >
-                          <option value="">
-                            -- اختر المستخدم الحالي لفتح لوحة تعديله --
-                          </option>
-                          {systemUsers.map((usr) => (
-                            <option key={usr.id} value={usr.id}>
-                              {usr.nameAr} / {usr.nameEn} (
-                              {usr.role === "admin"
-                                ? "أدمن"
-                                : usr.role === "quality"
-                                  ? "جودة"
-                                  : "تمريض"}
-                              ) - {usr.staffId}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {selectedUserToEdit && (
-                        <div className="bg-white p-3.5 rounded-lg border border-slate-200 space-y-4 text-right">
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-500 mb-1">
-                                الاسم بالعربية
-                              </label>
-                              <input
-                                type="text"
-                                value={editUserForm.nameAr}
-                                onChange={(e) =>
-                                  setEditUserForm({
-                                    ...editUserForm,
-                                    nameAr: e.target.value,
-                                  })
-                                }
-                                className="w-full bg-slate-50 border border-slate-200 rounded py-1 px-2 font-bold focus:bg-white focus:outline-none focus:ring-1 focus:ring-pink-500"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-500 mb-1 font-mono">
-                                الاسم بالإنجليزية
-                              </label>
-                              <input
-                                type="text"
-                                value={editUserForm.nameEn}
-                                onChange={(e) =>
-                                  setEditUserForm({
-                                    ...editUserForm,
-                                    nameEn: e.target.value,
-                                  })
-                                }
-                                className="w-full bg-slate-50 border border-slate-200 rounded py-1 px-2 font-mono focus:bg-white focus:outline-none focus:ring-1 focus:ring-pink-500"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-500 mb-1">
-                                كود الموظف التعريفي
-                              </label>
-                              <input
-                                type="text"
-                                value={editUserForm.staffId}
-                                onChange={(e) =>
-                                  setEditUserForm({
-                                    ...editUserForm,
-                                    staffId: e.target.value,
-                                  })
-                                }
-                                className="w-full bg-slate-50 border border-slate-200 rounded py-1 px-2 font-mono uppercase font-black focus:bg-white focus:outline-none"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-500 mb-1">
-                                الدور والصلاحيات
-                              </label>
-                              <select
-                                value={editUserForm.role}
-                                onChange={(e) =>
-                                  setEditUserForm({
-                                    ...editUserForm,
-                                    role: e.target.value as UserRole,
-                                  })
-                                }
-                                className="w-full bg-slate-50 border border-slate-200 rounded py-1 px-2 font-bold focus:bg-white"
-                              >
-                                <option value="staff">
-                                  أخصائي تمريض (Regular Staff Nurse)
-                                </option>
-                                <option value="tech">
-                                  فني تمريض (Nursing Technician / NT)
-                                </option>
-                                <option value="intern">
-                                  تمريض امتياز (Intern Nurse / INT)
-                                </option>
-                                <option value="assistant">
-                                  مساعد تمريض (Nursing Assistant / NA)
-                                </option>
-                                <option value="secretary">
-                                  سكرتارية القسم (Department Secretary / SEC)
-                                </option>
-                                <option value="head_nurse">
-                                  رئيسة تمريض / مشرفة (Head Nurse)
-                                </option>
-                                <option value="quality">
-                                  مسؤول رقابة جودة (Quality Auditor)
-                                </option>
-                                <option value="admin">
-                                  مسؤول نظام كامل (Full Admin)
-                                </option>
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-500 mb-1">
-                                القسم الطبي
-                              </label>
-                              <select
-                                value={editUserForm.department}
-                                onChange={(e) =>
-                                  setEditUserForm({
-                                    ...editUserForm,
-                                    department: e.target.value,
-                                  })
-                                }
-                                className="w-full bg-slate-50 border border-slate-200 rounded py-1 px-2 font-bold focus:bg-white focus:outline-none"
-                              >
-                                {departments.map((d, index) => (
-                                  <option key={`${d}-${index}`} value={d}>
-                                    {d}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-450 mb-1">
-                                رمز مرور الدخول (PIN Code)
-                              </label>
-                              <input
-                                type="text"
-                                maxLength={6}
-                                value={editUserForm.pin}
-                                onChange={(e) =>
-                                  setEditUserForm({
-                                    ...editUserForm,
-                                    pin: e.target.value.replace(/\D/g, ""),
-                                  })
-                                }
-                                className="w-full bg-slate-50 border border-slate-200 rounded py-1 px-2 font-mono text-center font-bold tracking-widest focus:bg-white"
-                                placeholder="1234"
-                              />
-                            </div>
-
-                            <div className="md:col-span-2 lg:col-span-3">
-                              <label className="block text-[9px] font-bold text-slate-450 mb-1 font-mono">
-                                البريد الإلكتروني المهني
-                              </label>
-                              <input
-                                type="email"
-                                value={editUserForm.email}
-                                onChange={(e) =>
-                                  setEditUserForm({
-                                    ...editUserForm,
-                                    email: e.target.value,
-                                  })
-                                }
-                                className="w-full bg-slate-50 border border-slate-200 rounded py-1 px-2 font-mono focus:bg-white focus:outline-none focus:ring-1 focus:ring-pink-500"
-                                placeholder="nurse.name@hospital.org"
-                              />
-                            </div>
-                          </div>
-
-                          {/* HIPAA View Exclusions Table / Exceptions Slider Scrollbar Block */}
-                          <div className="border-t pt-4 mt-2">
-                            <div
-                              className="flex items-center justify-between bg-pink-500/5 p-2 rounded-xl border border-pink-500/10 mb-3"
-                              dir="rtl"
-                            >
-                              <div className="text-right">
-                                <h5 className="font-extrabold text-[12px] text-pink-700 flex items-center gap-1">
-                                  <ShieldAlert className="w-4 h-4 text-pink-600 animate-pulse" />
-                                  <span>
-                                    محددات الاستثناءات وعرض/إخفاء واجهات
-                                    وتطبيقات المستشفى
-                                  </span>
-                                </h5>
-                                <p className="text-[10px] text-slate-500 font-sans">
-                                  تحكم فوري وقسري لتجاوز مصفوفة الصلاحيات
-                                  الافتراضية (إما بالسماح بالفتح أو الحظر التام
-                                  على مستوى المستخدم مفرداً):
-                                </p>
-                              </div>
-                              <span className="bg-pink-600 text-white font-mono font-black text-[9px] px-2 py-0.5 rounded-full animate-pulse uppercase">
-                                Exceptions
-                              </span>
-                            </div>
-
-                            {/* Scrollbar-enforced list container */}
-                            <div
-                              className="max-h-[300px] overflow-y-auto pr-2 border border-slate-200 rounded-xl p-3 bg-slate-50 shadow-inner space-y-2.5 custom-main-scroll"
-                              style={{ direction: "rtl" }}
-                            >
-                              {[
-                                {
-                                  id: "mod_nursing_admin",
-                                  name: "إدارة شؤون التمريض وشبكة الكادر",
-                                },
-                                {
-                                  id: "mod_supervisor",
-                                  name: "نوبتجيات المشرفين والقيادة السريرية",
-                                },
-                                {
-                                  id: "mod_medication",
-                                  name: "خزنة وجرد الأدوية المخدرة والمراقبة",
-                                },
-                                {
-                                  id: "mod_forms_fill",
-                                  name: "شاشة تعبئة الشيتات والجرودات الطبية اليومية",
-                                },
-                                {
-                                  id: "mod_forms_dist",
-                                  name: "مكتب توزيع الشيتات ونماذج الوحدات",
-                                },
-                                {
-                                  id: "mod_roster_view",
-                                  name: "جدول نوبتجيات وورديات التمريض المعتمد (الروستر)",
-                                },
-                                {
-                                  id: "mod_roster_config",
-                                  name: "إدارة تخطيط الفترات وقواعد الروستر",
-                                },
-                                {
-                                  id: "mod_meals",
-                                  name: "بوابة حجز وإدارة الوجبات الغذائية للكادر",
-                                },
-                                {
-                                  id: "mod_transport",
-                                  name: "حركة الإسعاف وسيارات الطوارئ والنقل",
-                                },
-                                {
-                                  id: "mod_quality",
-                                  name: "لوحة رقابة الجودة الشاملة وتقارير CQI",
-                                },
-                                {
-                                  id: "mod_archives",
-                                  name: "أرشيف السجلات والملفات واسترجاع البيانات",
-                                },
-                                {
-                                  id: "mod_messaging",
-                                  name: "نظام المراسلة السريع والتعميمات الإدارية",
-                                },
-                                {
-                                  id: "mod_document_center",
-                                  name: "مركز الوثائق والأقسام السحابي والمستندات",
-                                },
-                              ].map((mod) => {
-                                const isOverride = (
-                                  editUserForm.moduleOverrides || []
-                                ).some(
-                                  (id) => id && id.split("|")[0] === mod.id,
-                                );
-                                const isDeny = (
-                                  editUserForm.moduleDenials || []
-                                ).some(
-                                  (id) => id && id.split("|")[0] === mod.id,
-                                );
-                                const stateVal = isOverride
-                                  ? "override"
-                                  : isDeny
-                                    ? "deny"
-                                    : "default";
-
-                                return (
-                                  <div
-                                    key={mod.id}
-                                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 bg-white rounded-lg border border-slate-200 hover:border-pink-300 transition-colors gap-2 text-right"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        className={`w-2 h-2 rounded-full ${stateVal === "override" ? "bg-emerald-500" : stateVal === "deny" ? "bg-rose-500" : "bg-slate-300"}`}
-                                      />
-                                      <span className="font-extrabold text-slate-700 text-xs">
-                                        {mod.name}
-                                      </span>
-                                    </div>
-
-                                    {/* Three-State Control button group representing show/hide exceptions */}
-                                    <div className="flex items-center gap-1.5 self-end sm:self-center font-sans">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          let nextO = [
-                                            ...(editUserForm.moduleOverrides ||
-                                              []),
-                                          ];
-                                          let nextD = [
-                                            ...(editUserForm.moduleDenials ||
-                                              []),
-                                          ];
-                                          nextO = nextO.filter(
-                                            (id) =>
-                                              !id ||
-                                              id.split("|")[0] !== mod.id,
-                                          );
-                                          nextD = nextD.filter(
-                                            (id) =>
-                                              !id ||
-                                              id.split("|")[0] !== mod.id,
-                                          );
-                                          setEditUserForm({
-                                            ...editUserForm,
-                                            moduleOverrides: nextO,
-                                            moduleDenials: nextD,
-                                          });
-                                        }}
-                                        className={`px-2 py-1 rounded text-[10px] font-bold border transition ${
-                                          stateVal === "default"
-                                            ? "bg-slate-150 border-slate-300 text-slate-700 font-extrabold bg-slate-200"
-                                            : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                                        }`}
-                                      >
-                                        عام (موروث)
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          let nextO = [
-                                            ...(editUserForm.moduleOverrides ||
-                                              []),
-                                          ];
-                                          let nextD = [
-                                            ...(editUserForm.moduleDenials ||
-                                              []),
-                                          ];
-                                          nextO = nextO.filter(
-                                            (id) =>
-                                              !id ||
-                                              id.split("|")[0] !== mod.id,
-                                          );
-                                          nextD = nextD.filter(
-                                            (id) =>
-                                              !id ||
-                                              id.split("|")[0] !== mod.id,
-                                          );
-                                          nextO.push(mod.id);
-                                          setEditUserForm({
-                                            ...editUserForm,
-                                            moduleOverrides: nextO,
-                                            moduleDenials: nextD,
-                                          });
-                                        }}
-                                        className={`px-2.5 py-1 rounded text-[10px] font-bold border transition flex items-center gap-0.5 ${
-                                          stateVal === "override"
-                                            ? "bg-emerald-650 border-emerald-500 bg-emerald-550 text-white font-extrabold shadow bg-emerald-600"
-                                            : "bg-white border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600"
-                                        }`}
-                                      >
-                                        إجبار العرض (سماح)
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          let nextO = [
-                                            ...(editUserForm.moduleOverrides ||
-                                              []),
-                                          ];
-                                          let nextD = [
-                                            ...(editUserForm.moduleDenials ||
-                                              []),
-                                          ];
-                                          nextO = nextO.filter(
-                                            (id) =>
-                                              !id ||
-                                              id.split("|")[0] !== mod.id,
-                                          );
-                                          nextD = nextD.filter(
-                                            (id) =>
-                                              !id ||
-                                              id.split("|")[0] !== mod.id,
-                                          );
-                                          nextD.push(mod.id);
-                                          setEditUserForm({
-                                            ...editUserForm,
-                                            moduleOverrides: nextO,
-                                            moduleDenials: nextD,
-                                          });
-                                        }}
-                                        className={`px-2.5 py-1 rounded text-[10px] font-bold border transition flex items-center gap-0.5 ${
-                                          stateVal === "deny"
-                                            ? "bg-rose-650 border-rose-500 bg-rose-550 text-white font-extrabold shadow bg-rose-600"
-                                            : "bg-white border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
-                                        }`}
-                                      >
-                                        إجبار الإخفاء (حظر)
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between border-t pt-2.5">
-                            <button
-                              onClick={() =>
-                                handleDeleteSystemUser(selectedUserToEdit)
-                              }
-                              className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              <span>إبطال وحذف الحساب الطبي</span>
-                            </button>
-
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleSelectUserToEdit("")}
-                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[10px] font-bold transition"
-                              >
-                                إلغاء التعديل
-                              </button>
-                              <button
-                                onClick={handleUpdateSystemUser}
-                                className="px-4 py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded text-[10px] font-bold shadow transition flex items-center gap-1 cursor-pointer"
-                              >
-                                <Check className="h-3 w-3" />
-                                <span>حفظ التعديلات الجديدة</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Sub-section 4.3: Active User Directory Table List */}
-                    <div className="space-y-4 text-xs font-sans">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-2">
-                        <span className="font-bold text-slate-800 text-sm block text-right">
-                          دليل هوية وجدول موظفي النظام الحاليين (
-                          {systemUsers.length} مستخدم):
-                        </span>
-
-                        {/* Search box for users */}
-                        <div className="relative w-full sm:w-64" dir="rtl">
-                          <input
-                            type="text"
-                            value={userRegistrySearch}
-                            onChange={(e) => {
-                              setUserRegistrySearch(e.target.value);
-                              setUserRegistryPage(0);
-                            }}
-                            placeholder="البحث بالاسم، كود الموظف، الصلاحيات..."
-                            className="w-full pr-8 pl-8 py-1.5 bg-slate-50/50 text-slate-700 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 transition focus:bg-white"
-                          />
-                          <Search className="absolute right-2.5 top-2 h-3.5 w-3.5 text-slate-500" />
-                          {userRegistrySearch && (
-                            <button
-                              onClick={() => {
-                                setUserRegistrySearch("");
-                                setUserRegistryPage(0);
-                              }}
-                              className="absolute left-2 top-1.5 text-slate-450 hover:text-slate-650 bg-slate-100 border px-1.5 py-0.5 rounded font-sans text-[10px]"
-                            >
-                              تصفية
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Pagination Status Text */}
-                      {userRegistrySearch && (
-                        <div
-                          className="text-[10px] text-slate-500 text-right animate-pulse-slow"
-                          dir="rtl"
-                        >
-                          تمت التصفية والعثور على{" "}
-                          <span className="font-bold text-pink-600">
-                            {
-                              systemUsers.filter((usr) => {
-                                const s = userRegistrySearch
-                                  .toLowerCase()
-                                  .trim();
-                                return (
-                                  (usr.nameAr || "")
-                                    .toLowerCase()
-                                    .includes(s) ||
-                                  (usr.nameEn || "")
-                                    .toLowerCase()
-                                    .includes(s) ||
-                                  (usr.staffId || "")
-                                    .toLowerCase()
-                                    .includes(s) ||
-                                  (usr.department || "")
-                                    .toLowerCase()
-                                    .includes(s) ||
-                                  (usr.role || "").toLowerCase().includes(s)
-                                );
-                              }).length
-                            }
-                          </span>{" "}
-                          مستخدم مطابق.
-                        </div>
-                      )}
-
-                      {/* Scrollbar Container with Max Height */}
-                      <div className="max-h-[460px] overflow-y-auto pr-2 pl-2 scrollbar-thin scrollbar-thumb-pink-200 scrollbar-track-slate-50 border border-slate-100 rounded-2xl p-2 bg-slate-50/20 shadow-inner">
-                        {(() => {
-                          const filtered = systemUsers.filter((usr) => {
-                            const s = userRegistrySearch.toLowerCase().trim();
-                            if (!s) return true;
-                            return (
-                              (usr.nameAr || "").toLowerCase().includes(s) ||
-                              (usr.nameEn || "").toLowerCase().includes(s) ||
-                              (usr.staffId || "").toLowerCase().includes(s) ||
-                              (usr.department || "")
-                                .toLowerCase()
-                                .includes(s) ||
-                              (usr.role || "").toLowerCase().includes(s)
-                            );
-                          });
-
-                          const itemsPerPage = 9;
-                          const totalPages = Math.ceil(
-                            filtered.length / itemsPerPage,
-                          );
-                          const paginated = filtered.slice(
-                            userRegistryPage * itemsPerPage,
-                            (userRegistryPage + 1) * itemsPerPage,
-                          );
-
-                          if (paginated.length === 0) {
-                            return (
-                              <div
-                                className="py-12 text-center text-slate-500 text-xs"
-                                dir="rtl"
-                              >
-                                لا توجد أي نتائج مطابقة لمصطلح البحث "
-                                {userRegistrySearch}"
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {paginated.map((usr) => {
-                                  const isSelected =
-                                    selectedUserToEdit === usr.id;
-                                  const isActiveSession =
-                                    currentUser.id === usr.id;
-                                  return (
-                                    <div
-                                      key={usr.id}
-                                      onClick={() =>
-                                        setViewingUserProfileUser(usr)
-                                      }
-                                      className={`p-3 bg-white border rounded-xl shadow-sm flex items-start gap-3 transition-all cursor-pointer hover:border-pink-400 hover:shadow-md hover:-translate-y-0.5 duration-150 ${
-                                        isSelected
-                                          ? "border-pink-500 ring-1 ring-pink-500 animate-pulse"
-                                          : "border-slate-200"
-                                      }`}
-                                      title="اضغط لفتح الملف التشغيلي للشخصية"
-                                    >
-                                      {/* Tool button triggers */}
-                                      <div className="flex flex-col gap-1 shrink-0 bg-slate-50 p-1 rounded-lg border border-slate-150">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSelectUserToEdit(usr.id);
-                                          }}
-                                          className={`p-1 rounded transition text-slate-600 ${isSelected ? "bg-pink-100 text-pink-700" : "hover:bg-slate-200"}`}
-                                          title="تعديل الموظف"
-                                        >
-                                          <Pencil className="h-3 w-3" />
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteSystemUser(usr.id);
-                                          }}
-                                          className="p-1 rounded transition text-slate-500 hover:text-rose-650 hover:bg-rose-50"
-                                          title="إلغاء تفعيل الموظف"
-                                        >
-                                          <Trash2 className="h-3 w-3" />
-                                        </button>
-                                      </div>
-
-                                      <div className="flex-1 text-right min-w-0">
-                                        <div className="flex items-center justify-end gap-1.5 leading-none">
-                                          {isActiveSession && (
-                                            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-1 py-0.5 rounded text-[8px] font-extrabold font-sans">
-                                              جلسة العمل الحالية
-                                            </span>
-                                          )}
-                                          <span className="font-black text-slate-800 truncate block">
-                                            {usr.nameAr}
-                                          </span>
-                                        </div>
-                                        <span className="text-[10px] text-slate-500 font-mono block uppercase tracking-wide leading-none mt-1 truncate">
-                                          {usr.nameEn}
-                                        </span>
-
-                                        <div className="mt-2.5 flex items-center justify-end gap-1">
-                                          <span className="text-[9px] font-bold text-slate-500 font-mono bg-slate-100 px-1.5 py-0.5 rounded border">
-                                            {usr.staffId}
-                                          </span>
-                                          <span className="text-[10px] text-slate-500 truncate font-semibold">
-                                            {usr.department}
-                                          </span>
-                                        </div>
-
-                                        <div className="mt-1.5 flex justify-end">
-                                          <span
-                                            className={`text-[8px] font-extrabold px-2 py-0.5 rounded-full uppercase font-sans tracking-wide border ${
-                                              usr.role === "admin"
-                                                ? "bg-red-50 text-red-700 border-red-200"
-                                                : usr.role === "quality"
-                                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                            }`}
-                                          >
-                                            {usr.role === "admin"
-                                              ? "مسؤول نظام عام"
-                                              : usr.role === "quality"
-                                                ? "مسؤول جودة مستشفى"
-                                                : "رئيسة تمريض"}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      <div
-                                        className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-black text-xs border uppercase ${
-                                          usr.role === "admin"
-                                            ? "bg-red-50 text-red-650 border-red-200"
-                                            : usr.role === "quality"
-                                              ? "bg-amber-55 text-amber-650 border-amber-200"
-                                              : "bg-emerald-50 text-emerald-650 border-emerald-100"
-                                        }`}
-                                      >
-                                        {usr.avatarInitials}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-
-                              {/* Pagination control buttons row */}
-                              {totalPages > 1 && (
-                                <div
-                                  className="flex items-center justify-between bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs mt-3 shadow-sm"
-                                  dir="rtl"
-                                >
-                                  <button
-                                    disabled={userRegistryPage <= 0}
-                                    onClick={() =>
-                                      setUserRegistryPage((p) =>
-                                        Math.max(0, p - 1),
-                                      )
-                                    }
-                                    className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition text-slate-700 disabled:opacity-40 disabled:hover:bg-transparent font-extrabold cursor-pointer text-[10px]"
-                                  >
-                                    السابق
-                                  </button>
-
-                                  <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold">
-                                    <span>الصفحة</span>
-                                    <span className="font-extrabold text-slate-900 bg-slate-100 border px-1.5 py-0.5 rounded leading-none font-sans">
-                                      {userRegistryPage + 1}
-                                    </span>
-                                    <span>من أصل</span>
-                                    <span className="font-extrabold text-slate-800">
-                                      {totalPages}
-                                    </span>
-                                  </div>
-
-                                  <button
-                                    disabled={
-                                      userRegistryPage >= totalPages - 1
-                                    }
-                                    onClick={() =>
-                                      setUserRegistryPage((p) =>
-                                        Math.min(totalPages - 1, p + 1),
-                                      )
-                                    }
-                                    className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition text-slate-700 disabled:opacity-40 disabled:hover:bg-transparent font-extrabold cursor-pointer text-[10px]"
-                                  >
-                                    التالي
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-
-                    {/* Sub-section 4.2: Role Permission Matrix (لوحة تخصيص مرونة الصلاحيات للأدوار) */}
-                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 gap-6 space-y-6 text-right">
-                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-3 border-b border-slate-200">
-                        <div className="text-right w-full">
-                          <h4 className="font-extrabold text-pink-700 text-sm flex items-center justify-end gap-1.5 leading-none">
-                            <span>
-                              معمارية الصلاحيات والأدوار الديناميكية (Dynamic
-                              HIPAA RBAC Engine)
-                            </span>
-                            <Settings className="h-4 w-4 text-pink-600 shrink-0" />
-                          </h4>
-                          <p className="text-[10px] text-slate-500 leading-tight mt-1.5">
-                            {language === "ar"
-                              ? "أدخل رمز المصادقة الإدارية لتعديل الأدوار والمهام التفصيلية وجدول مصفوفة العبور (Access Matrix) مباشرة بالوقت الفعلي في أول تفعيل هجين بالمستشفيات:"
-                              : "Enter administrative passcode to configure roles, actions, and the access matrix connected to Firestore natively in real-time:"}
-                          </p>
-                        </div>
-
-                        {/* Dynamic Action Buttons */}
-                        <div className="flex flex-wrap gap-2 justify-end w-full md:w-auto shrink-0">
-                          {/* Add New Role Button */}
-                          <button
-                            disabled={!isRbacAdminAuthenticated}
-                            onClick={() => {
-                              const roleId = prompt(
-                                language === "ar"
-                                  ? "أدخل معرف الدور البرمجي بالإنجليزية (مثال: radiology_clerk):"
-                                  : "Enter role ID (e.g. radiology_clerk):",
-                              );
-                              if (!roleId) return;
-                              const nameAr = prompt(
-                                language === "ar"
-                                  ? "أدخل اسم الدور بالعربية (مثال: فني أشعة):"
-                                  : "Enter role Arabic name:",
-                              );
-                              if (!nameAr) return;
-                              const nameEn = prompt(
-                                language === "ar"
-                                  ? "أدخل اسم الدور بالإنجليزية:"
-                                  : "Enter role English name:",
-                              );
-                              if (!nameEn) return;
-
-                              const newRole = {
-                                id: roleId.trim().toLowerCase(),
-                                nameAr: nameAr.trim(),
-                                nameEn: nameEn.trim(),
-                              };
-                              saveRole(newRole)
-                                .then(() => {
-                                  // Seed access matrix for this role
-                                  permissionsList.forEach((p) => {
-                                    saveAccessMatrix({
-                                      id: `${newRole.id}_${p.id}`,
-                                      roleId: newRole.id,
-                                      permissionId: p.id,
-                                      enabled: false,
-                                    });
-                                  });
-                                  addSystemLog(
-                                    `Added new dynamic role: ${nameEn}`,
-                                    "success",
-                                  );
-                                })
-                                .catch((err) => {
-                                  alert("Error: " + err.message);
-                                });
-                            }}
-                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] rounded flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm shrink-0"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>
-                              {language === "ar"
-                                ? "إضافة دور جديد"
-                                : "Add New Role"}
-                            </span>
-                          </button>
-
-                          {/* Add New Permission Button */}
-                          <button
-                            disabled={!isRbacAdminAuthenticated}
-                            onClick={() => {
-                              const permId = prompt(
-                                language === "ar"
-                                  ? "أدخل معرف الصلاحية بالإنجليزية (مثال: financial_approve):"
-                                  : "Enter permission action ID:",
-                              );
-                              if (!permId) return;
-                              const nameAr = prompt(
-                                language === "ar"
-                                  ? "أدخل اسم الإجراء بالعربية (مثال: اعتماد التقرير المالي):"
-                                  : "Enter description in Arabic:",
-                              );
-                              if (!nameAr) return;
-                              const nameEn = prompt(
-                                language === "ar"
-                                  ? "أدخل اسم الإجراء بالإنجليزية:"
-                                  : "Enter description in English:",
-                              );
-                              if (!nameEn) return;
-
-                              const newPerm = {
-                                id: permId.trim(),
-                                nameAr: nameAr.trim(),
-                                nameEn: nameEn.trim(),
-                              };
-                              savePermission(newPerm)
-                                .then(() => {
-                                  // Seed access matrix for this permission
-                                  rolesList.forEach((r) => {
-                                    saveAccessMatrix({
-                                      id: `${r.id}_${newPerm.id}`,
-                                      roleId: r.id,
-                                      permissionId: newPerm.id,
-                                      enabled: false,
-                                    });
-                                  });
-                                  addSystemLog(
-                                    `Added new dynamic permission action: ${nameEn}`,
-                                    "success",
-                                  );
-                                })
-                                .catch((err) => {
-                                  alert("Error: " + err.message);
-                                });
-                            }}
-                            className="px-3 py-1.5 bg-pink-600 hover:bg-pink-700 text-white font-bold text-[10px] rounded flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm shrink-0"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>
-                              {language === "ar"
-                                ? "إضافة صلاحية جديدة"
-                                : "Add New Action"}
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* HIPAA Compliance Authentication Panel */}
-                      <div className="bg-slate-50 text-slate-800 p-4 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                        <div className="text-right">
-                          <span className="inline-flex items-center gap-1.5 bg-pink-600/20 text-pink-400 text-[10px] font-black px-2.5 py-0.5 rounded-full mb-1">
-                            <ShieldAlert className="w-3.5 h-3.5 text-pink-500" />
-                            <span>
-                              {language === "ar"
-                                ? "نظام حماية HIPAA العالي"
-                                : "HIPAA SECURITY MODULE"}
-                            </span>
-                          </span>
-                          <h5 className="font-extrabold text-xs text-white">
-                            {language === "ar"
-                              ? "المصادقة الإدارية وتدقيق الصلاحيات النشطة"
-                              : "Administrative Authentication Required"}
-                          </h5>
-                          <p className="text-[10px] text-slate-500 mt-1">
-                            {language === "ar"
-                              ? "لفتح إمكانية التعديل على جميع التبويبات والمصفوفات والاختيارات، أدخل الرقم السري المصرح به (افتراضي: 2026):"
-                              : "To enable full editing access on all matrix boxes, roles, and tabs, enter your secure passcode (default: 2026):"}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 w-full md:justify-end">
-                          {isRbacAdminAuthenticated ? (
-                            <div className="flex flex-col items-end gap-1.5">
-                              <div className="flex items-center gap-1.5 text-emerald-600 font-extrabold text-xs bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg font-sans">
-                                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
-                                <span>
-                                  {language === "ar"
-                                    ? "🔓 تم مطابقة المسؤول - جميع أدوات التحكم والعمليات مفتوحة بالكامل"
-                                    : "🔓 Session Validated - Roster & Core Controls Editable"}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => {
-                                  setIsRbacAdminAuthenticated(false);
-                                  addSystemLog(
-                                    "HIPAA Administrator Session Locked",
-                                    "warning",
-                                  );
-                                }}
-                                className="text-[10px] text-pink-400 font-bold hover:underline cursor-pointer"
-                              >
-                                {language === "ar"
-                                  ? "🔒 قفل الجلسة فوراً"
-                                  : "🔒 Lock Session Now"}
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col sm:flex-row items-stretch gap-1.5 w-full max-w-sm">
-                              <select
-                                value={rbacAdminUserId}
-                                onChange={(e) =>
-                                  setRbacAdminUserId(e.target.value)
-                                }
-                                className="bg-white border border-slate-200 text-slate-800 rounded-lg py-1.5 px-3 focus:outline-none focus:border-pink-500 text-xs text-right font-bold flex-1"
-                              >
-                                <option value="">
-                                  {language === "ar"
-                                    ? "-- اختر المسؤول المعتمد --"
-                                    : "-- Select Admin --"}
-                                </option>
-                                {systemUsers
-                                  .filter(
-                                    (u) =>
-                                      u.role === "admin" ||
-                                      u.role === "it" ||
-                                      u.role === "president",
-                                  )
-                                  .map((u) => (
-                                    <option key={u.id} value={u.id}>
-                                      {language === "ar" ? u.nameAr : u.nameEn}
-                                    </option>
-                                  ))}
-                              </select>
-                              <input
-                                type="password"
-                                placeholder={
-                                  language === "ar"
-                                    ? "الرمز السري..."
-                                    : "PIN / Passcode..."
-                                }
-                                value={rbacAdminPasscode}
-                                onChange={(e) =>
-                                  setRbacAdminPasscode(e.target.value)
-                                }
-                                className="bg-white border border-slate-200 text-slate-800 rounded-lg py-1.5 px-3 focus:outline-none focus:border-pink-500 text-xs text-center font-bold font-mono w-24"
-                              />
-                              <button
-                                onClick={() => {
-                                  const matchedAdmin = systemUsers.find(
-                                    (u) => u.id === rbacAdminUserId,
-                                  );
-                                  if (!matchedAdmin) {
-                                    alert(
-                                      language === "ar"
-                                        ? "الرجاء اختيار المسؤول المصرح له أولاً!"
-                                        : "Please select an authorized administrator first!",
-                                    );
-                                    return;
-                                  }
-                                  if (
-                                    rbacAdminPasscode === matchedAdmin.pin ||
-                                    rbacAdminPasscode === "2026"
-                                  ) {
-                                    setIsRbacAdminAuthenticated(true);
-                                    addSystemLog(
-                                      `HIPAA Administrative privilege unlocked by ${matchedAdmin.nameEn}`,
-                                      "success",
-                                    );
-                                  } else {
-                                    alert(
-                                      language === "ar"
-                                        ? "عذراً، الرمز السري لهذا المسؤول غير صحيح!"
-                                        : "Incorrect PIN or password for this administrator!",
-                                    );
-                                  }
-                                }}
-                                className="px-3 py-1.5 bg-pink-600 hover:bg-pink-700 font-bold text-xs rounded-lg transition text-white whitespace-nowrap cursor-pointer shadow"
-                              >
-                                {language === "ar"
-                                  ? "تحقق ومطابقة"
-                                  : "Verify & Unlock"}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs text-right border-collapse bg-white rounded-lg overflow-hidden border border-slate-200">
-                          <thead>
-                            <tr className="bg-slate-100 text-[10px] font-bold text-slate-500 uppercase">
-                              <th className="p-3 border-b border-slate-200 min-w-[240px] text-right text-slate-900">
-                                {language === "ar"
-                                  ? "الإجراء أو الصلاحية المقيدة بالقسم"
-                                  : "Clinical Action Policy"}
-                              </th>
-                              {rolesList.map((role) => (
-                                <th
-                                  key={role.id}
-                                  className="p-3 border-b border-slate-200 text-center min-w-[100px] group relative"
-                                >
-                                  <div className="font-extrabold text-slate-800">
-                                    {language === "ar"
-                                      ? role.nameAr
-                                      : role.nameEn}
-                                  </div>
-                                  <div className="text-[8px] font-mono text-slate-500 font-semibold uppercase">
-                                    {role.id}
-                                  </div>
-
-                                  {/* Delete Dynamic Role Button */}
-                                  {isRbacAdminAuthenticated && (
-                                    <button
-                                      onClick={() => {
-                                        if (
-                                          confirm(
-                                            language === "ar"
-                                              ? `هل ترغب بحذف رتبة ${role.nameAr} الحالية من النظام؟`
-                                              : `Do you want to delete role ${role.nameEn}?`,
-                                          )
-                                        ) {
-                                          deleteRole(role.id).then(() => {
-                                            addSystemLog(
-                                              `Deleted dynamic role: ${role.nameEn}`,
-                                              "warning",
-                                            );
-                                          });
-                                        }
-                                      }}
-                                      className="absolute -top-1 -right-1 bg-red-100 text-red-650 p-0.5 rounded-full hover:bg-red-200 cursor-pointer"
-                                    >
-                                      <X className="w-2.5 h-2.5" />
-                                    </button>
-                                  )}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-150">
-                            {permissionsList.map((policy) => (
-                              <tr
-                                key={policy.id}
-                                className="hover:bg-slate-50 transition text-[11px]"
-                              >
-                                <td className="p-3 font-bold text-slate-700 relative group text-right">
-                                  <div className="text-slate-900 font-extrabold">
-                                    {language === "ar"
-                                      ? policy.nameAr
-                                      : policy.nameEn}
-                                  </div>
-                                  <div className="text-[9px] text-slate-500 font-mono font-medium">
-                                    {policy.id}
-                                  </div>
-
-                                  {/* Delete Dynamic Permission Button */}
-                                  {isRbacAdminAuthenticated && (
-                                    <button
-                                      onClick={() => {
-                                        if (
-                                          confirm(
-                                            language === "ar"
-                                              ? `هل ترغب بحذف هذه الصلاحية السحابية من الجدول؟`
-                                              : `Delete action ${policy.nameEn}?`,
-                                          )
-                                        ) {
-                                          deletePermission(policy.id).then(
-                                            () => {
-                                              addSystemLog(
-                                                `Deleted dynamic permission action: ${policy.nameEn}`,
-                                                "warning",
-                                              );
-                                            },
-                                          );
-                                        }
-                                      }}
-                                      className="absolute top-1/2 left-2 -translate-y-1/2 bg-red-50 text-red-650 p-1 rounded hover:bg-red-100 cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
-                                </td>
-
-                                {rolesList.map((role) => {
-                                  const mapping = accessMatrix.find(
-                                    (m) =>
-                                      m.roleId === role.id &&
-                                      m.permissionId === policy.id,
-                                  );
-                                  const isEnabled = mapping
-                                    ? mapping.enabled
-                                    : false;
-
-                                  const toggleMatrix = () => {
-                                    saveAccessMatrix({
-                                      id: `${role.id}_${policy.id}`,
-                                      roleId: role.id,
-                                      permissionId: policy.id,
-                                      enabled: !isEnabled,
-                                    })
-                                      .then(() => {
-                                        addSystemLog(
-                                          `Updated Access Matrix: ${role.id} - ${policy.id} -> ${!isEnabled}`,
-                                          "info",
-                                        );
-                                      })
-                                      .catch((err) => {
-                                        console.error(
-                                          "Matrix save error:",
-                                          err,
-                                        );
-                                      });
-                                  };
-
-                                  return (
-                                    <td
-                                      key={role.id}
-                                      className="p-3 text-center"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isEnabled}
-                                        disabled={!isRbacAdminAuthenticated}
-                                        onChange={toggleMatrix}
-                                        className="w-4 h-4 text-pink-600 border-slate-300 rounded focus:ring-pink-500 cursor-pointer disabled:opacity-40"
-                                      />
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === "it_panel" && itSubTab === "system_settings" && (
-            <div className="space-y-6 animate-fade font-sans text-right">
-              {/* STATE-OF-THE-ART DEPARTMENT MANAGER VAULT & SYSTEM CUSTOMIZATION */}
-              <div className="bg-white text-slate-800 p-6 rounded-2xl shadow-sm space-y-6 text-right border border-slate-200">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                  <div className="flex items-center gap-2 justify-end">
-                    <div className="bg-pink-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-                      {language === "ar"
-                        ? "خزنة النظام الآمنة"
-                        : "SECURITY VAULT"}
-                    </div>
-                    <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-1.5 font-sans">
-                      <span>
-                        إدارة مدراء الأقسام، التخصيص والأرشيفات الذكية
-                      </span>
-                      <Unlock className="h-4.5 w-4.5 text-pink-500 shrink-0" />
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Section A: Branded Customizer */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-                    <h4 className="font-bold text-xs text-pink-600">
-                      📱{" "}
-                      {language === "ar"
-                        ? "لوحة التخصيص وتحديد ألوان الهوية البصرية"
-                        : "Visual Identity & Palette Launcher"}
-                    </h4>
-                    <p className="text-[10.5px] text-slate-500">
-                      {language === "ar"
-                        ? "حدد المظهر البصري العام للوحات التحليل والتقارير بمؤسستك:"
-                        : "Switch global highlight theme and accent color systems:"}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                      <button
-                        onClick={() => {
-                          setSettingsForm({
-                            ...settingsForm,
-                            premiumTitleAr: `البوابة الورديَّة لـ ${hospitalSettings.nameAr || "المنشأة"}`,
-                          });
-                          addSystemLog(
-                            "Visual preset system updated to Rose-Pink",
-                            "success",
-                          );
-                          alert(
-                            language === "ar"
-                              ? `✔ تم حفظ مظهر المنشأة لتثبيت الطابع الوردي الكلاسيكي لـ ${hospitalSettings.nameAr || "المنشأة"}!`
-                              : "Rose-Pink theme activated!",
-                          );
-                        }}
-                        className="p-2.5 bg-pink-955/20 bg-pink-950/40 hover:bg-pink-900/40 text-pink-600 border border-pink-700/40 rounded-lg text-right font-bold transition flex items-center justify-between cursor-pointer"
-                      >
-                        <span className="h-2 w-2 rounded-full bg-pink-500"></span>
-                        <span>
-                          {language === "ar"
-                            ? `الوردي الكلاسيكي (${hospitalSettings.nameAr || "المستشفى"})`
-                            : `Classic ${hospitalSettings.nameEn || "Hospital"} Rose`}
-                        </span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setSettingsForm({
-                            ...settingsForm,
-                            premiumTitleAr: "البوابة السريرية الملكية",
-                          });
-                          addSystemLog(
-                            "Visual preset system updated to Royal Emerald",
-                            "success",
-                          );
-                          alert(
-                            language === "ar"
-                              ? "✔ تم تحديث كود المنشأة لتفعيل الطابع الأخضر الملكي لغرف الرعاية!"
-                              : "Royal Emerald theme activated!",
-                          );
-                        }}
-                        className="p-2.5 bg-emerald-955/20 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-300 border border-emerald-700/40 rounded-lg text-right font-bold transition flex items-center justify-between cursor-pointer"
-                      >
-                        <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                        <span>
-                          {language === "ar"
-                            ? "الأخضر السريري الملكي"
-                            : "Royal Emerald"}
-                        </span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setSettingsForm({
-                            ...settingsForm,
-                            premiumTitleAr: "البوابة الذكية الزرقاء",
-                          });
-                          addSystemLog(
-                            "Visual preset system updated to Deep Ocean Indigo",
-                            "success",
-                          );
-                          alert(
-                            language === "ar"
-                              ? "✔ تم حفظ الطابع الأزرق المحيطي لإدارة الجودة!"
-                              : "Ocean Indigo theme activated!",
-                          );
-                        }}
-                        className="p-2.5 bg-blue-955/20 bg-blue-950/40 hover:bg-blue-900/40 text-blue-300 border border-blue-700/40 rounded-lg text-right font-bold transition flex items-center justify-between cursor-pointer"
-                      >
-                        <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                        <span>
-                          {language === "ar"
-                            ? "الأزرق المحيطي الحديث"
-                            : "Ocean Indigo"}
-                        </span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setSettingsForm({
-                            ...settingsForm,
-                            premiumTitleAr: "بوابة رعاية الطوارئ الذهبية",
-                          });
-                          addSystemLog(
-                            "Visual preset system updated to Cosmic Gold",
-                            "success",
-                          );
-                          alert(
-                            language === "ar"
-                              ? "✔ تم حفظ مظهر المنشأة لتفعيل الطابع الذهبي للأقسام!"
-                              : "Cosmic Gold theme activated!",
-                          );
-                        }}
-                        className="p-2.5 bg-amber-955/20 bg-amber-950/40 hover:bg-amber-900/40 text-amber-300 border border-amber-700/40 rounded-lg text-right font-bold transition flex items-center justify-between cursor-pointer"
-                      >
-                        <span className="h-2 w-2 rounded-full bg-amber-500"></span>
-                        <span>
-                          {language === "ar"
-                            ? "الذهبي الشمسي الفاخر"
-                            : "Cosmic Gold"}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-                    <h4 className="font-bold text-xs text-pink-600">
-                      ✍️{" "}
-                      {language === "ar"
-                        ? "تحديد توقيعات ومسميات رؤساء الشعب والمدراء"
-                        : "Official Signatories Configurator"}
-                    </h4>
-                    <p className="text-[10.5px] text-slate-500">
-                      {language === "ar"
-                        ? "تعديل أسماء مديرة التمريض ومدير المستشفى دائمي الاعتماد:"
-                        : "Configure permanent default signatories appearing on print:"}
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      <div className="space-y-1">
-                        <label className="block text-[10px] text-slate-500">
-                          {language === "ar"
-                            ? "اسم مديرة التمريض (CNO):"
-                            : "Chief Nursing Officer:"}
-                        </label>
-                        <input
-                          type="text"
-                          value={customCnoName}
-                          onChange={(e) => {
-                            setCustomCnoName(e.target.value);
-                            saveSetting(
-                              "baheya_custom_cno_name",
-                              e.target.value,
-                            );
-                          }}
-                          className="w-full bg-slate-50 text-pink-200 border border-white/10 rounded px-2 py-1 text-xs font-bold outline-none"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] text-slate-500">
-                          {language === "ar"
-                            ? "اسم مدير المنشأة (Director):"
-                            : "Medical Director:"}
-                        </label>
-                        <input
-                          type="text"
-                          value={customDirectorName}
-                          onChange={(e) => {
-                            setCustomDirectorName(e.target.value);
-                            saveSetting(
-                              "baheya_custom_director_name",
-                              e.target.value,
-                            );
-                          }}
-                          className="w-full bg-slate-50 text-pink-200 border border-white/10 rounded px-2 py-1 text-xs font-bold outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section B: State-Of-The-Art Department Manager Vault */}
-                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 space-y-3">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <span className="bg-emerald-900/80 text-emerald-300 font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider">
-                      {language === "ar"
-                        ? "نشط ومؤمّن"
-                        : "SECURE PASSCODE LOCKS"}
-                    </span>
-                    <h4 className="font-black text-xs text-pink-600 flex items-center gap-1.5">
-                      <span>
-                        🛡️ خزنة مدراء الأقسام ورؤساء الشعب (Department Manager
-                        Ledger)
-                      </span>
-                      <Shield className="h-4 w-4 text-emerald-500 shrink-0" />
-                    </h4>
-                  </div>
-
-                  <p className="text-[10.5px] text-slate-500">
-                    {language === "ar"
-                      ? "تتبع ورصد حسابات مشرفي الأقسام، مع إمكانية تعديل كلمات مرورهم (PIN) وتفويض أو إبطال أختامهم السريرية فورا:"
-                      : "Ledger containing department heads, their administrative PIN codes, and live certification stamps override console:"}
-                  </p>
-
-                  <div className="overflow-x-auto text-[11px] font-sans pt-1">
-                    <table className="w-full text-right text-slate-300 bg-transparent">
-                      <thead>
-                        <tr className="bg-slate-50/90 text-slate-500 font-bold border-b border-white/10">
-                          <th className="p-2.5 text-right">
-                            {language === "ar"
-                              ? "الواحدات والأقسام"
-                              : "Department Unit"}
-                          </th>
-                          <th className="p-2.5 text-right">
-                            {language === "ar"
-                              ? "المشرف المعتمد"
-                              : "Assigned Manager"}
-                          </th>
-                          <th className="p-2.5 text-center">
-                            {language === "ar" ? "كود الموظف" : "Staff ID"}
-                          </th>
-                          <th className="p-2.5 text-center">
-                            {language === "ar"
-                              ? "الرمز السري (PIN)"
-                              : "Secure PIN"}
-                          </th>
-                          <th className="p-2.5 text-center">
-                            {language === "ar"
-                              ? "صلاحية الختم الكلي"
-                              : "Live Seal State"}
-                          </th>
-                          <th className="p-2.5 text-center">
-                            {language === "ar"
-                              ? "إجراءات التحكم السريعة"
-                              : "Administrative Override"}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                        {departments.map((dept, idxVal) => {
-                          const manager = systemUsers.find(
-                            (u) =>
-                              u.department === dept &&
-                              (u.role === "head_nurse" || u.role === "admin"),
-                          ) || {
-                            id: `unassigned-${idxVal}`,
-                            nameAr: "لم يعين بعد",
-                            nameEn: "Unassigned",
-                            staffId: "BHG-TBD",
-                            pin: "----",
-                          };
-
-                          return (
-                            <tr
-                              key={idxVal}
-                              className="hover:bg-white/5 transition"
-                            >
-                              <td className="p-2.5 font-bold text-slate-800 text-right">
-                                {dept}
-                              </td>
-                              <td className="p-2.5 font-bold text-pink-200 text-right">
-                                {language === "ar"
-                                  ? manager.nameAr
-                                  : manager.nameEn}
-                              </td>
-                              <td className="p-2.5 text-center font-mono text-slate-450">
-                                {manager.staffId}
-                              </td>
-                              <td className="p-2.5 text-center font-mono font-bold text-emerald-600">
-                                {manager.pin}
-                              </td>
-                              <td className="p-2.5 text-center">
-                                <span className="px-2 py-0.5 rounded text-[9.5px] bg-emerald-950 text-emerald-600 border border-emerald-800/40 font-bold whitespace-nowrap">
-                                  {language === "ar"
-                                    ? "✓ معتمد تلقائيا"
-                                    : "✓ Trusted"}
-                                </span>
-                              </td>
-                              <td className="p-2.5 text-center">
-                                <button
-                                  onClick={() => {
-                                    const newPin = window.prompt(
-                                      language === "ar"
-                                        ? `أدخل الرمز السري الجديد (PIN) للمشرف لقسم [${dept}]:`
-                                        : `Enter new PIN for supervisor of [${dept}]:`,
-                                    );
-                                    if (!newPin) return;
-                                    const pinStr = newPin.trim();
-                                    if (
-                                      pinStr.length < 4 ||
-                                      pinStr.length > 6 ||
-                                      /\D/.test(pinStr)
-                                    ) {
-                                      alert(
-                                        language === "ar"
-                                          ? "يجب كود الـ PIN المكون من 4 أرقام عددية فقط!"
-                                          : "Must be 4 to 6 digits!",
-                                      );
-                                      return;
-                                    }
-
-                                    const uToUpdate = systemUsers.find(
-                                      (u) => u.staffId === manager.staffId,
-                                    );
-                                    if (uToUpdate) {
-                                      const updatedUsrs = systemUsers.map(
-                                        (u) => {
-                                          if (u.id === uToUpdate.id) {
-                                            const nextU = { ...u, pin: pinStr };
-                                            saveStaffMember(nextU).catch(
-                                              (err) => console.error(err),
-                                            );
-                                            return nextU;
-                                          }
-                                          return u;
-                                        },
-                                      );
-                                      setSystemUsers(updatedUsrs);
-                                      saveSetting(
-                                        "baheya_system_users",
-                                        updatedUsrs,
-                                      );
-                                      addSystemLog(
-                                        `PIN override for ${manager.staffId} successful`,
-                                        "info",
-                                      );
-                                      alert(
-                                        language === "ar"
-                                          ? "✔ تم تحديث وتغيير كود المشرف بنجاح!"
-                                          : "PIN changed successfully!",
-                                      );
-                                    } else {
-                                      alert(
-                                        language === "ar"
-                                          ? "خطأ: لم نجد حساب المشرف التابع لهذا القسم لتجاوز كوده السري كمسؤول!"
-                                          : "Error: No matching supervisor found!",
-                                      );
-                                    }
-                                  }}
-                                  className="px-2.5 py-1 bg-pink-900/50 hover:bg-pink-700/60 text-slate-900 rounded text-[9.5px] font-bold transition cursor-pointer whitespace-nowrap shadow-sm"
-                                >
-                                  ⚙️{" "}
-                                  {language === "ar"
-                                    ? "تجاوز الرمز السري"
-                                    : "Override PIN"}
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         {/* Persistent Status Footer - Hides on Print */}
@@ -22922,7 +21377,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
               <div className="flex items-center gap-2 text-[10px] text-emerald-600 font-bold">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                 <span className="uppercase text-[9px] tracking-widest bg-slate-800 border border-slate-750 px-2 py-0.5 rounded font-bold">
-                  {currentUser.role.toUpperCase()} LEVEL ACCESS
+                  {currentUser?.role?.toUpperCase()} LEVEL ACCESS
                 </span>
               </div>
               <span className="text-[9px] text-slate-500">
@@ -23311,7 +21766,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                               currentUser.pin);
                         if (
                           itStrictComplianceMode &&
-                          currentUser.role === "staff" &&
+                          currentUser?.role === "staff" &&
                           !isSelfEdit
                         ) {
                           alert(
@@ -23449,7 +21904,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                         activeRosterCellEdit.employeeCode === currentUser.pin);
                     if (
                       itStrictComplianceMode &&
-                      currentUser.role === "staff" &&
+                      currentUser?.role === "staff" &&
                       !isSelfEdit
                     ) {
                       alert(
@@ -23687,7 +22142,26 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
         </div>
       )}
 
-      <SmartAIAssistant language={language} currentUser={currentUser} />
+      {activeEntityDetail && (
+        <EntityDetailModal
+          entity={activeEntityDetail.entity}
+          type={activeEntityDetail.type}
+          isAr={language === "ar"}
+          onClose={() => setActiveEntityDetail(null)}
+        />
+      )}
+
+      {activePatientChart && activeTab !== "his" && (
+        <PatientChartModal
+          patientId={activePatientChart.patientId}
+          patientName={activePatientChart.patientName}
+          initialTab={activePatientChart.initialTab}
+          isAr={language === "ar"}
+          onClose={() => setActivePatientChart(null)}
+        />
+      )}
+
+      <GenericActionModal />
     </div>
   );
 }

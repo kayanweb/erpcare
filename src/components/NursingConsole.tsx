@@ -17,17 +17,28 @@ import {
   Stethoscope
 } from "lucide-react";
 import { Patient, VitalSigns, MARRecord, NursingAssessment } from "../types";
-import { collection, addDoc, onSnapshot, query, where, orderBy, doc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { subscribeToClinicalData, saveDataPermanently } from "../lib/realTimeService";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { PatientClinicalHeader } from "./PatientClinicalHeader";
 
 interface Props {
-  patient: Patient;
+  patient?: Patient | null;
   staffId: string;
+  language?: "ar" | "en";
 }
 
-export const NursingConsole: React.FC<Props> = ({ patient, staffId }) => {
+export const NursingConsole: React.FC<Props> = ({ patient, staffId, language = "ar" }) => {
+  const isAr = language === "ar";
+
+  if (!patient) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[300px] text-slate-500 font-medium">
+        {isAr ? "الرجاء اختيار مريض للمتابعة" : "Please select a patient to continue"}
+      </div>
+    );
+  }
+
   const [activeTab, setActiveTab] = useState<"vitals" | "mar" | "assessment" | "io" | "icu">("vitals");
   
   // State for Vitals Form
@@ -43,48 +54,56 @@ export const NursingConsole: React.FC<Props> = ({ patient, staffId }) => {
   const [marRecords, setMarRecords] = useState<MARRecord[]>([]);
 
   React.useEffect(() => {
-    const q = query(
-      collection(db, "hospital_mar_records"),
-      where("patientId", "==", patient.id),
-      orderBy("scheduledTime", "asc")
+    const unsubscribe = subscribeToClinicalData<MARRecord>(
+      "hospital_mar_records",
+      (data) => {
+        const filtered = data
+          .filter(rec => rec.patientId === patient.id)
+          .sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime());
+        setMarRecords(filtered);
+      },
+      (err) => console.error("Error loading MAR records:", err)
     );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMarRecords(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MARRecord)));
-    });
     return () => unsubscribe();
   }, [patient.id]);
 
   const handleBarcodeScan = (recordId: string) => {
-    toast.info("Scanning barcode...");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Scanning barcode...", titleAr: "Scanning barcode...", type: "form" } }));
     setTimeout(() => {
-      toast.success("Barcode matched: Medication verified");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Barcode matched: Medication verified", titleAr: "Barcode matched: Medication verified", type: "form" } }));
       administerMedication(recordId);
     }, 1000);
   };
 
   const administerMedication = async (recordId: string) => {
     try {
-      const recordRef = doc(db, "hospital_mar_records", recordId);
-      await updateDoc(recordRef, {
-        status: "administered",
-        administeredTime: new Date().toISOString(),
-        administeredByStaffId: staffId,
-        barcodeScanned: true
-      });
-      toast.success("Medication administered successfully");
+      const existing = marRecords.find(r => r.id === recordId);
+      if (existing) {
+        const updated = {
+          ...existing,
+          status: "administered" as const,
+          administeredTime: new Date().toISOString(),
+          administeredByStaffId: staffId,
+          barcodeScanned: true
+        };
+        await saveDataPermanently("hospital_mar_records", updated);
+        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Medication administered successfully", titleAr: "Medication administered successfully", type: "form" } }));
+      }
     } catch (e) {
       toast.error("Failed to administer medication");
     }
   };
   const saveVitals = async () => {
     try {
-      await addDoc(collection(db, "hospital_vital_signs"), {
+      const vitalToSave = {
+        id: `vital-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         ...vitals,
         patientId: patient.id,
         staffId,
         timestamp: new Date().toISOString()
-      });
-      toast.success("Vital signs recorded");
+      };
+      await saveDataPermanently("hospital_vital_signs", vitalToSave);
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Vital signs recorded", titleAr: "Vital signs recorded", type: "form" } }));
     } catch (e) {
       toast.error("Failed to record vitals");
     }
@@ -92,6 +111,9 @@ export const NursingConsole: React.FC<Props> = ({ patient, staffId }) => {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
+      <div className="p-4 bg-slate-50 border-b border-slate-200">
+        <PatientClinicalHeader patient={patient} language={language} showVitals={true} />
+      </div>
       {/* Tab Navigation */}
       <div className="flex bg-slate-50 p-1 border-b border-slate-200 overflow-x-auto">
         <button 

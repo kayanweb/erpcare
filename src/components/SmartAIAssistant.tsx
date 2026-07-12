@@ -3,7 +3,6 @@ import { Brain, X, Activity, Droplet, MonitorPlay as Ste2, Sparkles, AlertTriang
 import { Stethoscope, Pill, ShieldAlert, HeartPulse, Microscope, FileText, FileCheck, BookOpen, Key, Calendar, Calculator, Flame } from "lucide-react";
 
 export default function SmartAIAssistant({ language, currentUser }: any) {
-  const [isOpen, setIsOpen] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
   // Dynamic Tool States
@@ -30,12 +29,6 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
     setChatInput("");
   };
 
-  useEffect(() => {
-    const handleOpen = () => setIsOpen(true);
-    window.addEventListener("open-ai-assistant", handleOpen);
-    return () => window.removeEventListener("open-ai-assistant", handleOpen);
-  }, []);
-
   const tools = [
     { id: "calc_bmi", icon: Calculator, titleAr: "حاسبة BMI", titleEn: "BMI Calc" },
     { id: "med_interaction", icon: Pill, titleAr: "تداخلات الأدوية", titleEn: "Drug Interactions" },
@@ -59,31 +52,27 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
     { id: "mental_health", icon: MessageSquare, titleAr: "الدعم النفسي", titleEn: "Mental Support" },
   ];
 
-  if (!isOpen) {
-    return null;
-  }
-
   const renderToolContent = () => {
     switch (activeTool) {
       case "calc_bmi":
         const bmi = bmiWeight && bmiHeight ? (Number(bmiWeight) / ((Number(bmiHeight) / 100) ** 2)).toFixed(1) : "--";
         return (
           <div className="p-4 space-y-4 text-right">
-            <h3 className="text-white font-bold text-sm">حاسبة مؤشر كتلة الجسم الذكية</h3>
+            <h3 className="text-slate-900 font-bold text-sm">حاسبة مؤشر كتلة الجسم الذكية</h3>
             <div className="flex gap-4">
-              <input type="number" value={bmiWeight} onChange={e=>setBmiWeight(e.target.value)} placeholder="الوزن (كجم)" className="w-1/2 bg-slate-800 text-white rounded p-2 text-sm border border-slate-700" />
-              <input type="number" value={bmiHeight} onChange={e=>setBmiHeight(e.target.value)} placeholder="الطول (سم)" className="w-1/2 bg-slate-800 text-white rounded p-2 text-sm border border-slate-700" />
+              <input type="number" value={bmiWeight} onChange={e=>setBmiWeight(e.target.value)} placeholder="الوزن (كجم)" className="w-1/2 bg-white text-slate-900 rounded p-2 text-sm border border-slate-300 outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="number" value={bmiHeight} onChange={e=>setBmiHeight(e.target.value)} placeholder="الطول (سم)" className="w-1/2 bg-white text-slate-900 rounded p-2 text-sm border border-slate-300 outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
-            <div className="bg-slate-800 p-4 rounded-xl text-center text-white text-xl font-bold border border-slate-700">BMI: <span className="text-indigo-400">{bmi}</span></div>
+            <div className="bg-white p-4 rounded-xl text-center text-slate-900 text-xl font-bold border border-slate-200 shadow-sm">BMI: <span className="text-indigo-600">{bmi}</span></div>
           </div>
         );
       case "med_interaction":
         return (
           <div className="p-4 space-y-4 text-right">
-            <h3 className="text-white font-bold text-sm">التداخلات الدوائية المدرب (Simulated AI)</h3>
-            <input type="text" value={drug1} onChange={e=>setDrug1(e.target.value)} placeholder="العقار الأول (مثال: Aspirin)" className="w-full bg-slate-800 border-slate-700 text-white rounded p-2 text-sm" />
-            <input type="text" value={drug2} onChange={e=>setDrug2(e.target.value)} placeholder="العقار الثاني (مثال: Warfarin)" className="w-full bg-slate-800 border-slate-700 text-white rounded p-2 text-sm" />
-            <div className="bg-indigo-900/30 p-3 rounded text-sm text-indigo-300 font-bold border border-indigo-500/30">
+            <h3 className="text-slate-900 font-bold text-sm">التداخلات الدوائية المدرب (Simulated AI)</h3>
+            <input type="text" value={drug1} onChange={e=>setDrug1(e.target.value)} placeholder="العقار الأول (مثال: Aspirin)" className="w-full bg-white border-slate-300 text-slate-900 rounded p-2 text-sm border outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="text" value={drug2} onChange={e=>setDrug2(e.target.value)} placeholder="العقار الثاني (مثال: Warfarin)" className="w-full bg-white border-slate-300 text-slate-900 rounded p-2 text-sm border outline-none focus:ring-2 focus:ring-indigo-500" />
+            <div className="bg-rose-50 p-3 rounded text-sm text-rose-700 font-bold border border-rose-200 shadow-sm">
               {drug1 && drug2 ? "⚠️ تحذير: قد يزيد خطر النزيف. المراقبة مطلوبة." : "أدخل الأدوية للفحص السريع"}
             </div>
           </div>
@@ -91,121 +80,121 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
       case "vital_analyzer":
         return (
           <div className="p-4 space-y-3 text-right">
-            <h3 className="text-white font-bold text-sm">محلل العلامات الحيوية الاستباقي</h3>
+            <h3 className="text-slate-900 font-bold text-sm">محلل العلامات الحيوية الاستباقي</h3>
             <div className="grid grid-cols-2 gap-2">
-              <input type="text" placeholder="الضغط (120/80)" className="bg-slate-800 border-slate-700 text-white rounded p-2 text-sm" />
-              <input type="number" placeholder="النبض (bpm)" className="bg-slate-800 border-slate-700 text-white rounded p-2 text-sm" />
-              <input type="number" placeholder="التنفس (rpm)" className="bg-slate-800 border-slate-700 text-white rounded p-2 text-sm" />
-              <input type="number" placeholder="الحرارة (C)" className="bg-slate-800 border-slate-700 text-white rounded p-2 text-sm" />
+              <input type="text" placeholder="الضغط (120/80)" className="bg-white border-slate-300 border text-slate-900 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="number" placeholder="النبض (bpm)" className="bg-white border-slate-300 border text-slate-900 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="number" placeholder="التنفس (rpm)" className="bg-white border-slate-300 border text-slate-900 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="number" placeholder="الحرارة (C)" className="bg-white border-slate-300 border text-slate-900 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
-            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-sm">تحليل فوري</button>
+            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-sm shadow-md transition">تحليل فوري</button>
           </div>
         );
       case "iv_drip":
         const drops = ivVol && ivTime ? ((Number(ivVol) * Number(vitalsDrop)) / (Number(ivTime) * 60)).toFixed(0) : "0";
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
             <h3 className="font-bold text-sm">حاسبة معدل التنقيط الوريدي (IV Drip)</h3>
             <div className="flex gap-2">
-              <input type="number" value={ivVol} onChange={e=>setIvVol(e.target.value)} placeholder="الحجم (ml)" className="w-1/3 bg-slate-800 border-slate-700 rounded p-2 text-sm" />
-              <input type="number" value={ivTime} onChange={e=>setIvTime(e.target.value)} placeholder="الزمن (ساعات)" className="w-1/3 bg-slate-800 border-slate-700 rounded p-2 text-sm" />
-              <select value={vitalsDrop} onChange={e=>setVitalsDrop(e.target.value)} className="w-1/3 bg-slate-800 border-slate-700 rounded p-2 text-xs">
+              <input type="number" value={ivVol} onChange={e=>setIvVol(e.target.value)} placeholder="الحجم (ml)" className="w-1/3 bg-white border border-slate-300 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="number" value={ivTime} onChange={e=>setIvTime(e.target.value)} placeholder="الزمن (ساعات)" className="w-1/3 bg-white border border-slate-300 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              <select value={vitalsDrop} onChange={e=>setVitalsDrop(e.target.value)} className="w-1/3 bg-white border border-slate-300 rounded p-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="10">10 drops</option>
                 <option value="15">15 drops</option>
                 <option value="20">20 drops</option>
                 <option value="60">60 drops</option>
               </select>
             </div>
-            <div className="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center text-lg font-bold">المعدل: <span className="text-pink-400">{drops}</span> قطرة/دقيقة</div>
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center text-lg font-bold">المعدل: <span className="text-pink-600">{drops}</span> قطرة/دقيقة</div>
           </div>
         );
       case "symptoms_ai":
         return (
           <div className="p-4 space-y-3 text-right">
-             <h3 className="text-white font-bold text-sm">التشخيص التفريقي المدعم</h3>
-             <textarea placeholder="وصف الحالة والأعراض..." className="w-full bg-slate-800 border-slate-700 text-white rounded p-3 text-sm h-24" />
-             <button className="w-full bg-indigo-600 text-white font-bold py-2 rounded text-sm hover:bg-indigo-700">توليد تشخيص محتمل</button>
+             <h3 className="text-slate-900 font-bold text-sm">التشخيص التفريقي المدعم</h3>
+             <textarea placeholder="وصف الحالة والأعراض..." className="w-full bg-white border border-slate-300 text-slate-900 rounded p-3 text-sm h-24 outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+             <button className="w-full bg-indigo-600 text-white font-bold py-2 rounded text-sm shadow-md transition hover:bg-indigo-700">توليد تشخيص محتمل</button>
           </div>
         );
       case "lab_ranges":
         return <LabRangesTool language={language} />;
       case "ecg_guide":
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
              <h3 className="font-bold text-sm">دليل مخطط القلب السريع</h3>
-             <div className="bg-slate-800 border border-slate-700 p-2 rounded text-xs flex items-center justify-between"><HeartPulse className="w-4 h-4 text-emerald-400"/> Sinus Rhythm (60-100)</div>
-             <div className="bg-slate-800 border border-rose-500/50 p-2 rounded text-xs flex items-center justify-between"><HeartPulse className="w-4 h-4 text-rose-400"/> Atrial Fibrillation</div>
-             <div className="bg-slate-800 border border-rose-500/50 p-2 rounded text-xs flex items-center justify-between"><HeartPulse className="w-4 h-4 text-rose-400"/> Ventricular Tachycardia</div>
-             <div className="bg-slate-800 border border-red-600 text-red-200 p-2 rounded text-xs flex items-center justify-between"><HeartPulse className="w-4 h-4 animate-ping text-red-500"/> Ventricular Fibrillation</div>
+             <div className="bg-white shadow-sm border border-slate-200 p-2 rounded text-xs flex items-center justify-between"><HeartPulse className="w-4 h-4 text-emerald-500"/> Sinus Rhythm (60-100)</div>
+             <div className="bg-rose-50 border border-rose-200 p-2 rounded text-xs flex items-center justify-between"><HeartPulse className="w-4 h-4 text-rose-500"/> Atrial Fibrillation</div>
+             <div className="bg-rose-50 border border-rose-200 p-2 rounded text-xs flex items-center justify-between"><HeartPulse className="w-4 h-4 text-rose-500"/> Ventricular Tachycardia</div>
+             <div className="bg-red-50 border border-red-300 text-red-700 p-2 rounded text-xs flex items-center justify-between font-bold"><HeartPulse className="w-4 h-4 animate-ping text-red-600"/> Ventricular Fibrillation</div>
           </div>
         );
       case "triage":
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
             <h3 className="font-bold text-sm">نظام الفرز (Triage)</h3>
-            <select onChange={(e)=>setTriageStatus(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2 text-sm outline-none">
+            <select onChange={(e)=>setTriageStatus(e.target.value)} className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
                <option value="">-- اختر الشكوى الرئيسية --</option>
                <option value="cardiac">ألم بالصدر (اشتباه قلبي)</option>
                <option value="breath">ضيق تنفس ملحوظ</option>
                <option value="fever">حمى مرتفعة مع استقرار</option>
             </select>
-            {triageStatus === 'cardiac' && <div className="bg-rose-600/20 border border-rose-500 p-3 rounded-lg text-rose-200 font-bold text-center">Level 1 - إنعاش فورى</div>}
-            {triageStatus === 'fever' && <div className="bg-amber-600/20 border border-amber-500 p-3 rounded-lg text-amber-200 font-bold text-center">Level 3 - عاجل (30 دقيقة)</div>}
+            {triageStatus === 'cardiac' && <div className="bg-rose-50 border border-rose-200 p-3 rounded-lg text-rose-700 font-bold text-center shadow-sm">Level 1 - إنعاش فورى</div>}
+            {triageStatus === 'fever' && <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-amber-700 font-bold text-center shadow-sm">Level 3 - عاجل (30 دقيقة)</div>}
           </div>
         );
       case "medical_dic":
         return (
           <div className="p-4 space-y-3 text-right">
-             <h3 className="text-white font-bold text-sm">الموسوعة الطبية</h3>
-             <input type="text" placeholder="بحث عن مرض..." className="w-full bg-slate-800 border border-slate-700 text-white rounded p-3 text-sm" />
-             <div className="bg-slate-800/50 rounded-lg p-3 text-xs text-slate-400 text-center">بانتظار مصطلح البحث ...</div>
+             <h3 className="text-slate-900 font-bold text-sm">الموسوعة الطبية</h3>
+             <input type="text" placeholder="بحث عن مرض..." className="w-full bg-white border border-slate-300 text-slate-900 rounded p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-500 text-center shadow-sm">بانتظار مصطلح البحث ...</div>
           </div>
         );
       case "pain_scale":
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
              <h3 className="font-bold text-sm">التقييم البصري للألم</h3>
-             <input type="range" min="0" max="10" className="w-full accent-rose-500" />
-             <div className="flex justify-between text-xs text-slate-400">
+             <input type="range" min="0" max="10" className="w-full accent-rose-500" onChange={(e) => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: `Pain scale evaluated: ${e.target.value}`, titleAr: `تم تقييم الألم: ${e.target.value}`, type: "form" } }))} />
+             <div className="flex justify-between text-xs text-slate-500">
                <span>0 (لايوجد)</span> <span>5 (متوسط)</span> <span>10 (أسوأ ألم)</span>
              </div>
           </div>
         );
       case "burn_calc":
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
             <h3 className="font-bold text-sm">حاسبة حروق مساحة الجسم (Rule of 9s)</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <button className="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-2 rounded">الرأس والرقبة (9%)</button>
-              <button className="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-2 rounded">الذراع الأيمن (9%)</button>
-              <button className="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-2 rounded">الجذع الأمامي (18%)</button>
-              <button className="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-2 rounded">الساق اليمنى (18%)</button>
+              <button className="bg-white border border-slate-300 hover:bg-slate-50 p-2 rounded shadow-sm transition">الرأس والرقبة (9%)</button>
+              <button className="bg-white border border-slate-300 hover:bg-slate-50 p-2 rounded shadow-sm transition">الذراع الأيمن (9%)</button>
+              <button className="bg-white border border-slate-300 hover:bg-slate-50 p-2 rounded shadow-sm transition">الجذع الأمامي (18%)</button>
+              <button className="bg-white border border-slate-300 hover:bg-slate-50 p-2 rounded shadow-sm transition">الساق اليمنى (18%)</button>
             </div>
-            <div className="bg-indigo-900/50 p-2 text-center rounded-xl font-bold border border-indigo-500/30">المساحة المقدرة: <span className="text-pink-400">0% TBSA</span></div>
+            <div className="bg-rose-50 p-2 text-center rounded-xl font-bold border border-rose-200 shadow-sm text-rose-700">المساحة المقدرة: <span className="text-pink-600">0% TBSA</span></div>
           </div>
         );
       case "pregnancy":
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
             <h3 className="font-bold text-sm">لحساب استحقاق الولادة (EDD)</h3>
-            <label className="text-xs text-slate-400">تاريخ آخر دورة شهرية (LMP):</label>
-            <input type="date" value={lmpDate} onChange={e=>setLmpDate(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2 text-sm" />
-            <div className="bg-slate-800 border border-slate-700 p-3 text-center rounded-xl font-bold">
-               تاريخ الولادة المتوقع: <span className="text-emerald-400"> {lmpDate ? new Date(new Date(lmpDate).getTime() + 280*24*60*60*1000).toLocaleDateString() : "--/--/----"} </span>
+            <label className="text-xs text-slate-500">تاريخ آخر دورة شهرية (LMP):</label>
+            <input type="date" value={lmpDate} onChange={e=>setLmpDate(e.target.value)} className="w-full bg-white border border-slate-300 text-slate-900 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            <div className="bg-white border border-slate-200 shadow-sm p-3 text-center rounded-xl font-bold">
+               تاريخ الولادة المتوقع: <span className="text-emerald-600"> {lmpDate ? new Date(new Date(lmpDate).getTime() + 280*24*60*60*1000).toLocaleDateString() : "--/--/----"} </span>
             </div>
           </div>
         );
       case "qsofa":
         const qsScore = (qSofaScore.bp ? 1:0) + (qSofaScore.rr ? 1:0) + (qSofaScore.mentation ? 1:0);
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
             <h3 className="font-bold text-sm">معيار التسمم الدموي السريع (qSOFA)</h3>
             <div className="space-y-2 text-[11px]">
-              <label className="flex items-center gap-2 bg-slate-800 border border-slate-700 p-2 rounded"><input type="checkbox" checked={qSofaScore.bp} onChange={e=>setQSofaScore({...qSofaScore, bp: e.target.checked})}/> SBP ≤ 100 mmHg</label>
-              <label className="flex items-center gap-2 bg-slate-800 border border-slate-700 p-2 rounded"><input type="checkbox" checked={qSofaScore.rr} onChange={e=>setQSofaScore({...qSofaScore, rr: e.target.checked})}/> RR ≥ 22 rpm</label>
-              <label className="flex items-center gap-2 bg-slate-800 border border-slate-700 p-2 rounded"><input type="checkbox" checked={qSofaScore.mentation} onChange={e=>setQSofaScore({...qSofaScore, mentation: e.target.checked})}/> تغيير في الحالة العقلية</label>
+              <label className="flex items-center gap-2 bg-white border border-slate-300 p-2 rounded shadow-sm"><input type="checkbox" checked={qSofaScore.bp} onChange={e=>setQSofaScore({...qSofaScore, bp: e.target.checked})}/> SBP ≤ 100 mmHg</label>
+              <label className="flex items-center gap-2 bg-white border border-slate-300 p-2 rounded shadow-sm"><input type="checkbox" checked={qSofaScore.rr} onChange={e=>setQSofaScore({...qSofaScore, rr: e.target.checked})}/> RR ≥ 22 rpm</label>
+              <label className="flex items-center gap-2 bg-white border border-slate-300 p-2 rounded shadow-sm"><input type="checkbox" checked={qSofaScore.mentation} onChange={e=>setQSofaScore({...qSofaScore, mentation: e.target.checked})}/> تغيير في الحالة العقلية</label>
             </div>
-            <div className={`p-2 font-bold text-center rounded-xl ${qsScore >= 2 ? "bg-rose-600" : "bg-emerald-600"}`}>
+            <div className={`p-2 font-bold text-center rounded-xl shadow-sm text-white ${qsScore >= 2 ? "bg-rose-600" : "bg-emerald-600"}`}>
                النقاط: {qsScore} {qsScore >= 2 ? "(خطر عالٍ)" : "(طبيعي)"}
             </div>
           </div>
@@ -213,43 +202,43 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
       case "gcs":
         const gcsTotal = Number(gcsEye) + Number(gcsVerbal) + Number(gcsMotor);
         return (
-          <div className="p-3 space-y-2 text-right text-white">
+          <div className="p-3 space-y-2 text-right text-slate-900">
             <h3 className="font-bold text-sm mb-1">مقياس غلاسكو للغيبوبة</h3>
-             <select value={gcsEye} onChange={e=>setGcsEye(Number(e.target.value))} className="w-full bg-slate-800 border border-slate-700 text-white p-2 rounded text-xs">
+             <select value={gcsEye} onChange={e=>setGcsEye(Number(e.target.value))} className="w-full bg-white border border-slate-300 text-slate-900 p-2 rounded text-xs outline-none focus:ring-2 focus:ring-indigo-500">
                <option value="4">العين 4 - تلقائية</option><option value="3">العين 3 - للصوت</option><option value="2">العين 2 - للألم</option><option value="1">العين 1 - بلا استجابة</option>
              </select>
-             <select value={gcsVerbal} onChange={e=>setGcsVerbal(Number(e.target.value))} className="w-full bg-slate-800 border border-slate-700 text-white p-2 rounded text-xs">
+             <select value={gcsVerbal} onChange={e=>setGcsVerbal(Number(e.target.value))} className="w-full bg-white border border-slate-300 text-slate-900 p-2 rounded text-xs outline-none focus:ring-2 focus:ring-indigo-500">
                <option value="5">اللفظي 5 - طبيعي</option><option value="4">اللفظي 4 - مشوش</option><option value="3">اللفظي 3 - غير مناسب</option><option value="2">اللفظي 2 - أصوات</option><option value="1">اللفظي 1 - بلا استجابة</option>
              </select>
-             <select value={gcsMotor} onChange={e=>setGcsMotor(Number(e.target.value))} className="w-full bg-slate-800 border border-slate-700 text-white p-2 rounded text-xs">
+             <select value={gcsMotor} onChange={e=>setGcsMotor(Number(e.target.value))} className="w-full bg-white border border-slate-300 text-slate-900 p-2 rounded text-xs outline-none focus:ring-2 focus:ring-indigo-500">
                <option value="6">الحركي 6 - يتبع الأوامر</option><option value="5">الحركي 5 - يحدد الألم</option><option value="4">الحركي 4 - ينسحب</option><option value="3">الحركي 3 - انثناء</option><option value="2">الحركي 2 - انبساط</option><option value="1">الحركي 1 - بلا استجابة</option>
              </select>
-             <div className="bg-indigo-900 border border-indigo-500/50 p-2 rounded-xl text-center font-bold">إجمالي GCS: {gcsTotal}/15</div>
+             <div className="bg-indigo-50 border border-indigo-200 p-2 rounded-xl text-center font-bold text-indigo-800 shadow-sm">إجمالي GCS: {gcsTotal}/15</div>
           </div>
         );
       case "ped_dosage":
         return (
           <div className="p-4 space-y-3 text-right">
-             <h3 className="text-white font-bold text-sm">أدوية الأطفال</h3>
-             <input type="number" placeholder="وزن الطفل بالكيلوجرام" className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2 text-sm" />
-             <select className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2 text-sm">
+             <h3 className="text-slate-900 font-bold text-sm">أدوية الأطفال</h3>
+             <input type="number" placeholder="وزن الطفل بالكيلوجرام" className="w-full bg-white border border-slate-300 text-slate-900 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+             <select className="w-full bg-white border border-slate-300 text-slate-900 rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Paracetamol (10-15 mg/kg)</option>
                 <option value="">Ibuprofen (5-10 mg/kg)</option>
              </select>
-             <button className="w-full bg-indigo-600 text-white font-bold py-2 rounded text-sm hover:bg-indigo-700">احتساب الجرعة</button>
+             <button className="w-full bg-indigo-600 text-white font-bold py-2 rounded text-sm shadow-md transition hover:bg-indigo-700">احتساب الجرعة</button>
           </div>
         );
       case "apgar":
         const apSum = apgarScore.color + apgarScore.hr + apgarScore.reflex + apgarScore.resp + apgarScore.tone;
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
             <h3 className="font-bold text-sm">مقياس أبغار لحديثي الولادة</h3>
             <div className="flex gap-2">
-              <select value={apgarScore.hr} onChange={e=>setApgarScore({...apgarScore, hr: Number(e.target.value)})} className="flex-1 bg-slate-800 border border-slate-700 text-white p-1 rounded text-xs"><option value="2">النبض: طبيعي</option><option value="0">النبض: غائب</option></select>
-              <select value={apgarScore.resp} onChange={e=>setApgarScore({...apgarScore, resp: Number(e.target.value)})} className="flex-1 bg-slate-800 border border-slate-700 text-white p-1 rounded text-xs"><option value="2">التنفس: ممتاز</option><option value="0">التنفس: غائب</option></select>
+              <select value={apgarScore.hr} onChange={e=>setApgarScore({...apgarScore, hr: Number(e.target.value)})} className="flex-1 bg-white border border-slate-300 text-slate-900 p-1 rounded text-xs outline-none focus:ring-2 focus:ring-indigo-500"><option value="2">النبض: طبيعي</option><option value="0">النبض: غائب</option></select>
+              <select value={apgarScore.resp} onChange={e=>setApgarScore({...apgarScore, resp: Number(e.target.value)})} className="flex-1 bg-white border border-slate-300 text-slate-900 p-1 rounded text-xs outline-none focus:ring-2 focus:ring-indigo-500"><option value="2">التنفس: ممتاز</option><option value="0">التنفس: غائب</option></select>
             </div>
-            <div className={`p-2 font-bold text-center rounded-xl bg-slate-800 border border-slate-700`}>
-               النتيجة الكلية: <span className={apSum >= 7 ? "text-emerald-400" : "text-rose-400"}>{apSum} / 10</span>
+            <div className={`p-2 font-bold text-center rounded-xl bg-white border border-slate-200 shadow-sm`}>
+               النتيجة الكلية: <span className={apSum >= 7 ? "text-emerald-600" : "text-rose-600"}>{apSum} / 10</span>
             </div>
           </div>
         );
@@ -257,11 +246,11 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
         return (
           <div className="flex flex-col h-full text-right p-4">
              <div className="flex-1 space-y-3 overflow-y-auto mb-3">
-               <div className="bg-slate-800 p-3 rounded-2xl rounded-tr-sm w-[90%] text-slate-200 text-[11px] leading-relaxed">
+               <div className="bg-white border border-slate-200 shadow-sm p-3 rounded-2xl rounded-tr-sm w-[90%] text-slate-700 text-[11px] leading-relaxed">
                  مرحباً! أنا "المستشار الآلي" للتمريض. يمكنك سؤالي عن المعايير، قواعد JCI، والمزيد.
                </div>
                {chatMessages.map((msg, i) => (
-                 <div key={i} className={`p-3 rounded-2xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-900/50 rounded-tl-sm self-end w-[80%] text-white mr-auto' : 'bg-slate-800 rounded-tr-sm w-[90%] text-slate-200'}`}>
+                 <div key={i} className={`p-3 rounded-2xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-50 border border-indigo-100 rounded-tl-sm self-end w-[80%] text-indigo-900 mr-auto shadow-sm' : 'bg-white border border-slate-200 shadow-sm rounded-tr-sm w-[90%] text-slate-700'}`}>
                    {msg.content}
                  </div>
                ))}
@@ -273,9 +262,9 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
                    onChange={e => setChatInput(e.target.value)}
                    onKeyDown={e => e.key === 'Enter' && handleSendChat()}
                    placeholder="اكتب سؤالك هنا..." 
-                   className="flex-1 bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500" 
+                   className="flex-1 bg-white border border-slate-300 text-slate-900 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" 
                  />
-                 <button onClick={handleSendChat} className="bg-indigo-600 rounded-xl px-3 py-2 hover:bg-indigo-500 transition text-white">
+                 <button onClick={handleSendChat} className="bg-indigo-600 rounded-xl px-3 py-2 hover:bg-indigo-700 shadow-md transition text-white">
                    <Send className="w-4 h-4" />
                  </button>
              </div>
@@ -284,27 +273,27 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
       case "shift_notes":
         return (
           <div className="p-4 space-y-3 text-right">
-             <h3 className="text-white font-bold text-sm">SBAR تسليم الوردية</h3>
-             <textarea placeholder="عناصر الحالة باختصار..." className="w-full bg-slate-800 border border-slate-700 text-white rounded p-3 text-sm h-16 outline-none" />
-             <button className="w-full bg-indigo-600 text-white font-bold py-2 rounded text-sm hover:bg-indigo-700">تنسيق SBAR آلي</button>
+             <h3 className="text-slate-900 font-bold text-sm">SBAR تسليم الوردية</h3>
+             <textarea placeholder="عناصر الحالة باختصار..." className="w-full bg-white border border-slate-300 text-slate-900 rounded p-3 text-sm h-16 outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+             <button className="w-full bg-indigo-600 text-white font-bold py-2 rounded text-sm shadow-md transition hover:bg-indigo-700">تنسيق SBAR آلي</button>
           </div>
         );
       case "icu_monitor":
         return (
-          <div className="p-4 space-y-3 text-right text-white">
+          <div className="p-4 space-y-3 text-right text-slate-900">
              <h3 className="font-bold text-sm">تنبؤ العناية (ICU Prediction)</h3>
-             <div className="p-4 border border-indigo-500/30 bg-indigo-900/20 rounded-xl text-center">
-                 <Activity className="w-8 h-8 text-indigo-400 mx-auto" />
-                 <p className="mt-3 text-xs text-indigo-200 block">يرجى مزامنة المريض بالمشاهدة الحيوية المتصلة HL7/FHIR.</p>
+             <div className="p-4 border border-indigo-200 bg-indigo-50 shadow-sm rounded-xl text-center">
+                 <Activity className="w-8 h-8 text-indigo-600 mx-auto" />
+                 <p className="mt-3 text-xs text-indigo-800 block">يرجى مزامنة المريض بالمشاهدة الحيوية المتصلة HL7/FHIR.</p>
              </div>
           </div>
         );
       case "mental_health":
         return (
-          <div className="p-4 space-y-3 text-right text-white h-full flex flex-col justify-center items-center text-center">
-             <Sparkles className="w-8 h-8 text-emerald-400 mb-2 animate-bounce" />
-             <h3 className="font-black text-sm">أنت بطل الرعاية!</h3>
-             <p className="text-[11px] text-emerald-100 mt-2">خذ نفساً عميقاً... عملك الجبار يبقي المرضى في أمان. شكراً لك!</p>
+          <div className="p-4 space-y-3 text-right text-slate-900 h-full flex flex-col justify-center items-center text-center bg-emerald-50 rounded-2xl m-4 border border-emerald-100 shadow-inner">
+             <Sparkles className="w-8 h-8 text-emerald-500 mb-2 animate-bounce" />
+             <h3 className="font-black text-sm text-emerald-800">أنت بطل الرعاية!</h3>
+             <p className="text-[11px] text-emerald-700 mt-2 font-medium">خذ نفساً عميقاً... عملك الجبار يبقي المرضى في أمان. شكراً لك!</p>
           </div>
         );
       default:
@@ -313,28 +302,10 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] flex justify-end bg-black/50 backdrop-blur-sm shadow-2xl transition-all font-sans">
-      <div className="w-full max-w-sm sm:max-w-md bg-slate-50 h-full flex flex-col shadow-2xl relative animate-in slide-in-from-right-full overflow-hidden border-l border-slate-700">
+    <div className="w-full h-full flex flex-col font-sans bg-slate-50">
         
-        {/* Header */}
-        <div className="p-6 bg-slate-950 text-white flex justify-between items-center relative overflow-hidden shrink-0 border-b-2 border-indigo-600">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-[90px] -mr-10 -mt-20 opacity-40 pointer-events-none"></div>
-          <button onClick={() => setIsOpen(false)} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition backdrop-blur-md relative z-10 cursor-pointer">
-            <X className="w-5 h-5 text-indigo-100" />
-          </button>
-          <div className="text-right relative z-10 flex flex-col items-end gap-1">
-            <h2 className="text-xl font-black flex items-center gap-2">
-              <span className="text-transparent bg-clip-text bg-gradient-to-l from-indigo-300 to-purple-200">المساعد الذكي</span>
-              <Brain className="w-6 h-6 text-indigo-400 animate-bounce" />
-            </h2>
-            <div className="text-[9px] bg-white/10 px-2.5 py-0.5 rounded font-mono tracking-widest uppercase">
-               20 INTELLIGENT MODULES
-            </div>
-          </div>
-        </div>
-
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 bg-slate-50 relative" dir="rtl">
+        <div className="flex-1 overflow-y-auto p-4 relative" dir="rtl">
           
           <div className="bg-white border border-slate-200 p-4 rounded-3xl mb-6 shadow-sm flex gap-4 text-right">
             <div className="p-3 bg-indigo-50 rounded-2xl shrink-0 h-max">
@@ -369,20 +340,19 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
         </div>
 
         {activeTool && (
-          <div className="bg-slate-900 border-t border-slate-800 shrink-0 shadow-[0_-15px_40px_rgba(0,0,0,0.2)] flex flex-col z-20 sticky bottom-0" style={{ height: "320px" }}>
-            <div className="px-5 py-3 bg-slate-950/80 backdrop-blur border-b border-white/10 flex items-center justify-between" dir="rtl">
-              <span className="text-[11px] font-black tracking-wide text-indigo-300 flex items-center gap-2">
+          <div className="bg-white border-t border-slate-200 shrink-0 shadow-[0_-15px_40px_rgba(0,0,0,0.1)] flex flex-col z-20 sticky bottom-0" style={{ height: "320px" }}>
+            <div className="px-5 py-3 bg-slate-50/90 backdrop-blur border-b border-slate-200 flex items-center justify-between" dir="rtl">
+              <span className="text-[11px] font-black tracking-wide text-indigo-700 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 أداة نشطة: {language === "ar" ? tools.find(t => t.id === activeTool)?.titleAr : tools.find(t => t.id === activeTool)?.titleEn}
               </span>
-              <button onClick={() => setActiveTool(null)} className="text-[10px] text-slate-300 hover:text-white font-bold px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg shrink-0 transition cursor-pointer">إغلاق</button>
+              <button onClick={() => setActiveTool(null)} className="text-[10px] text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm rounded-lg shrink-0 transition cursor-pointer">إغلاق</button>
             </div>
-            <div className="flex-1 overflow-y-auto p-0 relative bg-slate-900 custom-scrollbar" dir="rtl">
+            <div className="flex-1 overflow-y-auto p-0 relative bg-white custom-scrollbar" dir="rtl">
               {renderToolContent()}
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }
@@ -402,115 +372,29 @@ function LabRangesTool({ language }: { language: "ar" | "en" }) {
       rangeEn: "Hb: Male (13.5-17.5 g/dL), Female (12.0-15.5 g/dL). PLT: 150-450k/uL",
       tubeAr: "أنبوبة لافندر غطاء بنفسجي (EDTA Anticoagulant)",
       tubeEn: "Lavender-cap tube (EDTA Anticoagulant)",
-      tubeColor: "border-purple-600 bg-purple-900/40 text-purple-200",
-      methodAr: "سحب عينة دم وريدي، يمنع رج الأنبوبة بعنف؛ يحرك بلطف ٨ مرات لتجنب تحلل الدم (Hemolysis).",
-      methodEn: "Venipuncture. Invert gently 8 times. Do NOT shake vigorously to avoid Hemolysis.",
-      volumeAr: "2-3 ملليلتر",
-      volumeEn: "2-3 mL"
-    },
-    {
-      nameAr: "وظائف كلى - الكرياتينين (Creatinine)",
-      nameEn: "Kidney Function - Creatinine",
-      category: "kidney",
-      rangeAr: "البالغين: 0.6-1.2 mg/dL. الارتفاع يشير لقصور في كفاءة الكلى والتصفية.",
-      rangeEn: "Adults: 0.6-1.2 mg/dL. Elevated indicates impaired Glomerular Filtration.",
-      tubeAr: "أنبوبة صفراء أو حمراء (SST / Gel Act)",
-      tubeEn: "Yellow or Red cap tube (SST Serum Separator)",
-      tubeColor: "border-amber-500 bg-amber-900/40 text-amber-200",
-      methodAr: "سحب دم وريدي، صيام اختياري، تترك لتتجلط ثم تفصل عينة السيروم بجهاز الطرد المركزي الـ Centrifuge.",
-      methodEn: "Venipuncture. Wait 30 mins to clot. Spin in centrifuge to separate serum.",
-      volumeAr: "4-5 ملليلتر",
-      volumeEn: "4-5 mL"
-    },
-    {
-      nameAr: "البوتاسيوم في الدم (Potassium / K+)",
-      nameEn: "Serum Potassium (K+)",
-      category: "electrolytes",
-      rangeAr: "المعدل الطبيعي الحرج: 3.5 - 5.0 mEq/L. الانحراف يهدد كهرباء عضل القلب.",
-      rangeEn: "Critical Range: 3.5 - 5.0 mEq/L. High/low threatens cardiac conduction.",
-      tubeAr: "أنبوبة خضراء (هيبارين الليثيوم) أو SST صفراء",
-      tubeEn: "Green cap tube (Lithium Heparin) or Yellow SST",
-      tubeColor: "border-emerald-600 bg-emerald-900/40 text-emerald-200",
-      methodAr: "سحب فوري بدون ترك التورنيكية مربوطة لفترة طويلة، لأن حبس الدم يسبب تحلل كاذب للبيانات وارتفاع مستوى البوتاسيوم.",
-      methodEn: "Release tourniquet within 1 minute. Prolonged stasis falsely elevates K+.",
-      volumeAr: "3 ملليلتر",
-      volumeEn: "3 mL"
-    },
-    {
-      nameAr: "إنزيمات الكبد (ALT / AST)",
-      nameEn: "Liver Enzymes (ALT / AST)",
-      category: "liver",
-      rangeAr: "معدل الإنزيمات: ALT (7-56 U/L)، AST (10-40 U/L). الارتفاع المفرط يدل على إصابة كبدية.",
-      rangeEn: "Normal values: ALT (7-56 U/L), AST (10-40 U/L). Elevated indicates hepatocellular injury.",
-      tubeAr: "أنبوبة صفراء مصلية (SST / Gel Clot Activator)",
-      tubeEn: "Yellow serum tube (SST / Gel Clot Activator)",
-      tubeColor: "border-amber-500 bg-amber-900/40 text-amber-200",
-      methodAr: "سحب عينة دم وريدي، يوصى بالبعد عن الوجبات الدسمة قبل إجراء التحليل بـ 12 ساعة لتجنب عكارة السيروم (Lipemic sample).",
-      methodEn: "Standard venipuncture. Serum sample. Avoid heavy fat meal to prevent lipemia.",
-      volumeAr: "4 ملليلتر",
-      volumeEn: "4 mL"
-    },
-    {
-      nameAr: "غازات الدم الشريانية (ABG / Art Blood Gas)",
-      nameEn: "Arterial Blood Gas (ABG)",
-      category: "respiratory",
-      rangeAr: "الأس الهيدروجيني pH: 7.35-7.45. الضغط الجزئي pCO2: 35-45. الـ HCO3: 22-26 mEq/L.",
-      rangeEn: "pH: 7.35-7.45. pCO2: 35-45 mmHg. HCO3: 22-26 mEq/L. pO2: 80-100 mmHg.",
-      tubeAr: "سرنجة سحب شرياني جاهزة تحتوي على هيبارين جاف مسبقاً",
-      tubeEn: "Heparinized Arterial Syringe",
-      tubeColor: "border-sky-500 bg-sky-900/40 text-sky-200",
-      methodAr: "سحب من الشريان الكعبري بالمعصم (Radial Artery) بعد إجراء اختبار ألين لتروية اليد (Allen's Test). تنقل العينة مثلجة فوراً للمعمل.",
-      methodEn: "Arterial draw. Run Allen's test first. Transport on ice immediately.",
-      volumeAr: "1-2 ملليلتر غازات",
-      volumeEn: "1-2 mL arterial"
-    },
-    {
-      nameAr: "تحليل السيولة وزمن البروثرومبين (PT / INR)",
-      nameEn: "Prothrombin Time / INR",
-      category: "hematology",
-      rangeAr: "النسبة الطبيعية INR: 0.8-1.2 (المقيدون بالوارفارين: 2.0-3.0 لضمان الحماية من الجلطة).",
-      rangeEn: "INR: 0.8-1.2. (Target for Warfarin therapy: 2.0-3.0).",
-      tubeAr: "أنبوبة زرقاء فاتحة (صوديوم سيترات 3.2% Sodium Citrate)",
-      tubeEn: "Light Blue cap tube (3.2% Sodium Citrate)",
-      tubeColor: "border-blue-500 bg-blue-900/40 text-blue-200",
-      methodAr: "يجب ملء الأنبوبة للعلامة الدقيقة المطبوعة عليها مسبقاً (Ratio 9:1) لكي لا تفسد حسابات زمن التخثر بسبب زيادة السيترات.",
-      methodEn: "Precise fill to the mark (9:1 blood-to-citrate ratio) to prevent false prolongation.",
-      volumeAr: "2.7 ملليلتر (شديد الأهمية)",
-      volumeEn: "2.7 mL exact"
-    },
-    {
-      nameAr: "إنزيم القلب المخصص - تروبونين (Troponin I)",
-      nameEn: "Cardiac Troponin I",
-      category: "cardiac",
-      rangeAr: "المعدل الطبيعي: أقل من 0.04 ng/mL. الارتفاع السريع طارئ يثبت جلطة أو احتشاء عضل القلب (MI).",
-      rangeEn: "Normal: < 0.04 ng/mL. Elevation signifies myocardial infarction (STEMI/NSTEMI).",
-      tubeAr: "أنبوبة خضراء (هيبارين) أو SST صفراء مصلية",
-      tubeEn: "Green-cap Heparin or Yellow-cap SST",
-      tubeColor: "border-emerald-500 bg-emerald-950/40 text-emerald-300",
-      methodAr: "سحب طارئ (STAT)، تفصل العينة سريعاً لقراءة النتيجة خلال ٢٠ دقيقة لإنقاذ المريض.",
-      methodEn: "STAT emergency draw. Spin immediately. Report result within 30 minutes.",
-      volumeAr: "3-4 ملليلتر",
-      volumeEn: "3-4 mL"
+      tubeColor: "border-purple-200 bg-purple-50 text-purple-700",
+            methodAr: "سحب دم شرياني بدقة مع ضغط المكان لـ 5 دقائق.",
+      methodEn: "Strict arterial draw. Apply pressure for 5 mins.",
+      volumeAr: "2 مل",
+      volumeEn: "2 mL"
     }
   ];
 
-  const filtered = labDb.filter(lab => {
-    const matchSearch = 
-      lab.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      lab.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lab.rangeAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lab.rangeEn.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    if (activeCategory === "all") return matchSearch;
-    return matchSearch && lab.category === activeCategory;
+  const filtered = labDb.filter(item => {
+    if (activeCategory !== "all" && item.category !== activeCategory) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return item.nameAr.toLowerCase().includes(q) || item.nameEn.toLowerCase().includes(q);
+    }
+    return true;
   });
 
   return (
-    <div className="p-4 space-y-4 text-right text-slate-100">
+    <div className="p-4 space-y-4 text-right text-slate-800">
       
       {/* Search Input Section */}
       <div className="space-y-1.5">
-        <label className="block text-[11px] font-bold text-slate-400">
+        <label className="block text-[11px] font-bold text-slate-500">
           {isAr ? "🔎 بحث فوري عن قيم المعامل ودرجات السحب" : "🔎 Search Lab References & Guidelines"}
         </label>
         <input
@@ -518,7 +402,7 @@ function LabRangesTool({ language }: { language: "ar" | "en" }) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={isAr ? "ابحث بالاسم... مثلاً: CBC, PT, K+, Creatinine" : "Search e.g. CBC, K+, Troponin..."}
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500 text-white"
+          className="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 placeholder-slate-400 shadow-sm"
         />
       </div>
 
@@ -537,8 +421,8 @@ function LabRangesTool({ language }: { language: "ar" | "en" }) {
             onClick={() => setActiveCategory(cat.id)}
             className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex-shrink-0 ${
               activeCategory === cat.id 
-                ? "bg-indigo-650 text-white shadow-sm border border-indigo-500" 
-                : "bg-slate-800 text-slate-400 border border-slate-700/60 hover:text-white"
+                ? "bg-indigo-600 text-white shadow-sm border border-indigo-600" 
+                : "bg-slate-50 text-slate-600 border border-slate-200 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
             {isAr ? cat.ar : cat.en}
@@ -547,53 +431,51 @@ function LabRangesTool({ language }: { language: "ar" | "en" }) {
       </div>
 
       {/* Cards List */}
-      <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+      <div className="space-y-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
         {filtered.length === 0 ? (
           <p className="text-center text-[11px] text-slate-500 py-4">
             {isAr ? "لم نجد نتائج مطابقة لبحثك." : "No matching lab tests found."}
           </p>
         ) : (
           filtered.map((lab, index) => (
-            <div key={index} className="bg-slate-950/40 border border-slate-800 p-3 rounded-xl space-y-2.5 hover:border-slate-700 transition">
+            <div key={index} className="bg-white border border-slate-200 p-3 rounded-xl space-y-2.5 hover:border-indigo-300 transition shadow-sm">
               
               {/* Header Title with Tube color badge */}
-              <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-1.5">
+              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
                 <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-tighter border ${lab.tubeColor}`}>
                   {isAr ? lab.tubeAr.split(" (")[0] : lab.tubeEn.split(" (")[0]}
                 </span>
-                <h4 className="text-[11px] font-black text-indigo-400 truncate">
+                <h4 className="text-[11px] font-black text-indigo-700 truncate">
                   {isAr ? lab.nameAr : lab.nameEn}
                 </h4>
               </div>
 
               {/* Lab Values */}
-              <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                <p className="text-[10px] text-slate-400 font-bold leading-tight flex items-start gap-1">
+              <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                <p className="text-[10px] text-slate-600 font-bold leading-tight flex items-start gap-1">
                   <span>📊 {isAr ? "القيم الطبيعية:" : "Normal range:"}</span>
-                  <span className="text-emerald-400 font-mono font-medium">{isAr ? lab.rangeAr : lab.rangeEn}</span>
+                  <span className="text-emerald-600 font-mono font-medium">{isAr ? lab.rangeAr : lab.rangeEn}</span>
                 </p>
               </div>
 
               {/* Sample Guidelines & Visuals */}
-              <div className="text-[10px] space-y-1 text-slate-300 leading-normal">
+              <div className="text-[10px] space-y-1 text-slate-600 leading-normal">
                 <p className="flex items-center gap-1.5">
-                  <span className="text-slate-400 font-bold">🧪 {isAr ? "أنبوبة وتعبئة:" : "Tube details:"}</span>
-                  <span className="font-semibold text-purple-300">{isAr ? lab.tubeAr : lab.tubeEn}</span>
+                  <span className="text-slate-500 font-bold">🧪 {isAr ? "أنبوبة وتعبئة:" : "Tube details:"}</span>
+                  <span className="font-semibold text-purple-700">{isAr ? lab.tubeAr : lab.tubeEn}</span>
                 </p>
                 <p className="flex items-center gap-1.5">
-                  <span className="text-slate-400 font-bold">📏 {isAr ? "حجم العينة المطلوب:" : "Sample volume:"}</span>
-                  <span className="text-indigo-300 font-mono font-black">{isAr ? lab.volumeAr : lab.volumeEn}</span>
+                  <span className="text-slate-500 font-bold">📏 {isAr ? "حجم العينة المطلوب:" : "Sample volume:"}</span>
+                  <span className="text-indigo-600 font-mono font-black">{isAr ? lab.volumeAr : lab.volumeEn}</span>
                 </p>
-                <div className="bg-indigo-950/20 border border-indigo-900/30 p-1.5 rounded-lg text-[9px] text-indigo-200 mt-1">
-                  💡 <span className="font-semibold">{isAr ? "إرشادات السحب:" : "Draw criteria:"}</span> {isAr ? lab.methodAr : lab.methodEn}
+                <div className="bg-indigo-50 border border-indigo-100 p-1.5 rounded-lg text-[9px] text-indigo-800 mt-1">
+                  💡 <span className="font-bold">{isAr ? "إرشادات السحب:" : "Draw criteria:"}</span> {isAr ? lab.methodAr : lab.methodEn}
                 </div>
               </div>
-
             </div>
           ))
         )}
       </div>
-
     </div>
   );
 }

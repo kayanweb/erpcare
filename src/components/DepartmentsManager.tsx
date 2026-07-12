@@ -44,7 +44,7 @@ export default function DepartmentsManager({
       const next = departments.filter(d => d.id !== id);
       setDepartments(next);
       await saveSetting("his_departments", next);
-      toast.success(isAr ? "تم الحذف بنجاح" : "Deleted successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Deleted successfully", titleAr: "تم الحذف بنجاح", type: "form" } }));
     }
   };
 
@@ -64,7 +64,7 @@ export default function DepartmentsManager({
     setDepartments(next);
     await saveSetting("his_departments", next);
     setShowModal(false);
-    toast.success(isAr ? "تم الحفظ بنجاح" : "Saved successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Saved successfully", titleAr: "تم الحفظ بنجاح", type: "form" } }));
   };
 
   const openAddModal = () => {

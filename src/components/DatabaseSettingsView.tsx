@@ -44,7 +44,7 @@ export default function DatabaseSettingsView({ language }: { language: 'ar' | 'e
 
         <div className="space-y-4 mb-6">
           {Object.entries(settings).map(([key, value]) => {
-            if (['nameAr', 'nameEn', 'statusUrl', 'instanceType'].includes(key)) return null;
+            if (['nameAr', 'nameEn', 'statusUrl', 'instanceType']?.includes(key)) return null;
             return (
               <div key={key}>
                 <label className="block text-sm font-medium mb-1 capitalize text-slate-700">{key}</label>

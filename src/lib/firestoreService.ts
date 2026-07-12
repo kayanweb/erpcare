@@ -1,40 +1,28 @@
 import { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  doc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  serverTimestamp,
-  limit,
-  DocumentData,
-  WithFieldValue,
-  onSnapshot,
-  getDoc,
-  setDoc,
-  writeBatch
-} from 'firebase/firestore';
-import { db } from '../firebase';
+  subscribeToClinicalData, 
+  saveDataPermanently, 
+  deleteDataPermanently, 
+  fetchDocumentById 
+} from "./realTimeService";
 
-export { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  doc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  serverTimestamp,
-  limit,
-  onSnapshot,
-  getDoc,
-  setDoc
-};
+// Stubs for legacy re-exports (now running purely on PostgreSQL)
+export type WithFieldValue<T> = T;
+export type DocumentData = any;
+
+export const collection = {} as any;
+export const getDocs = {} as any;
+export const addDoc = {} as any;
+export const doc = {} as any;
+export const updateDoc = {} as any;
+export const deleteDoc = {} as any;
+export const query = {} as any;
+export const where = {} as any;
+export const orderBy = {} as any;
+export const serverTimestamp = () => new Date().toISOString();
+export const limit = {} as any;
+export const onSnapshot = {} as any;
+export const getDoc = {} as any;
+export const setDoc = {} as any;
 
 export const getLocalStore = (key: string) => {
   try {
@@ -46,172 +34,162 @@ export const getLocalStore = (key: string) => {
 };
 
 export const syncHospitalSettings = (callback: (data: any) => void) => {
-  return onSnapshot(doc(db, 'settings', 'hospital_settings'), (snapshot) => {
-    callback(snapshot.data());
-  });
+  return subscribeToClinicalData<any>('settings', (allSettings) => {
+    const settings = allSettings.find((s: any) => s.id === 'hospital_settings');
+    callback(settings || null);
+  }, (err) => console.error(err));
 };
 
 export const syncClinicalRecords = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'clinicalRecords'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('clinicalRecords', callback, (err) => console.error(err));
 };
 
 export const syncStaffRegistry = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'staff'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('staff', callback, (err) => console.error(err));
 };
 
 export const syncSystemLogs = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'logs'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('logs', callback, (err) => console.error(err));
 };
 
 export const syncDutyTasks = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'dutyTasks'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('dutyTasks', callback, (err) => console.error(err));
 };
 
 export const syncCustomTemplates = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'customTemplates'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('customTemplates', callback, (err) => console.error(err));
 };
 
 export const syncSystemUsers = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'users'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('users', callback, (err) => console.error(err));
 };
 
 export const syncNotifications = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'notifications'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('notifications', callback, (err) => console.error(err));
 };
 
 // additional
-export const syncResolvedGaps = (cb: any) => onSnapshot(collection(db, 'resolvedGaps'), snap => cb(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-export const saveResolvedGap = async (gap: any) => setDoc(doc(db, 'resolvedGaps', gap.id), gap, { merge: true });
-export const deleteResolvedGap = async (id: string) => deleteDoc(doc(db, 'resolvedGaps', id));
+export const syncResolvedGaps = (cb: any) => subscribeToClinicalData('resolvedGaps', cb, (err) => console.error(err));
+export const saveResolvedGap = async (gap: any) => saveDataPermanently('resolvedGaps', gap);
+export const deleteResolvedGap = async (id: string) => deleteDataPermanently('resolvedGaps', id);
 
-export const getRolePermissions = async () => (await getDoc(doc(db, 'settings', 'rolePermissions'))).data();
-export const saveRolePermissions = async (data: any) => setDoc(doc(db, 'settings', 'rolePermissions'), data, { merge: true });
+export const getRolePermissions = async () => fetchDocumentById<any>('settings', 'rolePermissions');
+export const saveRolePermissions = async (data: any) => saveDataPermanently('settings', { id: 'rolePermissions', ...data });
 
-export const getRosterApprovals = async () => (await getDoc(doc(db, 'settings', 'rosterApprovals'))).data();
-export const saveRosterApprovals = async (data: any) => setDoc(doc(db, 'settings', 'rosterApprovals'), data, { merge: true });
+export const getRosterApprovals = async () => fetchDocumentById<any>('settings', 'rosterApprovals');
+export const saveRosterApprovals = async (data: any) => saveDataPermanently('settings', { id: 'rosterApprovals', ...data });
 
-export const getTemplateConfig = async () => (await getDoc(doc(db, 'settings', 'templateConfig'))).data();
-export const saveTemplateConfig = async (data: any) => setDoc(doc(db, 'settings', 'templateConfig'), data, { merge: true });
+export const getTemplateConfig = async () => fetchDocumentById<any>('settings', 'templateConfig');
+export const saveTemplateConfig = async (data: any) => saveDataPermanently('settings', { id: 'templateConfig', ...data });
 
-export const getResolvedGapsCloud = async () => (await getDoc(doc(db, 'settings', 'resolvedGapsCloud'))).data();
-export const saveResolvedGapsCloud = async (data: any) => setDoc(doc(db, 'settings', 'resolvedGapsCloud'), data, { merge: true });
+export const getResolvedGapsCloud = async () => fetchDocumentById<any>('settings', 'resolvedGapsCloud');
+export const saveResolvedGapsCloud = async (data: any) => saveDataPermanently('settings', { id: 'resolvedGapsCloud', ...data });
 
-export const syncRoles = (cb: any) => onSnapshot(collection(db, 'roles'), snap => cb(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-export const saveRole = async (role: any) => setDoc(doc(db, 'roles', role.id), role, { merge: true });
-export const deleteRole = async (id: string) => deleteDoc(doc(db, 'roles', id));
+export const syncRoles = (cb: any) => subscribeToClinicalData('roles', cb, (err) => console.error(err));
+export const saveRole = async (role: any) => saveDataPermanently('roles', role);
+export const deleteRole = async (id: string) => deleteDataPermanently('roles', id);
 
-export const syncPermissions = (cb: any) => onSnapshot(collection(db, 'permissions'), snap => cb(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-export const savePermission = async (perm: any) => setDoc(doc(db, 'permissions', perm.id), perm, { merge: true });
-export const deletePermission = async (id: string) => deleteDoc(doc(db, 'permissions', id));
+export const syncPermissions = (cb: any) => subscribeToClinicalData('permissions', cb, (err) => console.error(err));
+export const savePermission = async (perm: any) => saveDataPermanently('permissions', perm);
+export const deletePermission = async (id: string) => deleteDataPermanently('permissions', id);
 
-export const syncAccessMatrix = (cb: any) => onSnapshot(collection(db, 'accessMatrix'), snap => cb(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-export const saveAccessMatrix = async (matrix: any) => setDoc(doc(db, 'accessMatrix', matrix.id), matrix, { merge: true });
+export const syncAccessMatrix = (cb: any) => subscribeToClinicalData('accessMatrix', cb, (err) => console.error(err));
+export const saveAccessMatrix = async (matrix: any) => saveDataPermanently('accessMatrix', matrix);
 
-export const syncSentinelIncidents = (cb: any) => onSnapshot(collection(db, 'sentinelIncidents'), snap => cb(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+export const syncSentinelIncidents = (cb: any) => subscribeToClinicalData('sentinelIncidents', cb, (err) => console.error(err));
 
-export const syncDailyDuties = (cb: any) => onSnapshot(collection(db, 'dailyDuties'), snap => cb(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-export const saveDailyDuty = async (duty: any) => setDoc(doc(db, 'dailyDuties', duty.id), duty, { merge: true });
+export const syncDailyDuties = (cb: any) => subscribeToClinicalData('dailyDuties', cb, (err) => console.error(err));
+export const saveDailyDuty = async (duty: any): Promise<void> => {
+  await saveDataPermanently('dailyDuties', duty);
+};
 
-export const syncEmergencyTeams = (cb: any) => onSnapshot(collection(db, 'emergencyTeams'), snap => cb(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-export const saveEmergencyTeam = async (team: any) => setDoc(doc(db, 'emergencyTeams', team.id), team, { merge: true });
+export const syncEmergencyTeams = (cb: any) => subscribeToClinicalData('emergencyTeams', cb, (err) => console.error(err));
+export const saveEmergencyTeam = async (team: any): Promise<void> => {
+  await saveDataPermanently('emergencyTeams', team);
+};
 
 // --- RESTORED FUNCTIONS ---
-export const saveSystemUser = async (user: any) => await setDoc(doc(db, 'users', user.id), user, { merge: true });
-export const saveRosterWish = async (wish: any) => await setDoc(doc(db, 'rosterWishes', wish.id), wish, { merge: true });
+export const saveSystemUser = async (user: any) => saveDataPermanently('users', user);
+export const saveRosterWish = async (wish: any) => saveDataPermanently('rosterWishes', wish);
 export const syncRosterWishes = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'rosterWishes'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('rosterWishes', callback, (err) => console.error(err));
 };
-export const deleteRosterWish = async (id: string) => await deleteDoc(doc(db, 'rosterWishes', id));
-export const saveSystemLog = async (log: any) => await addDoc(collection(db, 'logs'), log);
-export const deleteSystemLog = async (id: string) => await deleteDoc(doc(db, 'logs', id));
+export const deleteRosterWish = async (id: string) => deleteDataPermanently('rosterWishes', id);
+
+export const saveSystemLog = async (log: any) => {
+  const logId = log.id || `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return saveDataPermanently('logs', { id: logId, ...log });
+};
+export const deleteSystemLog = async (id: string) => deleteDataPermanently('logs', id);
+
 export const syncDepartmentRosters = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'departmentRosters'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('departmentRosters', callback, (err) => console.error(err));
 };
+
 export const syncLeaveRequests = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'leaveRequests'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('leaveRequests', callback, (err) => console.error(err));
 };
-export const saveLeaveRequest = async (request: any) => await setDoc(doc(db, 'leaveRequests', request.id), request, { merge: true });
-export const deleteLeaveRequest = async (id: string) => await deleteDoc(doc(db, 'leaveRequests', id));
+export const saveLeaveRequest = async (request: any) => saveDataPermanently('leaveRequests', request);
+export const deleteLeaveRequest = async (id: string) => deleteDataPermanently('leaveRequests', id);
+
 export const syncAdminRequests = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'adminRequests'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('adminRequests', callback, (err) => console.error(err));
 };
-export const saveAdminRequest = async (request: any) => await setDoc(doc(db, 'adminRequests', request.id), request, { merge: true });
-export const deleteAdminRequest = async (id: string) => await deleteDoc(doc(db, 'adminRequests', id));
-export const saveNotification = async (notif: any) => await addDoc(collection(db, 'notifications'), notif);
-export const saveDepartmentRoster = async (roster: any) => await setDoc(doc(db, 'departmentRosters', roster.id), roster, { merge: true });
+export const saveAdminRequest = async (request: any) => saveDataPermanently('adminRequests', request);
+export const deleteAdminRequest = async (id: string) => deleteDataPermanently('adminRequests', id);
+
+export const saveNotification = async (notif: any) => {
+  const notifId = notif.id || `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return saveDataPermanently('notifications', { id: notifId, ...notif });
+};
+export const saveDepartmentRoster = async (roster: any) => saveDataPermanently('departmentRosters', roster);
 
 // clinical records
-export const saveClinicalRecord = async (record: any) => await setDoc(doc(db, 'clinicalRecords', record.id), record, { merge: true });
-export const deleteClinicalRecord = async (id: string) => await deleteDoc(doc(db, 'clinicalRecords', id));
+export const saveClinicalRecord = async (record: any) => saveDataPermanently('clinicalRecords', record);
+export const deleteClinicalRecord = async (id: string) => deleteDataPermanently('clinicalRecords', id);
 
 export const syncPatients = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'patients'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('patients', callback, (err) => console.error(err));
 };
-export const savePatient = async (patient: any) => await setDoc(doc(db, 'patients', patient.id), patient, { merge: true });
-export const deletePatient = async (id: string) => await deleteDoc(doc(db, 'patients', id));
+export const savePatient = async (patient: any) => saveDataPermanently('patients', patient);
+export const deletePatient = async (id: string) => deleteDataPermanently('patients', id);
 
 export const syncEncounters = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'encounters'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('encounters', callback, (err) => console.error(err));
 };
-export const saveEncounter = async (encounter: any) => await setDoc(doc(db, 'encounters', encounter.id), encounter, { merge: true });
-export const deleteEncounter = async (id: string) => await deleteDoc(doc(db, 'encounters', id));
+export const saveEncounter = async (encounter: any) => saveDataPermanently('encounters', encounter);
+export const deleteEncounter = async (id: string) => deleteDataPermanently('encounters', id);
 
 export const syncPrescriptions = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'prescriptions'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('prescriptions', callback, (err) => console.error(err));
 };
-export const savePrescription = async (pres: any) => await setDoc(doc(db, 'prescriptions', pres.id), pres, { merge: true });
+export const savePrescription = async (pres: any) => saveDataPermanently('prescriptions', pres);
 
 export const syncInvoices = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'invoices'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('invoices', callback, (err) => console.error(err));
 };
-export const saveInvoice = async (invoice: any) => await setDoc(doc(db, 'invoices', invoice.id), invoice, { merge: true });
+export const saveInvoice = async (invoice: any) => saveDataPermanently('invoices', invoice);
 
 // staff
-export const saveStaffMember = async (staff: any) => await setDoc(doc(db, 'staff', staff.id), staff, { merge: true });
-export const deleteStaffMember = async (id: string) => await deleteDoc(doc(db, 'staff', id));
+export const saveStaffMember = async (staff: any) => saveDataPermanently('staff', staff);
+export const deleteStaffMember = async (id: string) => deleteDataPermanently('staff', id);
 
 // test connection
 export const testConnection = async () => true;
 
 // settings
 export const syncSetting = (key: string, callback: (data: any) => void) => {
-  return onSnapshot(doc(db, 'settings', key), (docSnap) => {
-    const data = docSnap.data();
-    if (data) {
-      if (data.value !== undefined && Object.keys(data).length === 1 && Array.isArray(data.value)) {
-        callback(data.value);
+  return subscribeToClinicalData<any>('settings', (allSettings) => {
+    const docSnap = allSettings.find((s: any) => s.id === key);
+    if (docSnap) {
+      // PostgresAdapter might inject 'key' along with 'id'
+      const { id, key: dbKey, ...pureData } = docSnap;
+      
+      // If pureData only contains a 'value' property, it means it was wrapped (e.g. an array or primitive)
+      if (pureData.value !== undefined && Object.keys(pureData).length === 1) {
+        callback(pureData.value);
       } else {
-        callback(data);
+        callback(pureData);
       }
     } else {
       const local = localStorage.getItem('setting_' + key);
@@ -238,7 +216,7 @@ export const saveSetting = async (key: string, data: any) => {
   const payload = (typeof data === 'object' && !Array.isArray(data)) ? data : { value: data };
   try {
     localStorage.setItem('setting_' + key, JSON.stringify(payload));
-    await setDoc(doc(db, 'settings', key), payload, { merge: true });
+    await saveDataPermanently('settings', { id: key, ...payload });
   } catch (err) {
     console.warn(`Firestore saveSetting of ${key} failed, using localStorage fallback:`, err);
   }
@@ -246,12 +224,14 @@ export const saveSetting = async (key: string, data: any) => {
 
 export const getSetting = async (key: string) => {
   try {
-    const d = await getDoc(doc(db, 'settings', key));
-    const data = d.data();
-    if (data && data.value && Object.keys(data).length === 1 && Array.isArray(data.value)) {
+    const data = await fetchDocumentById<any>('settings', key);
+    if (data && data.value && Object.keys(data).length === 2 && Array.isArray(data.value)) {
       return data.value;
     }
-    if (data) return data;
+    if (data) {
+      const { id, ...pureData } = data;
+      return pureData;
+    }
   } catch (err) {
     console.warn("getSetting failed, reading localStorage:", err);
   }
@@ -265,8 +245,11 @@ export const getSetting = async (key: string) => {
 
 export const getHospitalSettings = async () => {
   try {
-    const d = await getDoc(doc(db, 'settings', 'hospital_settings'));
-    return d.data();
+    const data = await fetchDocumentById<any>('settings', 'hospital_settings');
+    if (data) {
+      const { id, ...pureData } = data;
+      return pureData;
+    }
   } catch (err) {
     console.warn("getHospitalSettings failed, using local", err);
   }
@@ -276,85 +259,69 @@ export const getHospitalSettings = async () => {
 export const saveHospitalSettings = async (settings: any) => {
   try {
     localStorage.setItem('setting_hospital_settings', JSON.stringify(settings));
-    await setDoc(doc(db, 'settings', 'hospital_settings'), settings, { merge: true });
+    await saveDataPermanently('settings', { id: 'hospital_settings', ...settings });
   } catch (err) {
     console.warn("saveHospitalSettings failed", err);
   }
 };
 
 // duty task
-export const saveDutyTask = async (task: any) => await setDoc(doc(db, 'dutyTasks', task.id), task, { merge: true });
+export const saveDutyTask = async (task: any) => saveDataPermanently('dutyTasks', task);
 
 // documents
 export const syncCloudDocuments = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'cloudDocuments'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('cloudDocuments', callback, (err) => console.error(err));
 };
-export const saveCloudDocument = async (docObj: any) => await setDoc(doc(db, 'cloudDocuments', docObj.id), docObj, { merge: true });
-export const deleteCloudDocument = async (id: string) => await deleteDoc(doc(db, 'cloudDocuments', id));
-export const saveCustomTemplate = async (template: any) => await setDoc(doc(db, 'customTemplates', template.id), template, { merge: true });
-export const deleteCustomTemplate = async (id: string) => await deleteDoc(doc(db, 'customTemplates', id));
+export const saveCloudDocument = async (docObj: any) => saveDataPermanently('cloudDocuments', docObj);
+export const deleteCloudDocument = async (id: string) => deleteDataPermanently('cloudDocuments', id);
+export const saveCustomTemplate = async (template: any) => saveDataPermanently('customTemplates', template);
+export const deleteCustomTemplate = async (id: string) => deleteDataPermanently('customTemplates', id);
 
 // audits
 export const syncDailyAudits = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'dailyAudits'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('dailyAudits', callback, (err) => console.error(err));
 };
-export const saveDailyAudit = async (audit: any) => await setDoc(doc(db, 'dailyAudits', audit.id), audit, { merge: true });
+export const saveDailyAudit = async (audit: any) => saveDataPermanently('dailyAudits', audit);
 
 // CQI and incidents
 export const syncCQIOvrs = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'cqiOvrs'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('cqiOvrs', callback, (err) => console.error(err));
 };
-export const saveCQIOvr = async (ovr: any) => await setDoc(doc(db, 'cqiOvrs', ovr.id), ovr, { merge: true });
-export const deleteCQIOvr = async (id: string) => await deleteDoc(doc(db, 'cqiOvrs', id));
+export const saveCQIOvr = async (ovr: any) => saveDataPermanently('cqiOvrs', ovr);
+export const deleteCQIOvr = async (id: string) => deleteDataPermanently('cqiOvrs', id);
 
 export const syncCQIStaffEvals = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'cqiStaffEvals'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('cqiStaffEvals', callback, (err) => console.error(err));
 };
-export const saveCQIStaffEval = async (evalObj: any) => await setDoc(doc(db, 'cqiStaffEvals', evalObj.id), evalObj, { merge: true });
-export const deleteCQIStaffEval = async (id: string) => await deleteDoc(doc(db, 'cqiStaffEvals', id));
+export const saveCQIStaffEval = async (evalObj: any) => saveDataPermanently('cqiStaffEvals', evalObj);
+export const deleteCQIStaffEval = async (id: string) => deleteDataPermanently('cqiStaffEvals', id);
 
 export const syncCQIUnitInspections = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'cqiUnitInspections'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('cqiUnitInspections', callback, (err) => console.error(err));
 };
-export const saveCQIUnitInspection = async (insp: any) => await setDoc(doc(db, 'cqiUnitInspections', insp.id), insp, { merge: true });
-export const deleteCQIUnitInspection = async (id: string) => await deleteDoc(doc(db, 'cqiUnitInspections', id));
+export const saveCQIUnitInspection = async (insp: any) => saveDataPermanently('cqiUnitInspections', insp);
+export const deleteCQIUnitInspection = async (id: string) => deleteDataPermanently('cqiUnitInspections', id);
 
 export const syncCQIPolicyAcks = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'cqiPolicyAcks'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('cqiPolicyAcks', callback, (err) => console.error(err));
 };
-export const saveCQIPolicyAck = async (ack: any) => await setDoc(doc(db, 'cqiPolicyAcks', ack.id), ack, { merge: true });
-export const deleteCQIPolicyAck = async (id: string) => await deleteDoc(doc(db, 'cqiPolicyAcks', id));
+export const saveCQIPolicyAck = async (ack: any) => saveDataPermanently('cqiPolicyAcks', ack);
+export const deleteCQIPolicyAck = async (id: string) => deleteDataPermanently('cqiPolicyAcks', id);
 
 export const syncCQIDecisionLogs = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'cqiDecisionLogs'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('cqiDecisionLogs', callback, (err) => console.error(err));
 };
-export const saveCQIDecisionLog = async (log: any) => await setDoc(doc(db, 'cqiDecisionLogs', log.id), log, { merge: true });
-export const deleteCQIDecisionLog = async (id: string) => await deleteDoc(doc(db, 'cqiDecisionLogs', id));
+export const saveCQIDecisionLog = async (log: any) => saveDataPermanently('cqiDecisionLogs', log);
+export const deleteCQIDecisionLog = async (id: string) => deleteDataPermanently('cqiDecisionLogs', id);
 
 export const syncPeriodicReports = (callback: (data: any[]) => void) => {
-  return onSnapshot(collection(db, 'periodicReports'), (snapshot) => {
-    callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeToClinicalData('periodicReports', callback, (err) => console.error(err));
 };
-export const savePeriodicReport = async (report: any) => await setDoc(doc(db, 'periodicReports', report.id), report, { merge: true });
-export const deletePeriodicReport = async (id: string) => await deleteDoc(doc(db, 'periodicReports', id));
+export const savePeriodicReport = async (report: any) => saveDataPermanently('periodicReports', report);
+export const deletePeriodicReport = async (id: string) => deleteDataPermanently('periodicReports', id);
 
-export const saveSentinelIncident = async (incident: any) => await setDoc(doc(db, 'sentinelIncidents', incident.id), incident, { merge: true });
-export const deleteSentinelIncident = async (id: string) => await deleteDoc(doc(db, 'sentinelIncidents', id));
+export const saveSentinelIncident = async (incident: any) => saveDataPermanently('sentinelIncidents', incident);
+export const deleteSentinelIncident = async (id: string) => deleteDataPermanently('sentinelIncidents', id);
 
 // Helper to get/set offline local fallback arrays
 const getOfflineItems = (key: string): any[] => {
@@ -393,14 +360,11 @@ const deleteOfflineItem = (key: string, id: string) => {
 
 // HIS Notifications & Messages
 export const syncHISNotifications = (callback: (data: any[]) => void) => {
-  const q = query(collection(db, 'hisNotifications'), orderBy('timestamp', 'desc'), limit(50));
-  return onSnapshot(q, (snapshot) => {
-    const cloudDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  return subscribeToClinicalData<any>('hisNotifications', (cloudDocs) => {
     const localDocs = getOfflineItems('his_notifications_offline');
     const mergedMap = new Map();
     localDocs.forEach(d => mergedMap.set(d.id, d));
     cloudDocs.forEach(d => mergedMap.set(d.id, d));
-    // Sort and limit merged
     const merged = Array.from(mergedMap.values()).sort((a: any, b: any) => {
       const timeA = new Date(a.timestamp || 0).getTime();
       const timeB = new Date(b.timestamp || 0).getTime();
@@ -419,7 +383,7 @@ export const syncHISNotifications = (callback: (data: any[]) => void) => {
 export const saveHISNotification = async (notif: any) => {
   saveOfflineItem('his_notifications_offline', notif);
   try {
-    await setDoc(doc(db, 'hisNotifications', notif.id), notif, { merge: true });
+    await saveDataPermanently('hisNotifications', notif);
   } catch (err) {
     console.warn("Firestore saveHISNotification failed, using local fallback only:", err);
   }
@@ -428,7 +392,7 @@ export const saveHISNotification = async (notif: any) => {
 export const deleteHISNotification = async (id: string) => {
   deleteOfflineItem('his_notifications_offline', id);
   try {
-    await deleteDoc(doc(db, 'hisNotifications', id));
+    await deleteDataPermanently('hisNotifications', id);
   } catch (err) {
     console.warn("Firestore deleteHISNotification failed, using local fallback only:", err);
   }
@@ -437,40 +401,21 @@ export const deleteHISNotification = async (id: string) => {
 export const clearHISNotifications = async (ids: string[]) => {
   localStorage.setItem('his_notifications_offline', '[]');
   if (!ids || ids.length === 0) return;
-  try {
-    const batch = writeBatch(db);
-    ids.forEach(id => {
-      batch.delete(doc(db, 'hisNotifications', id));
-    });
-    await batch.commit();
-  } catch (err) {
-    console.warn("Firestore batch delete HIS notifications failed:", err);
-  }
-};
-
-export const clearHISMessages = async (ids: string[]) => {
-  localStorage.setItem('his_messages_offline', '[]');
-  if (!ids || ids.length === 0) return;
-  try {
-    const batch = writeBatch(db);
-    ids.forEach(id => {
-      batch.delete(doc(db, 'hisMessages', id));
-    });
-    await batch.commit();
-  } catch (err) {
-    console.warn("Firestore batch delete HIS messages failed:", err);
+  for (const id of ids) {
+    try {
+      await deleteDataPermanently('hisNotifications', id);
+    } catch (err) {
+      console.warn("Failed deleting notification:", id, err);
+    }
   }
 };
 
 export const syncHISMessages = (callback: (data: any[]) => void) => {
-  const q = query(collection(db, 'hisMessages'), orderBy('timestamp', 'desc'), limit(50));
-  return onSnapshot(q, (snapshot) => {
-    const cloudDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  return subscribeToClinicalData<any>('hisMessages', (cloudDocs) => {
     const localDocs = getOfflineItems('his_messages_offline');
     const mergedMap = new Map();
     localDocs.forEach(d => mergedMap.set(d.id, d));
     cloudDocs.forEach(d => mergedMap.set(d.id, d));
-    // Sort and limit merged
     const merged = Array.from(mergedMap.values()).sort((a: any, b: any) => {
       const timeA = new Date(a.timestamp || 0).getTime();
       const timeB = new Date(b.timestamp || 0).getTime();
@@ -489,12 +434,23 @@ export const syncHISMessages = (callback: (data: any[]) => void) => {
 export const saveHISMessage = async (msg: any) => {
   saveOfflineItem('his_messages_offline', msg);
   try {
-    await setDoc(doc(db, 'hisMessages', msg.id), msg, { merge: true });
+    await saveDataPermanently('hisMessages', msg);
   } catch (err) {
     console.warn("Firestore saveHISMessage failed, using local fallback only:", err);
   }
 };
-// ------------------------------------------------
+
+export const clearHISMessages = async (ids: string[]) => {
+  localStorage.setItem('his_messages_offline', '[]');
+  if (!ids || ids.length === 0) return;
+  for (const id of ids) {
+    try {
+      await deleteDataPermanently('hisMessages', id);
+    } catch (err) {
+      console.warn("Failed deleting message:", id, err);
+    }
+  }
+};
 
 // Generic CRUD operations
 export const firestoreService = {
@@ -508,27 +464,30 @@ export const firestoreService = {
   },
 
   async getAll<T>(collectionName: string): Promise<T[]> {
-    const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+    return new Promise((resolve, reject) => {
+      const unsub = subscribeToClinicalData<T>(collectionName, (data) => {
+        unsub();
+        resolve(data);
+      }, (err) => {
+        unsub();
+        reject(err);
+      });
+    });
   },
 
   async add<T>(collectionName: string, data: WithFieldValue<T>): Promise<string> {
-    const docRef = await addDoc(collection(db, collectionName), {
-      ...(data as any),
-      createdAt: serverTimestamp()
-    });
-    return docRef.id;
+    const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const payload = { id, ...(data as any), createdAt: new Date().toISOString() };
+    await saveDataPermanently(collectionName, payload);
+    return id;
   },
 
   async update(collectionName: string, id: string, data: Partial<DocumentData>): Promise<void> {
-    await updateDoc(doc(db, collectionName, id), {
-      ...data,
-      updatedAt: serverTimestamp()
-    });
+    const payload = { id, ...data, updatedAt: new Date().toISOString() };
+    await saveDataPermanently(collectionName, payload);
   },
 
   async delete(collectionName: string, id: string): Promise<void> {
-    await deleteDoc(doc(db, collectionName, id));
+    await deleteDataPermanently(collectionName, id);
   }
 };

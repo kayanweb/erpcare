@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function BedManagementDashboard({ language: propLanguage, forceDepartmentId }: Props = {}) {
-  const { language: contextLanguage } = useHIS();
+  const { language: contextLanguage, admissionRequests, setAdmissionRequests, patients, updatePatientStatus, bedMap, setBedMap } = useHIS();
   const language = propLanguage || contextLanguage;
   const isAr = language === 'ar';
 
@@ -19,38 +19,7 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
   const [wizardStep, setWizardStep] = useState(1);
   const [selectedBedToAssign, setSelectedBedToAssign] = useState<string | null>(null);
 
-  const transferRequests = [
-    { 
-      id: "TR-101", 
-      patient: "Ahmed Ali", 
-      mrn: "MRN-5521",
-      age: 65,
-      gender: "Male",
-      currentLocation: "Emergency Department (ED-04)",
-      requestedLocation: "ICU",
-      reason: "Deteriorating respiratory condition, septic shock",
-      priority: "high",
-      requirements: ["ventilator", "continuous_monitoring"],
-      status: "pending",
-      time: "10 mins ago",
-      requestedBy: "Dr. Kamel (ER)"
-    },
-    { 
-      id: "TR-102", 
-      patient: "Sara Mahmoud", 
-      mrn: "MRN-9941",
-      age: 28,
-      gender: "Female",
-      currentLocation: "Emergency Department (ED-12)",
-      requestedLocation: "Internal Medicine",
-      reason: "Fever of unknown origin, rule out infectious disease",
-      priority: "medium",
-      requirements: ["contact_isolation"],
-      status: "pending",
-      time: "25 mins ago",
-      requestedBy: "Dr. Sarah (ER)"
-    }
-  ];
+  const transferRequests = admissionRequests || [];
 
   // Hierarchical Bed Structure
   const hospitalStructure = [
@@ -117,7 +86,7 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6 bg-slate-50 min-h-screen" dir={isAr ? "rtl" : "ltr"}>
+    <div className="p-4 md:p-6 space-y-6 bg-slate-50 h-full" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-indigo-600">
         <div>
           <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
@@ -373,13 +342,21 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
                       
                       <div className="grid grid-cols-2 gap-3">
                         {room.beds.map(bed => (
-                          <div key={bed.id} className={`p-3 rounded-xl border-2 ${getStatusColor(bed.status)} flex flex-col justify-between shadow-sm relative overflow-hidden group min-h-[100px]`}>
+                          <div key={bed.id} 
+                            onClick={() => {
+                               if (bed.status === 'occupied' && bed.patient) {
+                                  window.dispatchEvent(new CustomEvent("openGenericModal", {
+                                     detail: { entityId: `MRN-${bed.id}`, titleEn: bed.patient, titleAr: bed.patient, type: "patient" }
+                                  }));
+                               }
+                            }}
+                            className={`p-3 rounded-xl border-2 ${getStatusColor(bed.status)} flex flex-col justify-between shadow-sm relative overflow-hidden group min-h-[100px] ${bed.status === 'occupied' ? 'cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300' : 'transition-colors'}`}>
                             <div className="flex justify-between items-start">
                               <h5 className="font-black text-sm">{bed.id}</h5>
                               {bed.features.length > 0 && (
                                 <div className="flex gap-0.5">
-                                  {bed.features.includes("ventilator") && <Wind className="w-3.5 h-3.5 opacity-60" title="Ventilator Support" />}
-                                  {bed.features.includes("contact_isolation") && <ShieldAlert className="w-3.5 h-3.5 opacity-60 text-purple-700" title="Isolation" />}
+                                  {bed.features?.includes("ventilator") && <Wind className="w-3.5 h-3.5 opacity-60" title="Ventilator Support" />}
+                                  {bed.features?.includes("contact_isolation") && <ShieldAlert className="w-3.5 h-3.5 opacity-60 text-purple-700" title="Isolation" />}
                                 </div>
                               )}
                             </div>

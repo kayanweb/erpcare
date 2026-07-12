@@ -34,9 +34,11 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { toast } from "sonner";
 
 interface Props {
   language: "en" | "ar";
+  onNavigate?: (moduleId: string, subId?: string) => void;
 }
 
 const dataFlow = [
@@ -55,7 +57,7 @@ const bedData = [
   { name: "Pediatrics", value: 120, color: "#f59e0b" },
 ];
 
-export default function HISOverviewDashboard({ language }: Props) {
+export default function HISOverviewDashboard({ language, onNavigate }: Props) {
   const isAr = language === "ar";
 
   const kpis = [
@@ -67,6 +69,10 @@ export default function HISOverviewDashboard({ language }: Props) {
       icon: Users,
       color: "text-blue-600",
       bg: "bg-blue-50",
+      moduleId: "admin_support",
+      subId: "adt",
+      toastMsgAr: "جاري الانتقال إلى لوحة التسجيل والقبول والدخول المباشر (ADT)...",
+      toastMsgEn: "Routing to Admission & Registration department (ADT)...",
     },
     {
       title: isAr ? "الفواتير الغير مسددة" : "Unpaid Bills (RCM)",
@@ -76,6 +82,10 @@ export default function HISOverviewDashboard({ language }: Props) {
       icon: TrendingUp,
       color: "text-rose-600",
       bg: "bg-rose-50",
+      moduleId: "admin_support",
+      subId: "billing",
+      toastMsgAr: "جاري الانتقال إلى شاشة الفوترة الطبية وإيرادات الدورة المالية (RCM)...",
+      toastMsgEn: "Routing to Billing & Insurance (RCM) panel...",
     },
     {
       title: isAr ? "نواقص المخزن (أدوية ومستلزمات)" : "Inventory Shortages",
@@ -85,6 +95,10 @@ export default function HISOverviewDashboard({ language }: Props) {
       icon: AlertTriangle,
       color: "text-amber-600",
       bg: "bg-amber-50",
+      moduleId: "clinical_services",
+      subId: "pharmacy",
+      toastMsgAr: "جاري الانتقال لمركز الصيدلية وإدارة مخازن الدواء والمستلزمات...",
+      toastMsgEn: "Routing to Pharmacy & Medical Stock Management...",
     },
     {
       title: isAr ? "نسبة إشغال الأسرة" : "Overall Bed Occupancy",
@@ -94,6 +108,10 @@ export default function HISOverviewDashboard({ language }: Props) {
       icon: BedDouble,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
+      moduleId: "admin_support",
+      subId: "bed_management",
+      toastMsgAr: "جاري الانتقال إلى لوحة التحكم وإشغال الأسرة المركزي للتنظيم الداخلي...",
+      toastMsgEn: "Routing to Central Bed Management dashboard...",
     },
   ];
 
@@ -104,6 +122,10 @@ export default function HISOverviewDashboard({ language }: Props) {
         ? "تم تسجيل دخول المريض أحمد محمد (MRN-1092) إلى قسم الباطنة"
         : "Patient Ahmed Mohamed (MRN-1092) admitted to Internal Medicine",
       type: "admission",
+      moduleId: "admin_support",
+      subId: "adt",
+      toastMsgAr: "جاري توجيهك إلى شاشة التسجيل وملفات قبول المرضى لمتابعة ملف المريض...",
+      toastMsgEn: "Routing to Patient Admission profile to view the record...",
     },
     {
       time: "09:38 AM",
@@ -111,6 +133,10 @@ export default function HISOverviewDashboard({ language }: Props) {
         ? "اكتملت جراحة نقل الكلى بنجاح (OT-03) - د. سامي"
         : "Kidney transplant completed successfully (OT-03) - Dr. Sami",
       type: "surgery",
+      moduleId: "or",
+      subId: "dept_or_main",
+      toastMsgAr: "جاري الانتقال إلى لوحة العمليات الجراحية الكبرى وغرف العمليات المباشرة...",
+      toastMsgEn: "Routing to Operating Rooms list to view surgical board...",
     },
     {
       time: "09:15 AM",
@@ -118,6 +144,10 @@ export default function HISOverviewDashboard({ language }: Props) {
         ? "تنبيه: نقص حاد في مخزون أدوية التخدير (صيدلية الطوارئ)"
         : "ALERT: Critical shortage in Anesthesia stock (ER Pharmacy)",
       type: "alert",
+      moduleId: "clinical_services",
+      subId: "pharmacy",
+      toastMsgAr: "جاري الانتقال إلى إدارة صيدلية الطوارئ والمخازن لمعالجة هذا النقص العاجل...",
+      toastMsgEn: "Routing to ER Pharmacy & Drug Index to resolve shortage...",
     },
     {
       time: "08:50 AM",
@@ -125,6 +155,9 @@ export default function HISOverviewDashboard({ language }: Props) {
         ? "تحديث النظام المركزي HL7 وتزامن البيانات بنجاح"
         : "HL7 Central Engine synchronized data successfully",
       type: "system",
+      moduleId: "integration_hub",
+      toastMsgAr: "جاري الانتقال إلى مركز تكامل أنظمة البيانات والـ HL7 Feeds...",
+      toastMsgEn: "Routing to Central Integration Hub to inspect HL7 logs...",
     },
     {
       time: "08:30 AM",
@@ -132,6 +165,10 @@ export default function HISOverviewDashboard({ language }: Props) {
         ? "تم تحويل 5 مرضى من الطوارئ إلى العناية المركزة"
         : "5 patients transferred from ER to ICU",
       type: "alert",
+      moduleId: "critical_care",
+      subId: "dept_icu",
+      toastMsgAr: "جاري الانتقال إلى وحدة العناية المركزة (ICU) لمراجعة أسرة وقبول المرضى...",
+      toastMsgEn: "Routing to Intensive Care Unit (ICU) board...",
     },
   ];
 
@@ -184,25 +221,42 @@ export default function HISOverviewDashboard({ language }: Props) {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
-            className="bg-white rounded-xl p-5 border border-slate-200/60 shadow-sm flex flex-col relative overflow-hidden group hover:border-indigo-200 transition-colors"
+            whileHover={{ scale: 1.02, translateY: -4 }}
+            onClick={() => {
+              if (onNavigate) {
+                toast.info(isAr ? kpi.toastMsgAr : kpi.toastMsgEn, {
+                  icon: "🚀",
+                  duration: 2500
+                });
+                onNavigate(kpi.moduleId, kpi.subId);
+              }
+            }}
+            className="bg-white rounded-xl p-5 border border-slate-200/60 shadow-sm flex flex-col relative overflow-hidden group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all duration-300"
           >
             <div className="flex justify-between items-start mb-4">
-              <div className={`p-2.5 rounded-lg ${kpi.bg} shrink-0`}>
-                <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
+              <div className={`p-2.5 rounded-lg ${kpi.bg} shrink-0 group-hover:bg-indigo-50 transition-colors`}>
+                <kpi.icon className={`h-5 w-5 ${kpi.color} group-hover:text-indigo-600 transition-colors`} />
               </div>
-              <div
-                className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md ${kpi.up ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
-              >
-                {kpi.up ? (
-                  <ArrowUpRight className="w-3 h-3" />
-                ) : (
-                  <ArrowDownRight className="w-3 h-3" />
-                )}
-                {kpi.trend}
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md ${kpi.up ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
+                >
+                  {kpi.up ? (
+                    <ArrowUpRight className="w-3 h-3" />
+                  ) : (
+                    <ArrowDownRight className="w-3 h-3" />
+                  )}
+                  {kpi.trend}
+                </div>
+                
+                {/* Visual indicator that this card is clickable for navigation */}
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500 font-bold text-xs select-none">
+                  ↗
+                </span>
               </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">
+            <div className="z-10">
+              <h3 className="text-2xl font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors">
                 {kpi.value}
               </h3>
               <p className="text-xs font-bold text-slate-500 mt-1">
@@ -212,7 +266,7 @@ export default function HISOverviewDashboard({ language }: Props) {
 
             {/* Decorative background accent */}
             <div
-              className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full ${kpi.bg} opacity-30 blur-2xl group-hover:scale-150 transition-transform duration-700`}
+              className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full ${kpi.bg} opacity-30 blur-2xl group-hover:scale-150 group-hover:bg-indigo-100 transition-all duration-700`}
             ></div>
           </motion.div>
         ))}
@@ -368,18 +422,30 @@ export default function HISOverviewDashboard({ language }: Props) {
           </div>
           <div className="space-y-4">
             {recentActivity.map((activity, idx) => (
-              <div key={idx} className="flex gap-3 relative group">
+              <div
+                key={idx}
+                onClick={() => {
+                  if (onNavigate) {
+                    toast.info(isAr ? activity.toastMsgAr : activity.toastMsgEn, {
+                      icon: "🩺",
+                      duration: 2500
+                    });
+                    onNavigate(activity.moduleId, activity.subId);
+                  }
+                }}
+                className="flex gap-3 relative group cursor-pointer hover:bg-slate-50 border border-transparent hover:border-slate-200/50 rounded-xl p-3.5 transition-all duration-300 transform hover:translate-x-1"
+              >
                 {idx !== recentActivity.length - 1 && (
                   <div
-                    className="absolute top-6 bottom-[-16px] left-3 w-px bg-slate-100 group-hover:bg-slate-200 transition-colors"
+                    className="absolute top-10 bottom-[-22px] left-3 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors"
                     style={{
-                      left: isAr ? "auto" : "11px",
-                      right: isAr ? "11px" : "auto",
+                      left: isAr ? "auto" : "25px",
+                      right: isAr ? "25px" : "auto",
                     }}
                   ></div>
                 )}
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-white shadow-sm ${
+                  className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-white shadow-sm transition-transform duration-300 group-hover:scale-110 ${
                     activity.type === "admission"
                       ? "bg-blue-100 text-blue-600"
                       : activity.type === "surgery"
@@ -390,20 +456,25 @@ export default function HISOverviewDashboard({ language }: Props) {
                   }`}
                 >
                   {activity.type === "admission" ? (
-                    <Users className="w-3 h-3" />
+                    <Users className="w-4 h-4" />
                   ) : activity.type === "surgery" ? (
-                    <Activity className="w-3 h-3" />
+                    <Activity className="w-4 h-4" />
                   ) : activity.type === "alert" ? (
-                    <AlertTriangle className="w-3 h-3" />
+                    <AlertTriangle className="w-4 h-4" />
                   ) : (
-                    <Settings className="w-3 h-3" />
+                    <Settings className="w-4 h-4" />
                   )}
                 </div>
-                <div className="pb-1">
-                  <div className="text-[10px] font-black text-slate-400 mb-0.5 tracking-wider">
-                    {activity.time}
+                <div className="pb-1 flex-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 mb-0.5 tracking-wider font-mono">
+                      {activity.time}
+                    </span>
+                    <span className="opacity-0 group-hover:opacity-100 text-xs text-indigo-500 font-bold transition-opacity">
+                      {isAr ? "الانتقال للحدث ←" : "Navigate →"}
+                    </span>
                   </div>
-                  <p className="text-xs font-semibold text-slate-700">
+                  <p className="text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
                     {activity.desc}
                   </p>
                 </div>
@@ -425,42 +496,64 @@ export default function HISOverviewDashboard({ language }: Props) {
               {
                 title: "EMR / CPOE (الملف الطبي والأوامر)",
                 status: "Active & Synced",
-                color: "text-blue-700 bg-blue-50 border-blue-200",
+                color: "text-blue-700 bg-blue-50 border-blue-200 hover:border-blue-400",
                 icon: FileText,
                 percent: 100,
+                moduleId: "outpatient",
+                subId: "emr_core",
               },
               {
                 title: "LIS / RIS (معلومات المعمل والأشعة)",
                 status: "Active & Synced",
-                color: "text-indigo-700 bg-indigo-50 border-indigo-200",
+                color: "text-indigo-700 bg-indigo-50 border-indigo-200 hover:border-indigo-400",
                 icon: Activity,
                 percent: 100,
+                moduleId: "clinical_services",
+                subId: "laboratory",
               },
               {
                 title: "ERP / Pharmacy (صيدلية ومخازن)",
                 status: "Syncing (12ms lag)",
-                color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+                color: "text-emerald-700 bg-emerald-50 border-emerald-200 hover:border-emerald-400",
                 icon: Settings,
                 percent: 85,
+                moduleId: "clinical_services",
+                subId: "pharmacy",
               },
               {
                 title: "RCM / Billing (الفوترة والمطالبات)",
                 status: "Batch Processing",
-                color: "text-amber-700 bg-amber-50 border-amber-200",
+                color: "text-amber-700 bg-amber-50 border-amber-200 hover:border-amber-400",
                 icon: Shield,
                 percent: 60,
+                moduleId: "admin_support",
+                subId: "billing",
               },
             ].map((mod, i) => (
               <div
                 key={i}
-                className={`p-3 rounded-xl border ${mod.color} flex items-center justify-between hover:shadow-md transition-all cursor-pointer`}
+                onClick={() => {
+                  if (onNavigate) {
+                    toast.success(isAr ? `جاري فتح نظام ${mod.title}...` : `Opening ${mod.title} Integration...`, {
+                      icon: "🔌",
+                      duration: 2500
+                    });
+                    onNavigate(mod.moduleId, mod.subId);
+                  }
+                }}
+                className={`p-3 rounded-xl border ${mod.color} flex items-center justify-between hover:shadow-md transition-all cursor-pointer transform hover:-translate-y-0.5 duration-200 group`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="bg-white/60 p-2 rounded-lg shadow-sm">
+                  <div className="bg-white/60 p-2 rounded-lg shadow-sm group-hover:bg-white transition-colors">
                     <mod.icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="font-bold text-xs">{mod.title}</div>
+                    <div className="font-bold text-xs flex items-center gap-1.5">
+                      <span>{mod.title}</span>
+                      <span className="opacity-0 group-hover:opacity-100 text-[10px] text-slate-500 font-bold transition-opacity">
+                        ↗
+                      </span>
+                    </div>
                     <div className="text-[10px] font-bold opacity-70">
                       {mod.status}
                     </div>

@@ -29,7 +29,7 @@ export default function PACUDashboard({ language }: Props) {
             {isAr ? "مراقبة المرضى ما بعد التخدير والعمليات" : "Post-anesthesia care and monitoring"}
           </p>
         </div>
-        <button onClick={() => toast.success(isAr ? "تم استقبال مريض" : "Patient Received from OR")} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition">
+        <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient Received from OR", titleAr: "تم استقبال مريض", type: "form" } }))} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition">
           {isAr ? "استقبال مريض من العمليات" : "Receive Patient from OR"}
         </button>
       </div>

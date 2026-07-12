@@ -65,7 +65,7 @@ export default function OperatingTheaterBoard({ language }: Props) {
     const next = surgeries.map(s => s.id === id ? { ...s, status: newStatus } : s);
     setSurgeries(next);
     await saveSetting("his_surgeries", next);
-    toast.success(isAr ? "تم تحديث الحالة" : "Status updated");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Status updated", titleAr: "تم تحديث الحالة", type: "form" } }));
     if (selectedSurgery?.id === id) {
       setSelectedSurgery({ ...selectedSurgery, status: newStatus });
     }
@@ -156,19 +156,19 @@ export default function OperatingTheaterBoard({ language }: Props) {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                   <button onClick={() => toast.info(isAr ? "التخدير" : "Anesthesia Log")} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition border border-slate-200">
+                   <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Anesthesia Log", titleAr: "التخدير", type: "form" } }))} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition border border-slate-200">
                      {isAr ? "التخدير" : "Anesthesia"}
                    </button>
-                   <button onClick={() => toast.info(isAr ? "الأدوات المستخدمة" : "Instruments Count")} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition border border-slate-200">
+                   <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Instruments Count", titleAr: "الأدوات المستخدمة", type: "form" } }))} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition border border-slate-200">
                      {isAr ? "الأدوات المستخدمة" : "Instruments Count"}
                    </button>
-                   <button onClick={() => toast.info(isAr ? "اللوازم المستهلكة" : "Consumables Log")} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition border border-slate-200">
+                   <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Consumables Log", titleAr: "اللوازم المستهلكة", type: "form" } }))} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition border border-slate-200">
                      {isAr ? "اللوازم (Consumables)" : "Consumables"}
                    </button>
-                   <button onClick={() => toast.info(isAr ? "صور العملية" : "Surgery Images")} className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-2 rounded-lg transition border border-indigo-200">
+                   <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Surgery Images", titleAr: "صور العملية", type: "form" } }))} className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-2 rounded-lg transition border border-indigo-200">
                      {isAr ? "صور العملية" : "Surgery Images"}
                    </button>
-                   <button onClick={() => toast.info(isAr ? "تقرير العملية (Op Note)" : "Operative Note")} className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-2 rounded-lg transition border border-indigo-200">
+                   <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Operative Note", titleAr: "تقرير العملية (Op Note)", type: "form" } }))} className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-2 rounded-lg transition border border-indigo-200">
                      {isAr ? "تقرير العملية (Op Note)" : "Op Note"}
                    </button>
                 </div>

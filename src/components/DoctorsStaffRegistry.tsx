@@ -45,7 +45,7 @@ export default function DoctorsStaffRegistry({
       const next = staff.filter(s => s.id !== id);
       setStaff(next);
       await saveSetting("his_staff_registry", next);
-      toast.success(isAr ? "تم الحذف بنجاح" : "Deleted successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Deleted successfully", titleAr: "تم الحذف بنجاح", type: "form" } }));
     }
   };
 
@@ -65,7 +65,7 @@ export default function DoctorsStaffRegistry({
     setStaff(next);
     await saveSetting("his_staff_registry", next);
     setShowModal(false);
-    toast.success(isAr ? "تم الحفظ بنجاح" : "Saved successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Saved successfully", titleAr: "تم الحفظ بنجاح", type: "form" } }));
   };
 
   const openAddModal = () => {

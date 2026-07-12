@@ -161,6 +161,27 @@ export interface DepartmentRoster {
   rows: RosterRow[];
 }
 
+export const EntityType = {
+  PATIENT: "patient",
+  CASE: "case",
+  PROCEDURE: "procedure",
+  NOTIFICATION: "notification",
+  LAB_RESULT: "lab_result",
+  MEDICATION: "medication",
+  DOCTOR: "doctor",
+  ROOM: "room",
+  BED: "bed",
+} as const;
+
+export type EntityTypeValue = typeof EntityType[keyof typeof EntityType];
+
+export interface EntityShape {
+  type: EntityTypeValue | string;
+  id: string | number;
+  name?: string;
+  context?: any;
+}
+
 export interface Notification {
   id: string;
   userId?: string;
@@ -177,6 +198,7 @@ export interface Notification {
   targetTab?: string;
   targetSubTab?: string;
   targetUserId?: string;
+  entity?: EntityShape;
 }
 
 export interface RosterWish {

@@ -448,7 +448,7 @@ export default function RosterPlanningPanel({
     if (deptRoster) {
       const row = deptRoster.rows.find(r => r.employeeId === empId);
       if (row && row.shifts) {
-        shiftCount = Object.values(row.shifts).filter(s => ["M", "A", "D", "N", "DN"].includes(String(s).toUpperCase())).length;
+        shiftCount = Object.values(row.shifts).filter(s => ["M", "A", "D", "N", "DN"]?.includes(String(s).toUpperCase())).length;
       }
     }
 
@@ -635,7 +635,7 @@ export default function RosterPlanningPanel({
       // Resolve 16 May - 15 June 2026 day labels
       const d = new Date(singleDate);
       const dayNum = d.getDate().toString();
-      return DEFAULT_ROSTER_DAYS.includes(dayNum) ? [dayNum] : ["4"];
+      return DEFAULT_ROSTER_DAYS?.includes(dayNum) ? [dayNum] : ["4"];
     }
     if (queryMode === "range") {
       // Find overlap or sample days (let's map date range to indices of DEFAULT_ROSTER_DAYS or standard list)
@@ -740,7 +740,7 @@ export default function RosterPlanningPanel({
         else if (scheduledShift === "D") dShiftCount++;
         else if (scheduledShift === "N") nShiftCount++;
         else if (scheduledShift === "DN") dnShiftCount++;
-        else if (!scheduledShift || ["OFF", "AL"].includes(scheduledShift.toUpperCase())) missingCoverShifts++;
+        else if (!scheduledShift || ["OFF", "AL"]?.includes(scheduledShift.toUpperCase())) missingCoverShifts++;
       });
 
       const attendancePercentage = totalStaff > 0 ? Math.round((attendedCount / totalStaff) * 100) : 100;
@@ -863,7 +863,7 @@ export default function RosterPlanningPanel({
                   <div className="space-y-2 flex-1 overflow-y-auto pr-1">
                     {systemUsers.filter(u => u.department !== smartTransferModal.department).slice(0, 5).map(u => (
                       <div key={u.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:border-blue-300 transition-colors bg-white cursor-pointer" onClick={() => {
-                        const newSelection = smartTransferModal.selectedStaff.includes(u.id) 
+                        const newSelection = smartTransferModal.selectedStaff?.includes(u.id) 
                           ? smartTransferModal.selectedStaff.filter(id => id !== u.id)
                           : [...smartTransferModal.selectedStaff, u.id];
                         setSmartTransferModal({ ...smartTransferModal, selectedStaff: newSelection });
@@ -872,7 +872,7 @@ export default function RosterPlanningPanel({
                           <input 
                             type="checkbox" 
                             className="w-4 h-4 text-blue-600 rounded border-slate-300 pointer-events-none"
-                            checked={smartTransferModal.selectedStaff.includes(u.id)}
+                            checked={smartTransferModal.selectedStaff?.includes(u.id)}
                             readOnly
                           />
                           <div>
@@ -1001,7 +1001,7 @@ export default function RosterPlanningPanel({
               <div className="space-y-2 flex-1 overflow-y-auto pr-1 border border-slate-200 p-2 rounded-xl bg-slate-50">
                 {systemUsers.filter(u => u.department === notifyModal.department).map(u => (
                   <div key={u.id} className="flex items-center justify-between p-2 border border-slate-200 rounded-lg hover:border-pink-300 transition-colors bg-white cursor-pointer" onClick={() => {
-                    const newSelection = notifyModal.selectedStaff.includes(u.id) 
+                    const newSelection = notifyModal.selectedStaff?.includes(u.id) 
                       ? notifyModal.selectedStaff.filter(id => id !== u.id)
                       : [...notifyModal.selectedStaff, u.id];
                     setNotifyModal({ ...notifyModal, selectedStaff: newSelection });
@@ -1010,7 +1010,7 @@ export default function RosterPlanningPanel({
                       <input 
                         type="checkbox" 
                         className="w-4 h-4 text-pink-600 rounded border-slate-300 pointer-events-none"
-                        checked={notifyModal.selectedStaff.includes(u.id)}
+                        checked={notifyModal.selectedStaff?.includes(u.id)}
                         readOnly
                       />
                       <div>
@@ -1231,7 +1231,7 @@ export default function RosterPlanningPanel({
                   <label className="block text-xs font-bold text-slate-700">تحديد أيام النوبتجية المتفرقة:</label>
                   <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-xl max-h-[100px] overflow-y-auto">
                     {DEFAULT_ROSTER_DAYS.map((day) => {
-                      const selected = selectedDisconnectedDays.includes(day);
+                      const selected = selectedDisconnectedDays?.includes(day);
                       return (
                         <button
                           key={day}
@@ -1415,7 +1415,7 @@ export default function RosterPlanningPanel({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto pr-1">
                 {systemUsers.filter(usr => {
                   const r = usr.role?.toLowerCase() || "";
-                  return !["it", "admin", "president", "quality", "director", "ceo", "management", "manager"].some(adminRole => r.includes(adminRole));
+                  return !["it", "admin", "president", "quality", "director", "ceo", "management", "manager"].some(adminRole => r?.includes(adminRole));
                 }).map((usr) => {
                   const constraint = getEmployeeShiftConstraintStatus(usr.id, usr.department);
                   if (constraint.isBelow) {
@@ -2210,7 +2210,7 @@ export default function RosterPlanningPanel({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(() => {
               const clinicalUsers = systemUsers.filter(usr => 
-                ["staff", "tech", "intern", "assistant", "secretary", "head_nurse", "doctor"].includes(usr.role.toLowerCase())
+                ["staff", "tech", "intern", "assistant", "secretary", "head_nurse", "doctor"]?.includes(usr.role?.toLowerCase() || "")
               );
 
               const list = clinicalUsers.map(usr => {
@@ -2218,7 +2218,7 @@ export default function RosterPlanningPanel({
                 rosterList.forEach(roster => {
                   const rRow = roster.rows.find(row => row.employeeId === usr.id || row.employeeCode === usr.staffId);
                   if (rRow && rRow.shifts) {
-                    totalAssignedShifts += Object.values(rRow.shifts).filter(s => ["M", "A", "D", "N", "DN"].includes(String(s).toUpperCase())).length;
+                    totalAssignedShifts += Object.values(rRow.shifts).filter(s => ["M", "A", "D", "N", "DN"]?.includes(String(s).toUpperCase())).length;
                   }
                 });
 
@@ -2240,7 +2240,7 @@ export default function RosterPlanningPanel({
               }).filter(item => item.isDeficient);
 
               const resolveRoleArabicTitle = (role: string) => {
-                switch(role.toLowerCase()) {
+                switch(role?.toLowerCase()) {
                   case 'staff': return 'أخصائي تمريض Class I';
                   case 'tech': return 'فني تمريض Class II';
                   case 'intern': return 'تمريض امتياز INT';

@@ -204,7 +204,7 @@ export default function DocumentCenter({ language, currentUser, systemUsers }: D
     document.body.removeChild(a);
   };
 
-  const filteredDocs = documents.filter(d => d.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredDocs = documents.filter(d => d.name?.toLowerCase()?.includes(searchTerm?.toLowerCase()));
 
   const handleConvertToGrid = (doc: CloudDocument) => {
     try {
@@ -505,9 +505,9 @@ Fields Detected: Contains fillable areas or grid structures.
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredDocs.map((doc) => {
                   
-                  const isPdf = doc.type.includes("pdf") || doc.name.toLowerCase().endsWith(".pdf");
-                  const isExcel = doc.type.includes("excel") || doc.type.includes("spreadsheet") || doc.name.toLowerCase().endsWith(".xlsx") || doc.name.toLowerCase().endsWith(".csv");
-                  const isImage = doc.type.includes("image");
+                  const isPdf = doc.type?.includes("pdf") || doc.name?.toLowerCase().endsWith(".pdf");
+                  const isExcel = doc.type?.includes("excel") || doc.type?.includes("spreadsheet") || doc.name?.toLowerCase().endsWith(".xlsx") || doc.name?.toLowerCase().endsWith(".csv");
+                  const isImage = doc.type?.includes("image");
                   
                   let Icon = FileText;
                   if (isPdf) Icon = Briefcase;

@@ -77,8 +77,8 @@ export const CommandPalette: React.FC = () => {
   ];
 
   const filteredCommands = commands.filter(c => 
-    c.titleEn.toLowerCase().includes(query.toLowerCase()) || 
-    c.titleAr.includes(query)
+    c.titleEn?.toLowerCase()?.includes(query?.toLowerCase()) || 
+    c.titleAr?.includes(query)
   );
 
   if (!isOpen) return null;

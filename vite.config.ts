@@ -5,6 +5,20 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('recharts')) return 'charts';
+              if (id.includes('jspdf') || id.includes('jspdf-autotable') || id.includes('react-to-print')) return 'pdf';
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react';
+              return 'vendor';
+            }
+          }
+        }
+      }
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

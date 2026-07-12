@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { GlobalEntityLink } from "./GlobalEntityLink";
 import {
   Activity,
   Plus,
@@ -129,7 +130,7 @@ export default function OrderManagementEngine({
       const next = orders.filter(o => o.id !== id);
       setOrders(next);
       await saveSetting("his_cpoe_orders", next);
-      toast.success(isAr ? "تم الحذف بنجاح" : "Deleted successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Deleted successfully", titleAr: "تم الحذف بنجاح", type: "form" } }));
     }
   };
 
@@ -153,7 +154,7 @@ export default function OrderManagementEngine({
     setOrders(next);
     await saveSetting("his_cpoe_orders", next);
     setShowModal(false);
-    toast.success(isAr ? "تم حفظ الطلب بنجاح" : "Order saved successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Order saved successfully", titleAr: "تم حفظ الطلب بنجاح", type: "form" } }));
   };
 
   const openAddModal = () => {
@@ -220,9 +221,9 @@ export default function OrderManagementEngine({
   const filtered = orders.filter(
     (o) =>
       (filterType === "All" || o.orderType === filterType) &&
-      (o.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.id.toLowerCase().includes(searchTerm.toLowerCase())),
+      (o.patientName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+        o.mrn?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+        o.id?.toLowerCase()?.includes(searchTerm?.toLowerCase())),
   );
 
   return (
@@ -433,11 +434,17 @@ export default function OrderManagementEngine({
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-bold text-indigo-900">
-                      {order.patientName}
+                      <GlobalEntityLink entityId={order.mrn} entityName={order.patientName} entityType="patient" isAr={isAr}>
+                        {order.patientName}
+                      </GlobalEntityLink>
                     </div>
                     <div className="text-xs font-mono text-slate-500">
                       {order.mrn} • Visit:{" "}
-                      <span className="text-slate-400">{order.visitId}</span>
+                      <span className="text-slate-400">
+                        <GlobalEntityLink entityName={order.visitId} entityType="visit" isAr={isAr}>
+                          {order.visitId}
+                        </GlobalEntityLink>
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">

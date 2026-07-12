@@ -37,6 +37,7 @@ import {
   Bar
 } from "recharts";
 import { toast } from "sonner";
+import { syncSetting, saveSetting } from "../lib/firestoreService";
 
 interface DepartmentDashboardProps {
   language: 'ar' | 'en';
@@ -56,20 +57,20 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
   // --- STATE-DRIVEN MOCK DATA ---
   // 1. Patients list (Admitted Patients)
   const [patients, setPatients] = useState([
-    { mrn: 'MRN-101', name: 'خالد عبد الله العتيبي', room: '101-A', age: 45, status: 'Stable', diagnosis: 'التهاب رئوي حاد (Acute Pneumonia)', doctor: 'د. عاصم الحازمي', date: '2026-06-25' },
-    { mrn: 'MRN-102', name: 'سارة أحمد الكندري', room: '102-B', age: 34, status: 'Critical', diagnosis: 'حماض كيتوني سكري (DKA)', doctor: 'د. ليلى عبد العزيز', date: '2026-06-28' },
-    { mrn: 'MRN-103', name: 'محمد سعد الدوسري', room: '101-B', age: 62, status: 'Stable', diagnosis: 'فشل قلبي مزمن (Chronic Heart Failure)', doctor: 'د. عاصم الحازمي', date: '2026-06-24' },
-    { mrn: 'MRN-104', name: 'فاطمة محمد الشمري', room: '103-A', age: 58, status: 'Stable', diagnosis: 'التهاب مجاري بولية شديد (UTI)', doctor: 'د. منيرة السديري', date: '2026-06-27' },
-    { mrn: 'MRN-105', name: 'عبد الرحمن صالح القحطاني', room: '104-A', age: 71, status: 'Critical', diagnosis: 'انسداد رئوي مزمن (COPD Exacerbation)', doctor: 'د. عاصم الحازمي', date: '2026-06-26' },
-    { mrn: 'MRN-106', name: 'منى فيصل الحربي', room: '105-B', age: 29, status: 'Stable', diagnosis: 'التهاب الزائدة الدودية حاد (Appendicitis)', doctor: 'د. ليلى عبد العزيز', date: '2026-06-29' },
-    { mrn: 'MRN-107', name: 'فيصل مذكر السبيعي', room: '102-A', age: 50, status: 'Critical', diagnosis: 'متلازمة الشريان التاجي الحادة (ACS)', doctor: 'د. منيرة السديري', date: '2026-06-29' },
-    { mrn: 'MRN-108', name: 'جواهر سعد العتيبي', room: '106-A', age: 64, status: 'Stable', diagnosis: 'التهاب الأذن الوسطى البكتيري', doctor: 'د. عاصم الحازمي', date: '2026-06-28' },
+    { mrn: 'MRN-2026-0101', name: 'خالد عبد الله العتيبي', room: '101-A', age: 45, status: 'Stable', diagnosis: 'التهاب رئوي حاد (Acute Pneumonia)', doctor: 'د. عاصم الحازمي', date: '2026-06-25' },
+    { mrn: 'MRN-2026-0102', name: 'سارة أحمد الكندري', room: '102-B', age: 34, status: 'Critical', diagnosis: 'حماض كيتوني سكري (DKA)', doctor: 'د. ليلى عبد العزيز', date: '2026-06-28' },
+    { mrn: 'MRN-2026-0103', name: 'محمد سعد الدوسري', room: '101-B', age: 62, status: 'Stable', diagnosis: 'فشل قلبي مزمن (Chronic Heart Failure)', doctor: 'د. عاصم الحازمي', date: '2026-06-24' },
+    { mrn: 'MRN-2026-0104', name: 'فاطمة محمد الشمري', room: '103-A', age: 58, status: 'Stable', diagnosis: 'التهاب مجاري بولية شديد (UTI)', doctor: 'د. منيرة السديري', date: '2026-06-27' },
+    { mrn: 'MRN-2026-0105', name: 'عبد الرحمن صالح القحطاني', room: '104-A', age: 71, status: 'Critical', diagnosis: 'انسداد رئوي مزمن (COPD Exacerbation)', doctor: 'د. عاصم الحازمي', date: '2026-06-26' },
+    { mrn: 'MRN-2026-0106', name: 'منى فيصل الحربي', room: '105-B', age: 29, status: 'Stable', diagnosis: 'التهاب الزائدة الدودية حاد (Appendicitis)', doctor: 'د. ليلى عبد العزيز', date: '2026-06-29' },
+    { mrn: 'MRN-2026-0107', name: 'فيصل مذكر السبيعي', room: '102-A', age: 50, status: 'Critical', diagnosis: 'متلازمة الشريان التاجي الحادة (ACS)', doctor: 'د. منيرة السديري', date: '2026-06-29' },
+    { mrn: 'MRN-2026-0108', name: 'جواهر سعد العتيبي', room: '106-A', age: 64, status: 'Stable', diagnosis: 'التهاب الأذن الوسطى البكتيري', doctor: 'د. عاصم الحازمي', date: '2026-06-28' },
   ]);
 
   // 2. Critical cases and their clinical checklists/vitals
   const [criticalCases, setCriticalCases] = useState([
     { 
-      mrn: 'MRN-102', 
+      mrn: 'MRN-2026-0102', 
       name: 'سارة أحمد الكندري', 
       room: '102-B', 
       score: 7, 
@@ -85,7 +86,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
       ]
     },
     { 
-      mrn: 'MRN-105', 
+      mrn: 'MRN-2026-0105', 
       name: 'عبد الرحمن صالح القحطاني', 
       room: '104-A', 
       score: 8, 
@@ -101,7 +102,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
       ]
     },
     { 
-      mrn: 'MRN-107', 
+      mrn: 'MRN-2026-0107', 
       name: 'فيصل مذكر السبيعي', 
       room: '102-A', 
       score: 9, 
@@ -130,7 +131,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
         bed: bedLetter,
         isOccupied,
         patientName: isOccupied ? (index === 0 ? 'خالد عبد الله العتيبي' : index === 1 ? 'سارة أحمد الكندري' : index === 2 ? 'محمد سعد الدوسري' : index === 3 ? 'فاطمة محمد الشمري' : index === 4 ? 'عبد الرحمن صالح القحطاني' : index === 5 ? 'منى فيصل الحربي' : index === 6 ? 'فيصل مذكر السبيعي' : index === 7 ? 'جواهر سعد العتيبي' : `مريض منوم رقم ${index + 1}`) : null,
-        mrn: isOccupied ? `MRN-${100 + index}` : null
+        mrn: isOccupied ? `MRN-2026-0${101 + index}` : null
       };
     });
   });
@@ -147,7 +148,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
     { id: 1, textAr: 'فحص العلامات الحيوية الروتينية للغرفة 101', textEn: 'Check routine vitals for Room 101', dept: 'Nursing', priority: 'Medium', completed: false },
     { id: 2, textAr: 'إعطاء مضاد حيوي وريدي للمريض خالد العتيبي (101-A)', textEn: 'Administer IV antibiotic to Khalid Al-Otaibi', dept: 'Nursing', priority: 'High', completed: false },
     { id: 3, textAr: 'سحب عينات دم لتحليل وظائف الكلى لغرفة 103', textEn: 'Draw blood samples for renal panel in Room 103', dept: 'Laboratory', priority: 'Medium', completed: false },
-    { id: 4, textAr: 'مراجعة خطة علاج مريض الربو بغرفة 105', textEn: 'Review asthma treatment plan in Room 105', dept: 'Physician', priority: 'High', completed: false },
+    { id: 4, textAr: 'مراقبة خطة علاج مريض الربو بغرفة 105', textEn: 'Review asthma treatment plan in Room 105', dept: 'Physician', priority: 'High', completed: false },
     { id: 5, textAr: 'تغيير ضماد جرح لمريض السكري بغرفة 106', textEn: 'Change wound dressing for diabetic patient in Room 106', dept: 'Nursing', priority: 'Low', completed: false },
     { id: 6, textAr: 'تحضير أوراق خروج المريض بالسرير 103-B', textEn: 'Prepare discharge papers for Bed 103-B', dept: 'Administration', priority: 'Low', completed: false },
     { id: 7, textAr: 'فحص عاجل لمستوى السكر لغرفة 102-B (سارة أحمد)', textEn: 'Urgent glucose check for 102-B', dept: 'Nursing', priority: 'High', completed: false },
@@ -159,9 +160,9 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
 
   // 5. Activities Feed state-driven
   const [activities, setActivities] = useState([
-    { id: 1, titleAr: 'تحديث حالة المريض', titleEn: 'Patient Status Update', descAr: 'تم تحديث حالة المريض خالد العتيبي MRN-101 إلى مستقرة.', descEn: 'Patient Khalid Al-Otaibi MRN-101 status updated to stable.', time: '10:45 AM', type: 'update' },
+    { id: 1, titleAr: 'تحديث حالة المريض', titleEn: 'Patient Status Update', descAr: 'تم تحديث حالة المريض خالد العتيبي MRN-2026-0101 إلى مستقرة.', descEn: 'Patient Khalid Al-Otaibi MRN-2026-0101 status updated to stable.', time: '10:45 AM', type: 'update' },
     { id: 2, titleAr: 'تنبيه سريري حرج', titleEn: 'Critical Clinical Alert', descAr: 'تم تسجيل نقاط NEWS2 مرتفعة (9) للمريض فيصل السبيعي بغرفة 102-A.', descEn: 'High NEWS2 score (9) logged for Faisal Al-Subeie in Room 102-A.', time: '10:20 AM', type: 'alert' },
-    { id: 3, titleAr: 'دخول مريض جديد', titleEn: 'New Patient Admission', descAr: 'تم تخصيص سرير 105-B للمريضة منى فيصل الحربي MRN-106.', descEn: 'Bed 105-B allocated to patient Mona Al-Harbi MRN-106.', time: '09:15 AM', type: 'admission' },
+    { id: 3, titleAr: 'دخول مريض جديد', titleEn: 'New Patient Admission', descAr: 'تم تخصيص سرير 105-B للمريضة منى فيصل الحربي MRN-2026-0106.', descEn: 'Bed 105-B allocated to patient Mona Al-Harbi MRN-2026-0106.', time: '09:15 AM', type: 'admission' },
     { id: 4, titleAr: 'اكتمال مهمة طبية', titleEn: 'Task Completed', descAr: 'تم إعطاء جرعة المسيل للمريض فيصل السبيعي بواسطة الممرض المسؤول.', descEn: 'Anticoagulant dose administered to Faisal Al-Subeie by staff nurse.', time: '08:40 AM', type: 'task' }
   ]);
   const [newActivityText, setNewActivityText] = useState('');
@@ -213,6 +214,48 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
+  // --- POSTGRESQL REALTIME SYNCING ENGINE ---
+  const dbKey = 'dept_dashboard_' + departmentName.replace(/\s+/g, '_')?.toLowerCase();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const unsub = syncSetting(dbKey, (data) => {
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data.patients)) setPatients(data.patients);
+        if (Array.isArray(data.beds)) setBeds(data.beds);
+        if (Array.isArray(data.tasks)) setTasks(data.tasks);
+        if (Array.isArray(data.criticalCases)) setCriticalCases(data.criticalCases);
+        if (Array.isArray(data.activities)) setActivities(data.activities);
+      } else {
+        // Seed initial data if DB has nothing
+        const initialPayload = {
+          patients,
+          beds,
+          tasks,
+          criticalCases,
+          activities
+        };
+        saveSetting(dbKey, initialPayload);
+      }
+      setIsLoaded(true);
+    });
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [dbKey]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const payload = {
+      patients,
+      beds,
+      tasks,
+      criticalCases,
+      activities
+    };
+    saveSetting(dbKey, payload);
+  }, [patients, beds, tasks, criticalCases, activities, isLoaded, dbKey]);
+
   // Load initial insights on mount
   useEffect(() => {
     generateAIInsights(false);
@@ -224,7 +267,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
   const generateAIInsights = async (userTriggered = true) => {
     setLoadingInsights(true);
     if (userTriggered) {
-      toast.info(isAr ? "جاري استشارة الذكاء الاصطناعي لتحليل القسم..." : "Querying AI for department operational analysis...");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Querying AI for department operational analysis...", titleAr: "جاري استشارة الذكاء الاصطناعي لتحليل القسم...", type: "form" } }));
     }
 
     try {
@@ -258,13 +301,13 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
       if (resData.success) {
         setInsightsResult(resData.analysis);
         if (userTriggered) {
-          toast.success(isAr ? "تم تحديث التوجيهات الذكية بنجاح!" : "Clinical insights updated successfully!");
+          window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Clinical insights updated successfully!", titleAr: "تم تحديث التوجيهات الذكية بنجاح!", type: "form" } }));
         }
       } else {
         throw new Error(resData.error || "Failed API call");
       }
     } catch (err) {
-      console.error("AI Insights fetch failed, active backup simulation.", err);
+      console.log("AI Insights fetch failed, active backup simulation.", err);
       // Mock / fallback generation is handled server-side and returned as fallback: true,
       // but in case server endpoint itself is failing, we can set fallback here
       setInsightsResult(
@@ -341,7 +384,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
         throw new Error(resData.error || "Failed API call");
       }
     } catch (err) {
-      console.error("AI Chat failed, fallback active", err);
+      console.log("AI Chat failed, fallback active", err);
       setTimeout(() => {
         setChatMessages(prev => [...prev, { 
           sender: 'ai', 
@@ -362,7 +405,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
       if (t.id === taskId) {
         const updatedStatus = !t.completed;
         if (updatedStatus) {
-          toast.success(isAr ? "تم إكمال المهمة بنجاح!" : "Task completed successfully!");
+          window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Task completed successfully!", titleAr: "تم إكمال المهمة بنجاح!", type: "form" } }));
           // Add to activities
           const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           setActivities(actPrev => [
@@ -400,7 +443,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
 
     setTasks(prev => [newTask, ...prev]);
     setNewTaskText('');
-    toast.success(isAr ? "تمت إضافة المهمة للقسم!" : "Task added to the department center!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Task added to the department center!", titleAr: "تمت إضافة المهمة للقسم!", type: "form" } }));
   };
 
   // 5. Add Live Activity Log
@@ -421,7 +464,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
 
     setActivities(prev => [newAct, ...prev]);
     setNewActivityText('');
-    toast.success(isAr ? "تم تسجيل النشاط اللحظي!" : "Activity logged successfully!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Activity logged successfully!", titleAr: "تم تسجيل النشاط اللحظي!", type: "form" } }));
   };
 
   // 6. Allocate Bed visually
@@ -438,7 +481,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
           ...b,
           isOccupied: true,
           patientName: newBedAllocation.patientName,
-          mrn: newBedAllocation.mrn || `MRN-${Math.floor(100 + Math.random() * 800)}`
+          mrn: newBedAllocation.mrn || `MRN-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
         };
       }
       return b;
@@ -446,7 +489,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
 
     // Add to patients list
     const newPat = {
-      mrn: newBedAllocation.mrn || `MRN-${Math.floor(100 + Math.random() * 800)}`,
+      mrn: newBedAllocation.mrn || `MRN-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       name: newBedAllocation.patientName,
       room: beds.find(b => b.id === newBedAllocation.bedId)?.room.toString() || '101',
       age: 45,
@@ -473,7 +516,7 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
     ]);
 
     setNewBedAllocation({ bedId: '', patientName: '', mrn: '' });
-    toast.success(isAr ? "تم تسكين المريض وحجز السرير بنجاح!" : "Patient successfully allocated to bed!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient successfully allocated to bed!", titleAr: "تم تسكين المريض وحجز السرير بنجاح!", type: "form" } }));
   };
 
   // 7. Toggle clinical critical checklist item
@@ -1031,18 +1074,19 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
                       <th className="py-3 px-4">{isAr ? 'اسم المريض' : 'Patient Name'}</th>
                       <th className="py-3 px-4">{isAr ? 'العمر' : 'Age'}</th>
                       <th className="py-3 px-4">{isAr ? 'موقع السرير' : 'Bed / Room'}</th>
-                      <th className="py-3 px-4">{isAr ? 'التشخيص السريري' : 'Primary Diagnosis'}</th>
+                      <th className="py-3 px-4 min-w-[200px]">{isAr ? 'التشخيص السريري' : 'Primary Diagnosis'}</th>
                       <th className="py-3 px-4">{isAr ? 'الطبيب المعالج' : 'Physician'}</th>
                       <th className="py-3 px-4">{isAr ? 'الحالة' : 'Status'}</th>
+                      <th className="py-3 px-4">{isAr ? 'إجراءات' : 'Actions'}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {patients
                       .filter(p => 
-                        p.name.toLowerCase().includes(patientSearch.toLowerCase()) ||
-                        p.mrn.toLowerCase().includes(patientSearch.toLowerCase()) ||
-                        p.doctor.toLowerCase().includes(patientSearch.toLowerCase()) ||
-                        p.diagnosis.toLowerCase().includes(patientSearch.toLowerCase())
+                        p.name?.toLowerCase()?.includes(patientSearch?.toLowerCase()) ||
+                        p.mrn?.toLowerCase()?.includes(patientSearch?.toLowerCase()) ||
+                        p.doctor?.toLowerCase()?.includes(patientSearch?.toLowerCase()) ||
+                        p.diagnosis?.toLowerCase()?.includes(patientSearch?.toLowerCase())
                       )
                       .map((p, idx) => (
                         <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 text-xs text-slate-700 font-medium">
@@ -1054,7 +1098,18 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
                               {p.room}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4">{p.diagnosis}</td>
+                          <td className="py-3.5 px-4">
+                            <div className="whitespace-normal break-words leading-relaxed group relative cursor-help">
+                              {p.diagnosis.length > 30 ? (
+                                <>
+                                  {p.diagnosis.substring(0, 30)}...
+                                  <div className="absolute hidden group-hover:block bg-slate-800 text-white p-2 rounded shadow-lg text-xs w-64 z-10 bottom-full left-1/2 -translate-x-1/2 mb-1 pointer-events-none">
+                                    {p.diagnosis}
+                                  </div>
+                                </>
+                              ) : p.diagnosis}
+                            </div>
+                          </td>
                           <td className="py-3.5 px-4 text-slate-500 font-bold">{p.doctor}</td>
                           <td className="py-3.5 px-4">
                             <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider uppercase ${
@@ -1064,6 +1119,18 @@ export default function DepartmentDashboard({ language, departmentName }: Depart
                             }`}>
                               {p.status === 'Critical' ? (isAr ? 'حرج' : 'Critical') : (isAr ? 'مستقر' : 'Stable')}
                             </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <button 
+                              onClick={() => {
+                                window.dispatchEvent(new CustomEvent("openPatientChart", { detail: { patientId: p.mrn, patientName: p.name } }));
+                                setActiveModal(null);
+                              }}
+                              className="bg-[#0a4275] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#0a4275]/90 transition shadow-sm whitespace-nowrap flex items-center gap-1.5"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              {isAr ? 'عرض الملف' : 'View File'}
+                            </button>
                           </td>
                         </tr>
                       ))}

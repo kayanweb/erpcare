@@ -15,6 +15,8 @@ export default function EmployeeIDCard({ user, language, hospitalSettings }: { u
   const isAr = language === 'ar';
   const { settings } = useSettings();
 
+  if (!user) return null;
+
   const handlePrint = () => {
     window.print();
   };

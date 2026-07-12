@@ -37,7 +37,7 @@ export default function GenericModulePlaceholder({ title, description, sections,
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
 
   const filteredData = data.filter(d => 
-    Object.values(d).some(val => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
+    Object.values(d).some(val => String(val)?.toLowerCase()?.includes(searchTerm?.toLowerCase()))
   );
 
   const handlePrint = () => {
@@ -45,7 +45,7 @@ export default function GenericModulePlaceholder({ title, description, sections,
   };
 
   const handleExport = () => {
-    toast.success(isAr ? "تم تصدير البيانات بنجاح (CSV)" : "Data exported successfully (CSV)");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Data exported successfully (CSV)", titleAr: "تم تصدير البيانات بنجاح (CSV)", type: "form" } }));
   };
 
   const handleCreate = () => {
@@ -60,7 +60,7 @@ export default function GenericModulePlaceholder({ title, description, sections,
 
   return (
     <div className="p-4 md:p-6 bg-slate-50 min-h-full font-sans animate-fade-in flex flex-col h-full" dir={isAr ? "rtl" : "ltr"}>
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
             <LayoutGrid className="w-7 h-7 text-indigo-600" />
@@ -84,7 +84,42 @@ export default function GenericModulePlaceholder({ title, description, sections,
         </div>
       </div>
 
+      {sections && sections.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+          {sections.map((section, idx) => (
+            <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <h3 className="text-base font-black text-slate-800 mb-4 border-b border-slate-100 pb-2">{section.title}</h3>
+              <div className="flex flex-wrap gap-2">
+                {section.actions.map((action, actIdx) => {
+                  let btnClass = "bg-slate-100 text-slate-700 hover:bg-slate-200";
+                  if (action.variant === "primary") btnClass = "bg-indigo-600 text-white hover:bg-indigo-700";
+                  else if (action.variant === "success") btnClass = "bg-emerald-600 text-white hover:bg-emerald-700";
+                  else if (action.variant === "danger") btnClass = "bg-rose-600 text-white hover:bg-rose-700";
+                  else if (action.variant === "warning") btnClass = "bg-amber-500 text-white hover:bg-amber-600";
+                  else if (action.variant === "secondary") btnClass = "bg-slate-800 text-white hover:bg-slate-900";
+                  else if (action.variant === "outline") btnClass = "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
+
+                  return (
+                    <button 
+                      key={actIdx}
+                      onClick={() => {
+                        if (action.action) action.action();
+                        else toast.success(isAr ? `تم تفعيل: ${action.label}` : `Activated: ${action.label}`);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm ${btnClass}`}
+                    >
+                      {action.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
+
         <div className="p-4 border-b border-slate-100 bg-slate-50 flex flex-col md:flex-row gap-4 justify-between">
           <div className="relative w-full md:w-96">
             <Search className="absolute top-2.5 left-3 w-4 h-4 text-slate-400" />
@@ -139,12 +174,12 @@ export default function GenericModulePlaceholder({ title, description, sections,
                     <button onClick={() => setSelectedEntity(row)} className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition" title="View Details">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button onClick={() => toast.info(isAr ? "تعديل السجل" : "Edit Record")} className="p-1.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition" title="Edit">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="p-1.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition" title="Edit">
                       <Edit className="w-4 h-4" />
                     </button>
                     <button onClick={() => {
                       setData(data.filter(d => d.id !== row.id));
-                      toast.success(isAr ? "تم حذف السجل" : "Record deleted");
+                      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Record deleted", titleAr: "تم حذف السجل", type: "form" } }));
                     }} className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded transition" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>

@@ -1,34 +1,34 @@
 // dbConfig.ts
 
-export type DbProvider = "FIREBASE" | "SUPABASE" | "POCKETBASE" | "APPWRITE" | "LOCAL_HOST" | "MQTT" | "SOCKET_IO_REDIS" | "NULL_DB" | "POSTGRES_PRISMA";
+export type DbProvider = "FIREBASE" | "SUPABASE" | "POCKETBASE" | "APPWRITE" | "LOCAL_HOST" | "MQTT" | "SOCKET_IO_REDIS" | "NULL_DB" | "POSTGRES_PRISMA" | "POSTGRES_NEON";
 
-// Central dynamic provider setting (in-memory, strictly no localStorage for patient data!)
-let currentProvider: DbProvider = "FIREBASE";
-try {
-  currentProvider = (typeof window !== "undefined" && localStorage.getItem("active_db_provider") as DbProvider) || "FIREBASE";
-} catch (e) {
-  console.warn("localStorage access denied", e);
-}
+// Central dynamic provider setting
+let currentProvider: DbProvider = (() => {
+  try {
+    const saved = localStorage.getItem("active_db_provider");
+    return (saved as DbProvider) || "LOCAL_HOST";
+  } catch (e) {
+    return "LOCAL_HOST";
+  }
+})();
 
 export let ACTIVE_DB_PROVIDER: DbProvider = currentProvider;
 
 export function getActiveDbProvider(): DbProvider {
-  if (typeof window !== "undefined" && (window as any).ACTIVE_DB_PROVIDER_OVERRIDE) {
-    return (window as any).ACTIVE_DB_PROVIDER_OVERRIDE;
+  try {
+    const saved = localStorage.getItem("active_db_provider");
+    return (saved as DbProvider) || "LOCAL_HOST";
+  } catch (e) {
+    return "LOCAL_HOST";
   }
-  return currentProvider;
 }
 
 export function setActiveDbProvider(provider: DbProvider) {
+  try {
+    localStorage.setItem("active_db_provider", provider);
+  } catch (e) {}
   currentProvider = provider;
   ACTIVE_DB_PROVIDER = provider;
-  if (typeof window !== "undefined") {
-    localStorage.setItem("active_db_provider", provider);
-    (window as any).ACTIVE_DB_PROVIDER_OVERRIDE = provider;
-    // Dispatch custom event to notify components around the app to refresh their subscribers immediately
-    window.dispatchEvent(new CustomEvent("db-provider-changed", { detail: provider }));
-    console.log(`📡 Database provider switched dynamically to: ${provider}`);
-  }
 }
 
 export const DB_PROVIDERS_CONFIG = {
@@ -102,12 +102,17 @@ export const DB_PROVIDERS_CONFIG = {
       prismaStudioUrl: "http://localhost:5555",
       expressServer: "http://localhost:3000/api",
       statusUrl: "http://localhost:3000/health"
+  },
+  POSTGRES_NEON: {
+      nameAr: "سحابة نيون (PostgreSQL Neon Cloud)",
+      nameEn: "PostgreSQL Neon Cloud",
+      databaseUrl: "postgresql://user:password@endpoint.neon.tech/db",
+      statusUrl: "https://console.neon.tech/api/v2"
   }
 };
 
 // After DB_PROVIDERS_CONFIG definition, check for persisted overrides
-// Disabled for consistency during debug
-/*
+// Restored for dynamic config persistence
 Object.keys(DB_PROVIDERS_CONFIG).forEach(provider => {
   const saved = localStorage.getItem(`db_settings_${provider}`);
   if (saved) {
@@ -116,10 +121,9 @@ Object.keys(DB_PROVIDERS_CONFIG).forEach(provider => {
     } catch(e) {}
   }
 });
-*/
 
 export const switchEnvironment = (provider: DbProvider, newSettings: any = {}) => {
-  if (["FIREBASE", "SUPABASE", "POCKETBASE", "APPWRITE", "LOCAL_HOST", "MQTT", "SOCKET_IO_REDIS", "NULL_DB", "POSTGRES_PRISMA"].includes(provider)) {
+  if (["FIREBASE", "SUPABASE", "POCKETBASE", "APPWRITE", "LOCAL_HOST", "MQTT", "SOCKET_IO_REDIS", "NULL_DB", "POSTGRES_PRISMA", "POSTGRES_NEON"].includes(provider)) {
     setActiveDbProvider(provider);
     if (newSettings && Object.keys(newSettings).length > 0) {
       const targetConfig: any = DB_PROVIDERS_CONFIG[provider];

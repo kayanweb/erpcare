@@ -87,8 +87,8 @@ export default function InsuranceMaster({
 
   const filtered = plans.filter(
     (p) =>
-      p.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.planName.toLowerCase().includes(searchTerm.toLowerCase()),
+      p.companyName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      p.planName?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
   );
 
   return (

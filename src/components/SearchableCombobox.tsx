@@ -44,13 +44,13 @@ export default function SearchableCombobox({ options, value, onChange, placehold
 
   // Filter options based on search query
   const filtered = options.filter(opt => {
-    const q = search.toLowerCase().trim();
+    const q = search?.toLowerCase().trim();
     if (!q) return true;
     return (
-      opt.en.toLowerCase().includes(q) ||
-      opt.ar.toLowerCase().includes(q) ||
-      (opt.category && opt.category.toLowerCase().includes(q)) ||
-      opt.value.toLowerCase().includes(q)
+      opt.en?.toLowerCase()?.includes(q) ||
+      opt.ar?.toLowerCase()?.includes(q) ||
+      (opt.category && opt.category?.toLowerCase()?.includes(q)) ||
+      opt.value?.toLowerCase()?.includes(q)
     );
   });
 

@@ -49,7 +49,7 @@ export default function PatientJourneySimulator({ language }: Props) {
       lab: { acknowledged: false, resultsEntered: false, data: null },
       nursing: { done: false, notes: "" }
     });
-    toast.success(isAr ? "تم إعادة تعيين دورة المريض" : "Patient journey reset");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient journey reset", titleAr: "تم إعادة تعيين دورة المريض", type: "form" } }));
   };
 
   return (
@@ -210,7 +210,7 @@ export default function PatientJourneySimulator({ language }: Props) {
                         }).catch(e => console.error(e));
 
                         setState(s => ({ ...s, registration: { done: true, data: {} } }));
-                        toast.success(isAr ? "تم التسجيل وتم إرسال المريض للفرز" : "Registered and sent to Triage");
+                        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Registered and sent to Triage", titleAr: "تم التسجيل وتم إرسال المريض للفرز", type: "form" } }));
                         setTimeout(handleNext, 1000);
                       }}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all"
@@ -314,7 +314,7 @@ export default function PatientJourneySimulator({ language }: Props) {
                         }).catch(e => console.error(e));
 
                         setState(s => ({ ...s, triage: { ...s.triage, done: true } }));
-                        toast.success(isAr ? "تم حفظ الفرز وإشعار الطبيب" : "Triage saved, physician notified");
+                        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Triage saved, physician notified", titleAr: "تم حفظ الفرز وإشعار الطبيب", type: "form" } }));
                         setTimeout(handleNext, 1000);
                       }}
                       className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
@@ -464,7 +464,7 @@ export default function PatientJourneySimulator({ language }: Props) {
                         }).catch(e => console.error(e));
 
                         setState(s => ({ ...s, doctor: { ...s.doctor, done: true, ordersSent: true } }));
-                        toast.success(isAr ? "تم إرسال الطلبات للأقسام المعنية" : "Orders routed to Lab & Rad");
+                        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Orders routed to Lab & Rad", titleAr: "تم إرسال الطلبات للأقسام المعنية", type: "form" } }));
                         setTimeout(handleNext, 1500);
                       }}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all"
@@ -507,7 +507,7 @@ export default function PatientJourneySimulator({ language }: Props) {
                     <button 
                       onClick={() => {
                         setState(s => ({ ...s, lab: { ...s.lab, acknowledged: true } }));
-                        toast.success(isAr ? "تم تأكيد استلام العينة" : "Sample Acknowledged");
+                        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Sample Acknowledged", titleAr: "تم تأكيد استلام العينة", type: "form" } }));
                       }}
                       className="bg-emerald-600 hover:bg-emerald-500 px-6 py-2 rounded-lg font-bold text-sm transition-colors"
                     >
@@ -566,7 +566,7 @@ export default function PatientJourneySimulator({ language }: Props) {
                           }).catch(e => console.error(e));
 
                           setState(s => ({ ...s, lab: { ...s.lab, resultsEntered: true } }));
-                          toast.success(isAr ? "تم رفع النتائج وإشعار الطبيب فوراً" : "Results uploaded, doctor notified!");
+                          window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Results uploaded, doctor notified!", titleAr: "تم رفع النتائج وإشعار الطبيب فوراً", type: "form" } }));
                           setTimeout(handleNext, 1500);
                         }}
                         className="bg-blue-600 hover:bg-blue-500 px-6 py-4 rounded-xl font-bold h-[116px] flex flex-col items-center justify-center gap-2 transition-colors"
@@ -694,7 +694,7 @@ export default function PatientJourneySimulator({ language }: Props) {
                           }).catch(e => console.error(e));
 
                           setState(s => ({ ...s, nursing: { ...s.nursing, done: true } }));
-                          toast.success(isAr ? "تم حفظ توثيق التمريض في الملف" : "Nursing documentation saved to EMR");
+                          window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Nursing documentation saved to EMR", titleAr: "تم حفظ توثيق التمريض في الملف", type: "form" } }));
                         }}
                         className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl transition-all"
                       >

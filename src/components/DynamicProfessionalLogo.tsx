@@ -1,5 +1,6 @@
 import React from "react";
 import { Heart, Activity, ShieldAlert, Sparkles, Star, Award, Layers } from "lucide-react";
+import { useSettings } from "../context/SettingsContext";
 
 interface Props {
   nameAr?: string;
@@ -13,17 +14,27 @@ interface Props {
 }
 
 export const DynamicProfessionalLogo: React.FC<Props> = ({
-  nameAr = "مستشفى الرعاية السريرية الموحدة",
-  nameEn = "Unified Clinical Care Hospital",
-  taglineAr = "نحو رعاية طبية آمنة وممتازة وجودة مستدامة",
-  taglineEn = "Towards Safe, Quality & Standardized Patient Care",
+  nameAr,
+  nameEn,
+  taglineAr,
+  taglineEn,
   size = "md",
   isAr = true,
   dark = false,
   hideText = false,
 }) => {
-  const normAr = nameAr.trim() || "مستشفى الرعاية السريرية الموحدة";
-  const normEn = nameEn.trim() || "Unified Clinical Care Hospital";
+  let settings: any = null;
+  try {
+    const res = useSettings();
+    settings = res?.settings;
+  } catch (e) {
+    // Graceful fallback if called outside SettingsProvider
+  }
+
+  const normAr = settings?.institutionNameAr || nameAr || "مستشفى الرعاية السريرية الموحدة";
+  const normEn = settings?.institutionNameEn || nameEn || "Unified Clinical Care Hospital";
+  const finalTaglineAr = settings?.taglineAr || taglineAr || "نحو رعاية طبية آمنة وممتازة وجودة مستدامة";
+  const finalTaglineEn = settings?.taglineEn || taglineEn || "Towards Safe, Quality & Standardized Patient Care";
 
   // Choose a clean professional color scheme (Teal / Blue)
   const isDark = dark;
@@ -124,7 +135,7 @@ export const DynamicProfessionalLogo: React.FC<Props> = ({
                 size === 'lg' || size === 'xl' ? 'text-[10px]' : 'text-[8px]'}
               ${isDark ? "text-slate-300" : "text-slate-500"}
             `}>
-              {isAr ? taglineAr : taglineEn}
+              {isAr ? finalTaglineAr : finalTaglineEn}
             </span>
           </div>
         )}

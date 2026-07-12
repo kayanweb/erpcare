@@ -39,8 +39,11 @@ export function useFirestoreSync<T>(
         } else {
           setData(newData);
         }
-      } else {
-        setData(newData);
+      } else if (newData && !Array.isArray(newData)) {
+        const potentialArray = (newData as any).value || (newData as any).data;
+        if (Array.isArray(potentialArray)) {
+          setData(potentialArray);
+        }
       }
       setIsLoaded(true);
     });

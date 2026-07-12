@@ -94,9 +94,9 @@ export default function VisitManager({ language }: { language: "ar" | "en" }) {
 
   const filtered = visits.filter(
     (v) =>
-      v.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.mrn.toLowerCase().includes(searchTerm.toLowerCase()),
+      v.patientName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      v.id?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      v.mrn?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
   );
 
   return (
@@ -131,7 +131,10 @@ export default function VisitManager({ language }: { language: "ar" | "en" }) {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center gap-2 transition whitespace-nowrap">
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('openVisitRegistration'))}
+            className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center gap-2 transition whitespace-nowrap"
+          >
             <Plus className="h-4 w-4" />{" "}
             {isAr ? "إنشاء زيارة جديدة" : "New Visit"}
           </button>

@@ -3,7 +3,7 @@ import {
   Microscope, TestTube, HardDrive, Printer, CheckCircle2, QrCode, FileText, 
   Share2, Search, Zap, Check, AlertCircle, Trash2, Plus, Play, Pause, 
   ChevronRight, Eye, ShieldCheck, HelpCircle, Activity, Info, Sliders, 
-  Maximize2, Move, Scissors, RefreshCw, Layers, Edit, Filter, FileSpreadsheet
+  Maximize2, Move, Scissors, RefreshCw, Layers, Edit, Filter, FileSpreadsheet, PenLine
 } from "lucide-react";
 import { useHIS } from "../context/HISContext";
 import { toast } from "sonner";
@@ -13,92 +13,10 @@ interface Props {
 }
 
 // Default pre-populated Test Catalog
-interface TestCatalogItem {
-  id: string;
-  nameAr: string;
-  nameEn: string;
-  department: "Hematology" | "Biochemistry" | "Microbiology" | "Immunology" | "Hormones";
-  price: number;
-  tat: string; // Turnaround time
-  tubeColor: "Purple (EDTA)" | "Red (Serum)" | "Blue (Citrate)" | "Green (Heparin)" | "Yellow (Gel)" | "Urine Cup";
-  parameters: { name: string; unit: string; min: number; max: number }[];
-}
+import { TestCatalogItem, DEFAULT_CATALOG } from "../data/labCatalog";
 
-const DEFAULT_CATALOG: TestCatalogItem[] = [
-  {
-    id: "cbc",
-    nameAr: "صورة دم كاملة (CBC)",
-    nameEn: "Complete Blood Count (CBC)",
-    department: "Hematology",
-    price: 150,
-    tat: "2 Hours",
-    tubeColor: "Purple (EDTA)",
-    parameters: [
-      { name: "WBC (White Blood Cells)", unit: "10^9/L", min: 4.0, max: 11.0 },
-      { name: "RBC (Red Blood Cells)", unit: "10^12/L", min: 4.5, max: 5.9 },
-      { name: "Hemoglobin (Hb)", unit: "g/dL", min: 13.5, max: 17.5 },
-      { name: "Hematocrit (HCT)", unit: "%", min: 41.0, max: 50.0 },
-      { name: "Platelets (PLT)", unit: "10^9/L", min: 150, max: 450 }
-    ]
-  },
-  {
-    id: "lipid",
-    nameAr: "ملف الدهون الكامل (Lipid Profile)",
-    nameEn: "Lipid Profile",
-    department: "Biochemistry",
-    price: 250,
-    tat: "4 Hours",
-    tubeColor: "Yellow (Gel)",
-    parameters: [
-      { name: "Total Cholesterol", unit: "mg/dL", min: 100, max: 200 },
-      { name: "Triglycerides", unit: "mg/dL", min: 30, max: 150 },
-      { name: "HDL Cholesterol", unit: "mg/dL", min: 40, max: 60 },
-      { name: "LDL Cholesterol", unit: "mg/dL", min: 50, max: 130 }
-    ]
-  },
-  {
-    id: "kidney",
-    nameAr: "وظائف الكلى (Kidney Panel)",
-    nameEn: "Kidney Function Test (KFT)",
-    department: "Biochemistry",
-    price: 180,
-    tat: "3 Hours",
-    tubeColor: "Yellow (Gel)",
-    parameters: [
-      { name: "Urea", unit: "mg/dL", min: 15.0, max: 45.0 },
-      { name: "Creatinine", unit: "mg/dL", min: 0.6, max: 1.2 },
-      { name: "Sodium (Na+)", unit: "mEq/L", min: 135, max: 145 },
-      { name: "Potassium (K+)", unit: "mEq/L", min: 3.5, max: 5.1 }
-    ]
-  },
-  {
-    id: "liver",
-    nameAr: "وظائف الكبد (Liver Panel)",
-    nameEn: "Liver Function Test (LFT)",
-    department: "Biochemistry",
-    price: 220,
-    tat: "3 Hours",
-    tubeColor: "Yellow (Gel)",
-    parameters: [
-      { name: "ALT (Alanine Aminotransferase)", unit: "U/L", min: 7, max: 56 },
-      { name: "AST (Aspartate Aminotransferase)", unit: "U/L", min: 10, max: 40 },
-      { name: "Total Bilirubin", unit: "mg/dL", min: 0.2, max: 1.2 },
-      { name: "Albumin", unit: "g/dL", min: 3.5, max: 5.0 }
-    ]
-  },
-  {
-    id: "hba1c",
-    nameAr: "السكر التراكمي (HbA1c)",
-    nameEn: "Glycated Hemoglobin (HbA1c)",
-    department: "Hormones",
-    price: 160,
-    tat: "4 Hours",
-    tubeColor: "Purple (EDTA)",
-    parameters: [
-      { name: "HbA1c Level", unit: "%", min: 4.0, max: 5.6 }
-    ]
-  }
-];
+const DEPARTMENTS = ["Biochemistry", "Hematology", "Microbiology", "Immunology", "Pathology", "Genetics", "Hormones"];
+const TUBE_COLORS = ["Purple (EDTA)", "Red (Serum)", "Blue (Citrate)", "Green (Heparin)", "Yellow (Gel)", "Urine Cup", "Stool Cup", "Swab", "Pink", "Grey"];
 
 export default function LISRISDashboard({ language }: Props) {
   const isAr = language === "ar";
@@ -108,8 +26,8 @@ export default function LISRISDashboard({ language }: Props) {
   const [labSubTab, setLabSubTab] = useState<"orders" | "results" | "catalog">("orders");
   const [radSubTab, setRadSubTab] = useState<"worklist" | "pacs_viewer" | "reporting">("worklist");
   
-  const { patients, updatePatient } = useHIS();
-  
+  const { patients, updatePatient, cpoeOrders, setCpoeOrders } = useHIS();
+
   // Search and selection
   const [labSearchTerm, setLabSearchTerm] = useState("");
   const [radSearchTerm, setRadSearchTerm] = useState("");
@@ -130,6 +48,8 @@ export default function LISRISDashboard({ language }: Props) {
     return saved ? JSON.parse(saved) : DEFAULT_CATALOG;
   });
   const [showAddTestModal, setShowAddTestModal] = useState(false);
+  const [catalogSearchTerm, setCatalogSearchTerm] = useState("");
+  const [editingTestId, setEditingTestId] = useState<string | null>(null);
   const [newTestForm, setNewTestForm] = useState({
     nameAr: "",
     nameEn: "",
@@ -165,7 +85,7 @@ export default function LISRISDashboard({ language }: Props) {
   }, [catalog]);
 
   // Aggregate orders from all patients
-  const allOrders = patients.flatMap(p => 
+  const legacyOrders = patients.flatMap(p => 
     (p.orders || []).map((o: any) => ({ 
       ...o, 
       patientId: p.id, 
@@ -178,27 +98,40 @@ export default function LISRISDashboard({ language }: Props) {
     }))
   );
 
+  const formattedCpoeOrders = (cpoeOrders || []).map((o: any) => ({
+      ...o,
+      type: o.orderType === "Lab" ? "LAB" : o.orderType === "Radiology" ? "RAD" : o.orderType,
+      name: o.orderName,
+      patientName: o.patientName,
+      patientMrn: o.mrn,
+      patientId: o.visitId,
+      status: o.status,
+      date: o.createdAt
+  }));
+  
+  const allOrders = [...legacyOrders, ...formattedCpoeOrders];
+
   const labOrders = allOrders.filter(o => o.type === "LAB");
   const radOrders = allOrders.filter(o => o.type === "RAD");
 
   // Filtered lists
   const filteredLabOrders = labOrders.filter(order => {
-    const q = labSearchTerm.toLowerCase().trim();
+    const q = labSearchTerm?.toLowerCase().trim();
     if (!q) return true;
     return (
-      (order.name && order.name.toLowerCase().includes(q)) ||
-      (order.patientName && order.patientName.toLowerCase().includes(q)) ||
-      (order.patientMrn && order.patientMrn.toLowerCase().includes(q))
+      (order.name && order.name?.toLowerCase()?.includes(q)) ||
+      (order.patientName && order.patientName?.toLowerCase()?.includes(q)) ||
+      (order.patientMrn && order.patientMrn?.toLowerCase()?.includes(q))
     );
   });
 
   const filteredRadOrders = radOrders.filter(order => {
-    const q = radSearchTerm.toLowerCase().trim();
+    const q = radSearchTerm?.toLowerCase().trim();
     if (!q) return true;
     return (
-      (order.name && order.name.toLowerCase().includes(q)) ||
-      (order.patientName && order.patientName.toLowerCase().includes(q)) ||
-      (order.patientMrn && order.patientMrn.toLowerCase().includes(q))
+      (order.name && order.name?.toLowerCase()?.includes(q)) ||
+      (order.patientName && order.patientName?.toLowerCase()?.includes(q)) ||
+      (order.patientMrn && order.patientMrn?.toLowerCase()?.includes(q))
     );
   });
 
@@ -230,9 +163,9 @@ export default function LISRISDashboard({ language }: Props) {
       } else {
         // Look up test in catalog to populate empty parameters
         const catItem = catalog.find(
-          c => c.nameEn.toLowerCase() === selectedLabOrder.name.toLowerCase() || 
+          c => c.nameEn?.toLowerCase() === selectedLabOrder.name?.toLowerCase() || 
                c.nameAr === selectedLabOrder.name || 
-               selectedLabOrder.name.toLowerCase().includes(c.id)
+               selectedLabOrder.name?.toLowerCase()?.includes(c.id)
         );
         if (catItem) {
           catItem.parameters.forEach(p => {
@@ -259,6 +192,16 @@ export default function LISRISDashboard({ language }: Props) {
 
   // Status handlers
   const handleUpdateOrderStatus = (patientId: string, orderId: string, newStatus: string, extraData: any = {}) => {
+    // Check if it's a CPOE order
+    const isCpoeOrder = cpoeOrders?.some(o => o.id === orderId);
+    
+    if (isCpoeOrder && setCpoeOrders) {
+      setCpoeOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus, ...extraData } : o));
+      toast.success(isAr ? `تم تحديث حالة الطلب إلى: ${newStatus}` : `Order status updated to: ${newStatus}`);
+      return;
+    }
+
+    // Otherwise update legacy patient orders
     const patient = patients.find(p => p.id === patientId);
     if (!patient || !patient.orders) return;
     
@@ -333,7 +276,7 @@ export default function LISRISDashboard({ language }: Props) {
     }
 
     // Parse parameters
-    const parsedParams = newTestForm.parametersText.split("\n").map(line => {
+    const parsedParams = newTestForm.parametersText.split("\n").filter(l => l.trim()).map(line => {
       const parts = line.split(":");
       return {
         name: parts[0] || "Param",
@@ -343,20 +286,34 @@ export default function LISRISDashboard({ language }: Props) {
       };
     });
 
-    const newTest: TestCatalogItem = {
-      id: "test-" + Date.now(),
-      nameAr: newTestForm.nameAr,
-      nameEn: newTestForm.nameEn,
-      department: newTestForm.department,
-      price: Number(newTestForm.price) || 50,
-      tat: newTestForm.tat || "24 Hours",
-      tubeColor: newTestForm.tubeColor,
-      parameters: parsedParams
-    };
+    if (editingTestId) {
+      setCatalog(catalog.map(t => t.id === editingTestId ? {
+        ...t,
+        nameAr: newTestForm.nameAr,
+        nameEn: newTestForm.nameEn,
+        department: newTestForm.department,
+        price: Number(newTestForm.price) || 50,
+        tat: newTestForm.tat || "24 Hours",
+        tubeColor: newTestForm.tubeColor,
+        parameters: parsedParams
+      } : t));
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Test updated successfully!", titleAr: "تم تحديث الفحص بنجاح", type: "form" } }));
+    } else {
+      const newTest: TestCatalogItem = {
+        id: "test-" + Date.now(),
+        nameAr: newTestForm.nameAr,
+        nameEn: newTestForm.nameEn,
+        department: newTestForm.department,
+        price: Number(newTestForm.price) || 50,
+        tat: newTestForm.tat || "24 Hours",
+        tubeColor: newTestForm.tubeColor,
+        parameters: parsedParams
+      };
+      setCatalog([...catalog, newTest]);
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "New test added to catalog!", titleAr: "تمت إضافة الفحص المخبري للكتالوج بنجاح", type: "form" } }));
+    }
 
-    setCatalog([...catalog, newTest]);
     setShowAddTestModal(false);
-    toast.success(isAr ? "تمت إضافة الفحص المخبري للكتالوج بنجاح" : "New test added to catalog!");
     // Reset form
     setNewTestForm({
       nameAr: "",
@@ -372,7 +329,7 @@ export default function LISRISDashboard({ language }: Props) {
   // Delete test from catalog
   const handleDeleteTestFromCatalog = (id: string) => {
     setCatalog(catalog.filter(c => c.id !== id));
-    toast.success(isAr ? "تم حذف الفحص من الكتالوج" : "Test removed from catalog");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Test removed from catalog", titleAr: "تم حذف الفحص من الكتالوج", type: "form" } }));
   };
 
   // Auto simulate values for speed of testing
@@ -380,9 +337,9 @@ export default function LISRISDashboard({ language }: Props) {
     if (!selectedLabOrder) return;
     // Find catalog test
     const catItem = catalog.find(
-      c => c.nameEn.toLowerCase() === selectedLabOrder.name.toLowerCase() || 
+      c => c.nameEn?.toLowerCase() === selectedLabOrder.name?.toLowerCase() || 
            c.nameAr === selectedLabOrder.name || 
-           selectedLabOrder.name.toLowerCase().includes(c.id)
+           selectedLabOrder.name?.toLowerCase()?.includes(c.id)
     );
     const updatedVals: { [key: string]: string } = {};
     if (catItem) {
@@ -404,7 +361,7 @@ export default function LISRISDashboard({ language }: Props) {
           ? (isAr ? "النتائج طبيعية ومطابقة للفحص السريري." : "All parameters fall within standard physiological ranges.") 
           : (isAr ? "يرجى ملاحظة ارتفاع أو انخفاض المؤشرات بشكل حرج." : "Critical value alert triggered. Values verified and phoned to ward clinician.")
       );
-      toast.info(isAr ? "تم محاكاة عينات التحليل فورياً" : "Mock values simulated successfully!");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Mock values simulated successfully!", titleAr: "تم محاكاة عينات التحليل فورياً", type: "form" } }));
     }
   };
 
@@ -412,7 +369,7 @@ export default function LISRISDashboard({ language }: Props) {
   const handleVoiceDictationSimulate = () => {
     if (voiceDictating) return;
     setVoiceDictating(true);
-    toast.info(isAr ? "جاري الاستماع للإملاء الصوتي الطبي..." : "Medical Voice Transcribing active...");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Medical Voice Transcribing active...", titleAr: "جاري الاستماع للإملاء الصوتي الطبي...", type: "form" } }));
 
     const mockFindingsAr = "النتائج: يظهر الفحص الصدري تمدداً طبيعياً للرئتين دون وجود لارتشاح رئوي أو تجمع سوائل في الغشاء البلوري. ظل القلب طبيعي في الحجم والموقع. الهيكل العظمي للقفص الصدري سليم ولا توجد كسور واضحة.";
     const mockFindingsEn = "FINDINGS:\nLungs are clear bilaterally. No focal consolidations, pleural effusions, or pneumothorax. Cardiomediastinal silhouette is normal in size and contour. Bony thorax and soft tissues are unremarkable.";
@@ -435,7 +392,7 @@ export default function LISRISDashboard({ language }: Props) {
         clearInterval(interval);
         setRadImpression(targetImpression);
         setVoiceDictating(false);
-        toast.success(isAr ? "تم نسخ الإملاء الصوتي بنجاح" : "Voice transcription completed!");
+        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Voice transcription completed!", titleAr: "تم نسخ الإملاء الصوتي بنجاح", type: "form" } }));
       }
     }, 15);
   };
@@ -472,10 +429,10 @@ export default function LISRISDashboard({ language }: Props) {
 
   // Helper to determine tube color based on order name
   const getTubeTypeFromOrder = (orderName: string) => {
-    const name = orderName.toLowerCase();
-    if (name.includes("cbc") || name.includes("صورة") || name.includes("دم")) return { color: "bg-purple-600 text-white", label: isAr ? "أنبوب بنفسجي (EDTA)" : "Purple Tube (EDTA)" };
-    if (name.includes("lipid") || name.includes("دهون") || name.includes("وظائف") || name.includes("liver") || name.includes("kidney") || name.includes("كلى") || name.includes("كبد")) return { color: "bg-amber-400 text-slate-900", label: isAr ? "أنبوب أصفر (Gel)" : "Yellow Tube (Gel/Serum)" };
-    if (name.includes("sugar") || name.includes("سكر") || name.includes("glucose")) return { color: "bg-slate-400 text-slate-900", label: isAr ? "أنبوب رمادي (Fluoride)" : "Gray Tube (Fluoride)" };
+    const name = orderName?.toLowerCase();
+    if (name?.includes("cbc") || name?.includes("صورة") || name?.includes("دم")) return { color: "bg-purple-600 text-white", label: isAr ? "أنبوب بنفسجي (EDTA)" : "Purple Tube (EDTA)" };
+    if (name?.includes("lipid") || name?.includes("دهون") || name?.includes("وظائف") || name?.includes("liver") || name?.includes("kidney") || name?.includes("كلى") || name?.includes("كبد")) return { color: "bg-amber-400 text-slate-900", label: isAr ? "أنبوب أصفر (Gel)" : "Yellow Tube (Gel/Serum)" };
+    if (name?.includes("sugar") || name?.includes("سكر") || name?.includes("glucose")) return { color: "bg-slate-400 text-slate-900", label: isAr ? "أنبوب رمادي (Fluoride)" : "Gray Tube (Fluoride)" };
     return { color: "bg-red-600 text-white", label: isAr ? "أنبوب أحمر (Serum)" : "Red Tube (Plain Serum)" };
   };
 
@@ -493,7 +450,7 @@ export default function LISRISDashboard({ language }: Props) {
           setPacsRulerPoints({ ...pacsRulerPoints, x2: x, y2: y });
           setPacsIsDrawing(false);
           setPacsRulerMode(false);
-          toast.success(isAr ? "تم تثبيت قياس المسافة بنجاح" : "Distance measurement set!");
+          window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Distance measurement set!", titleAr: "تم تثبيت قياس المسافة بنجاح", type: "form" } }));
         }
       }
     } else {
@@ -957,23 +914,49 @@ export default function LISRISDashboard({ language }: Props) {
             {/* Sub Tab: Reference Laboratory Test Catalog */}
             {labSubTab === "catalog" && (
               <div className="flex-1 p-6 overflow-y-auto space-y-6">
-                <div className="flex justify-between items-center bg-white p-4 border border-slate-200 rounded-2xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 border border-slate-200 rounded-2xl gap-4">
                   <div>
                     <h3 className="font-black text-slate-900 text-sm">{isAr ? "الدليل المرجعي للتحاليل الطبية" : "Standardized Test Catalog Management"}</h3>
                     <p className="text-[10px] text-slate-500">{isAr ? "تعديل المرجع الطبي، الأسعار والمعدلات القياسية للفحوصات" : "Customize standard test values, department routing, and clinical parameters"}</p>
                   </div>
-                  <button 
-                    onClick={() => setShowAddTestModal(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center gap-1 shadow-sm transition cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>{isAr ? "إضافة فحص جديد" : "Add New Test"}</span>
-                  </button>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative w-full sm:w-64">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                      <input 
+                        type="text" 
+                        placeholder={isAr ? "ابحث عن فحص طبي..." : "Search tests..."} 
+                        value={catalogSearchTerm}
+                        onChange={(e) => setCatalogSearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-purple-500 font-bold" 
+                      />
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setEditingTestId(null);
+                        setNewTestForm({
+                          nameAr: "",
+                          nameEn: "",
+                          department: "Biochemistry" as any,
+                          price: 100,
+                          tat: "2 Hours",
+                          tubeColor: "Yellow (Gel)" as any,
+                          parametersText: "Glucose:mg/dL:70:100\nCholesterol:mg/dL:100:200"
+                        });
+                        setShowAddTestModal(true);
+                      }}
+                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center gap-1 shadow-sm transition cursor-pointer whitespace-nowrap"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{isAr ? "إضافة فحص" : "Add Test"}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {catalog.map((test) => (
-                    <div key={test.id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-3 relative overflow-hidden">
+                  {catalog
+                    .filter(t => t.nameAr?.includes(catalogSearchTerm) || t.nameEn?.toLowerCase()?.includes(catalogSearchTerm?.toLowerCase()) || t.department?.toLowerCase()?.includes(catalogSearchTerm?.toLowerCase()))
+                    .map((test) => (
+                    <div key={test.id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-3 relative overflow-hidden group">
                       {/* Top ribbon colored by tube type */}
                       <div className="flex justify-between items-start">
                         <div>
@@ -982,13 +965,34 @@ export default function LISRISDashboard({ language }: Props) {
                           </span>
                           <h4 className="font-extrabold text-slate-900 text-xs mt-1.5">{isAr ? test.nameAr : test.nameEn}</h4>
                         </div>
-                        <button 
-                          onClick={() => handleDeleteTestFromCatalog(test.id)}
-                          className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition"
-                          title="Delete test"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => {
+                              setEditingTestId(test.id);
+                              setNewTestForm({
+                                nameAr: test.nameAr,
+                                nameEn: test.nameEn,
+                                department: test.department as any,
+                                price: test.price,
+                                tat: test.tat,
+                                tubeColor: test.tubeColor as any,
+                                parametersText: test.parameters.map(p => `${p.name}:${p.unit}:${p.min}:${p.max}`).join('\n')
+                              });
+                              setShowAddTestModal(true);
+                            }}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="Edit test"
+                          >
+                            <PenLine className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTestFromCatalog(test.id)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                            title="Delete test"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-500 bg-slate-50 p-2 rounded-xl">
@@ -1094,7 +1098,7 @@ export default function LISRISDashboard({ language }: Props) {
                               </td>
                               <td className="p-3.5 text-center">
                                 <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono font-black text-[9px]">
-                                  {order.name.toLowerCase().includes("ct") ? "CT" : order.name.toLowerCase().includes("mri") ? "MRI" : "X-RAY"}
+                                  {order.name?.toLowerCase()?.includes("ct") ? "CT" : order.name?.toLowerCase()?.includes("mri") ? "MRI" : "X-RAY"}
                                 </span>
                               </td>
                               <td className="p-3.5 text-start font-sans font-bold text-slate-800">
@@ -1310,7 +1314,7 @@ export default function LISRISDashboard({ language }: Props) {
                     >
                       
                       {/* Interactive chest X-ray / CT scan renderer via clean Vector SVG */}
-                      {selectedRadOrder?.name.toLowerCase().includes("chest") || selectedRadOrder?.name.toLowerCase().includes("صدر") ? (
+                      {selectedRadOrder?.name?.toLowerCase()?.includes("chest") || selectedRadOrder?.name?.toLowerCase()?.includes("صدر") ? (
                         /* CHEST X-RAY SCAN */
                         <svg viewBox="0 0 400 400" className="w-full h-full text-white">
                           <rect width="400" height="400" fill="#050505" />
@@ -1336,7 +1340,7 @@ export default function LISRISDashboard({ language }: Props) {
                           <path d="M200,75 Q150,70 90,60" fill="none" stroke="#f5f5f5" strokeWidth="6" opacity="0.8" />
                           <path d="M200,75 Q250,70 310,60" fill="none" stroke="#f5f5f5" strokeWidth="6" opacity="0.8" />
                         </svg>
-                      ) : selectedRadOrder?.name.toLowerCase().includes("ct") || selectedRadOrder?.name.toLowerCase().includes("mri") ? (
+                      ) : selectedRadOrder?.name?.toLowerCase()?.includes("ct") || selectedRadOrder?.name?.toLowerCase()?.includes("mri") ? (
                         /* CT / MRI BRAIN SCAN SECTION (REACTS TO SLICES SLIDER) */
                         <svg viewBox="0 0 400 400" className="w-full h-full text-white">
                           <rect width="400" height="400" fill="#030303" />
@@ -1634,7 +1638,7 @@ export default function LISRISDashboard({ language }: Props) {
             <div className="p-4 bg-white border-t border-slate-100 flex justify-end gap-2">
               <button 
                 onClick={() => {
-                  toast.success(isAr ? "تم إرسال أمر الطباعة لملصقات المختبر" : "Printed successfully to local LIS printer");
+                  window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Printed successfully to local LIS printer", titleAr: "تم إرسال أمر الطباعة لملصقات المختبر", type: "form" } }));
                   setShowBarcodeModal(false);
                 }}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-sm transition cursor-pointer"
@@ -1647,14 +1651,14 @@ export default function LISRISDashboard({ language }: Props) {
         </div>
       )}
 
-      {/* ===================== MODAL: ADD CUSTOM TEST TO CATALOG ===================== */}
+      {/* ===================== MODAL: ADD/EDIT CUSTOM TEST TO CATALOG ===================== */}
       {showAddTestModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[999999] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-fade text-right rtl:text-right ltr:text-left" dir={isAr ? "rtl" : "ltr"}>
             <div className="bg-slate-950 text-white p-4 flex items-center justify-between">
               <h3 className="font-extrabold text-xs flex items-center gap-1.5 text-purple-400">
-                <Plus size={16} />
-                <span>{isAr ? "إضافة فحص مخبري جديد للدليل" : "Add New Test to LIS Catalog"}</span>
+                {editingTestId ? <PenLine size={16} /> : <Plus size={16} />}
+                <span>{editingTestId ? (isAr ? "تعديل فحص مخبري" : "Edit Lab Test") : (isAr ? "إضافة فحص مخبري جديد للدليل" : "Add New Test to LIS Catalog")}</span>
               </h3>
               <button 
                 onClick={() => setShowAddTestModal(false)}
@@ -1769,7 +1773,7 @@ export default function LISRISDashboard({ language }: Props) {
                 onClick={handleAddTestToCatalog}
                 className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer"
               >
-                {isAr ? "حفظ الفحص الجديد" : "Add Test to Catalog"}
+                {editingTestId ? (isAr ? "حفظ التعديلات" : "Save Changes") : (isAr ? "حفظ الفحص الجديد" : "Add Test to Catalog")}
               </button>
             </div>
           </div>

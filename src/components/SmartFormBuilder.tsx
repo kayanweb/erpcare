@@ -104,7 +104,7 @@ export const SmartFormBuilder: React.FC<Props> = ({ language, onSave }) => {
 
   const handleSave = () => {
     if (onSave) onSave(form);
-    toast.success(isAr ? "تم حفظ النموذج بنجاح" : "Form template saved successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Form template saved successfully", titleAr: "تم حفظ النموذج بنجاح", type: "form" } }));
   };
 
   return (

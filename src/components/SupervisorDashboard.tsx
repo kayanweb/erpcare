@@ -26,7 +26,6 @@ import {
   BellRing,
   Award
 } from "lucide-react";
-import { db } from "../firebase";
 import { AppUser } from "../types";
 import SupervisorDailySuite from "./SupervisorDailySuite";
 import { 
@@ -92,7 +91,7 @@ export default function SupervisorDashboard({
   ]);
 
   useEffect(() => {
-    setIsOnline(!!db);
+    setIsOnline(true);
   }, []);
 
   const toggleAudit = (id: number) => {
@@ -119,7 +118,7 @@ export default function SupervisorDashboard({
     const existingAssignedNames = currentDutyAssignment?.assignedStaffNames || [];
     const existingTasks = currentDutyAssignment?.assignedTasks ? { ...currentDutyAssignment.assignedTasks } : {};
 
-    if (existingAssignedIds.includes(staff.id)) {
+    if (existingAssignedIds?.includes(staff.id)) {
       alert(isAr ? "هذا الموظف مضاف بالفعل لهذه المناوبة اليومية!" : "This employee is already assigned to this daily shift!");
       return;
     }
@@ -435,8 +434,8 @@ export default function SupervisorDashboard({
                   {systemUsers
                     .filter(u => {
                       if (!dutySearchQuery.trim()) return true;
-                      const q = dutySearchQuery.toLowerCase();
-                      return u.nameAr.toLowerCase().includes(q) || u.nameEn.toLowerCase().includes(q) || u.staffId.includes(q);
+                      const q = dutySearchQuery?.toLowerCase();
+                      return u.nameAr?.toLowerCase()?.includes(q) || u.nameEn?.toLowerCase()?.includes(q) || u.staffId?.includes(q);
                     })
                     .map(user => (
                       <button

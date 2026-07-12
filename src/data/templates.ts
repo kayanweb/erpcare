@@ -127,7 +127,7 @@ const generateAllTemplates = (): FormTemplate[] => {
   for (const dept of DEPARTMENT_POOL) {
     for (const core of CORE_CATEGORIES) {
       const codeNum = String(currentNum).padStart(3, "0");
-      const id = `${dept.prefix.toLowerCase()}-${core.key}`;
+      const id = `${dept.prefix?.toLowerCase()}-${core.key}`;
       const code = `BHG-FR-${dept.prefix}-${core.prefix}-${codeNum}`;
       const titleAr = `${core.titleAr} (${dept.nameAr})`;
       const titleEn = `${core.titleEn} [${dept.nameEn}]`;
@@ -156,7 +156,7 @@ const generateAllTemplates = (): FormTemplate[] => {
     const area = EXTRA_AREAS[areaIdx % EXTRA_AREAS.length];
     const codeNum = String(currentNum).padStart(3, "0");
 
-    const id = `dynamic-${dept.prefix.toLowerCase()}-${codeNum}`;
+    const id = `dynamic-${dept.prefix?.toLowerCase()}-${codeNum}`;
     const code = `BHG-FR-${dept.prefix}-${codeNum}`;
     const titleAr = `${type.ar} ${area.ar} (${dept.nameAr})`;
     const titleEn = `${type.en} ${area.en} [${dept.nameEn}]`;
@@ -271,7 +271,7 @@ export const getItemsForTemplate = (templateId: string, template: FormTemplate):
   }
 
   // Redirect templates containing requested core keywords immediately to the high-fidelity items
-  const tid = templateId.toLowerCase();
+  const tid = templateId?.toLowerCase();
   if (tid.includes("crash-cart") || tid === "daily-nursing" || tid === "daily-nursing-checklist") {
     return DEFAULT_ITEMS["crash-cart-core"];
   }

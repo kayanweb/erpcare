@@ -1,26 +1,48 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   X, User, Activity, FileText, Pill, FlaskConical, Stethoscope, 
   Clock, ShieldAlert, BadgeCheck, Printer, ArrowLeft, 
   Calendar, Droplets, Thermometer, HeartPulse, FileEdit, Plus, Syringe,
-  Share, CheckCircle2, QrCode
+  Share, CheckCircle2, QrCode, ClipboardList, Upload, Ban
 } from "lucide-react";
 import { toast } from "sonner";
 import ClinicalFormsLibrary from "./ClinicalFormsLibrary";
 import { ClinicalDocumentation } from "./ClinicalDocumentation";
+import DoctorConsultationDesk from "./DoctorConsultationDesk";
+import { NursingConsole } from "./NursingConsole";
 import { useHIS } from "../context/HISContext";
+import { EXTENDED_LAB_TESTS } from "../data/labTests";
+import { DEFAULT_CATALOG as DEFAULT_LAB_CATALOG } from "../data/labCatalog";
+import { INVENTORY_CATALOG, InventoryItem } from "../data/inventoryCatalog";
+import { RadiologyOrderForm } from "./RadiologyOrderForm";
 
-export function PatientChartModal({ patientId, patientName, onClose, isAr, initialTab = "summary" }: any) {
-  const { patients, updatePatient } = useHIS();
-  const currentPatient = patients.find(p => p.id === patientId) || { id: patientId, nameEn: patientName, nameAr: patientName };
+export function PatientChartModal({ patientId, patientName, onClose, isAr, initialTab = "summary", isEmbedded = false }: any) {
+  const { patients, updatePatient, cpoeOrders, setCpoeOrders, addPrescription, updatePrescriptionStatus } = useHIS();
+  const currentPatient = patients.find(p => p.id === patientId || p.mrn === patientId) || { id: patientId, mrn: patientId, nameEn: patientName, nameAr: patientName };
 
-  const [activeTab, setActiveTab] = useState(initialTab);
   const [showDocForm, setShowDocForm] = useState(false);
   const [showTransferForm, setShowTransferForm] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
 
-  // States for dedicated quick action overlays
+  // Dynamic User Role Logic
+  const currentUserStr = sessionStorage.getItem("hospital_currentUser");
+  const currentUserObj = currentUserStr ? JSON.parse(currentUserStr) : null;
+  const userRole = currentUserObj?.role || "admin";
+
+  const getInitialTabForRole = () => {
+    if (initialTab !== "summary") return initialTab; // Respect forced initial tab
+    switch (userRole) {
+      case "doctor": return "emr";
+      case "staff": return "nursing"; // Nurses see nursing notes/flowsheets first
+      case "lab": return "lab";
+      case "reception": return "timeline";
+      default: return "summary";
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTabForRole());
   const [showNurseNoteForm, setShowNurseNoteForm] = useState(false);
   const [showOrderLabForm, setShowOrderLabForm] = useState(false);
   const [showOrderRadForm, setShowOrderRadForm] = useState(false);
@@ -28,10 +50,34 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
   // Dedicated inputs for quick action forms
   const [quickNurseText, setQuickNurseText] = useState("");
-  const [quickLabName, setQuickLabName] = useState("CBC (صورة دم كاملة)");
+  const [quickLabName, setQuickLabName] = useState("");
+  const [labSearchFocus, setLabSearchFocus] = useState(false);
+  const [labPriority, setLabPriority] = useState("Routine");
+  const [labDate, setLabDate] = useState(new Date().toISOString().split('T')[0]);
+  const [labTime, setLabTime] = useState("");
+  const [labAck, setLabAck] = useState(true);
   const [quickRadName, setQuickRadName] = useState("Chest X-Ray Portable (أشعة صدر متنقلة)");
   const [quickDrugName, setQuickDrugName] = useState("");
   const [quickDrugDose, setQuickDrugDose] = useState("500mg PO BID");
+
+  // Structured drug prescription states
+  const [quickDrugDoseNum, setQuickDrugDoseNum] = useState("500");
+  const [quickDrugDoseUnit, setQuickDrugDoseUnit] = useState("mg");
+  const [quickDrugRoute, setQuickDrugRoute] = useState("PO");
+  const [quickDrugFrequency, setQuickDrugFrequency] = useState("BID");
+  const [quickDrugOrderType, setQuickDrugOrderType] = useState("routine"); // "routine" | "stat" | "prn"
+  const [quickDrugPrnReason, setQuickDrugPrnReason] = useState("");
+  const [quickDrugDuration, setQuickDrugDuration] = useState("5"); // days
+  const [quickDrugStartDate, setQuickDrugStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [quickDrugStartTime, setQuickDrugStartTime] = useState(new Date().toTimeString().split(' ')[0].substring(0, 5));
+  const [quickDrugSpecialInstructions, setQuickDrugSpecialInstructions] = useState("");
+
+  // Exception dialog states
+  const [notGivenState, setNotGivenState] = useState<{ rxId: string, slot: string } | null>(null);
+  const [discontinueRxId, setDiscontinueRxId] = useState<string | null>(null);
+  const [selectedHoldReason, setSelectedHoldReason] = useState("patient_out");
+  const [holdNotes, setHoldNotes] = useState("");
+  const [selectedDiscontinueReason, setSelectedDiscontinueReason] = useState("allergy");
 
   // States for interactive tabs
   const [noteText, setNoteText] = useState("");
@@ -51,6 +97,47 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   // Intake & Output
   const [ioIntakeAmt, setIoIntakeAmt] = useState("");
   const [ioOutputAmt, setIoOutputAmt] = useState("");
+
+  // Consumables Logic
+  const [consumableSearchTerm, setConsumableSearchTerm] = useState("");
+  const [selectedConsumable, setSelectedConsumable] = useState<InventoryItem | null>(null);
+  const [consumableQty, setConsumableQty] = useState(1);
+  const [selectedStore, setSelectedStore] = useState("Sub-Store (Nursing)");
+
+  const filteredInventory = INVENTORY_CATALOG.filter(item => 
+    item.nameEn.toLowerCase().includes(consumableSearchTerm.toLowerCase()) ||
+    item.nameAr.includes(consumableSearchTerm)
+  );
+
+  const handleRecordConsumable = () => {
+    if (!selectedConsumable) return;
+    
+    const billedConsumables = currentPatient.consumables || [];
+    const newConsumable = {
+      id: "CON-" + Date.now(),
+      itemId: selectedConsumable.id,
+      nameEn: selectedConsumable.nameEn,
+      nameAr: selectedConsumable.nameAr,
+      qty: consumableQty,
+      unit: selectedConsumable.unit,
+      price: selectedConsumable.price,
+      total: selectedConsumable.price * consumableQty,
+      store: selectedStore,
+      recordedBy: currentUserObj?.name || "Nursing Staff",
+      date: new Date().toLocaleString()
+    };
+
+    updatePatient(currentPatient.id, { 
+      consumables: [newConsumable, ...billedConsumables]
+    });
+
+    toast.success(isAr ? "تم تسجيل المستهلك وخصمه من المخزن" : `Billed ${consumableQty} ${selectedConsumable.unit} of ${selectedConsumable.nameEn} to patient.`);
+    
+    // Reset form
+    setSelectedConsumable(null);
+    setConsumableQty(1);
+    setConsumableSearchTerm("");
+  };
 
   // New States for Vitals, Labs, and orders
   const [vitalsSysBP, setVitalsSysBP] = useState("120");
@@ -80,7 +167,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
         type: o.name,
         date: o.completedAt?.split(",")[0] || o.date || "2026-06-30",
         status: "Completed",
-        size: o.name.toLowerCase().includes("x-ray") ? "1 slice" : "24 slices",
+        size: o.name?.toLowerCase()?.includes("x-ray") ? "1 slice" : "24 slices",
         findings: o.findings,
         impression: o.impression,
         isDynamic: true
@@ -101,9 +188,9 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
       text: noteText,
       date: new Date().toLocaleString()
     };
-    updatePatient(patientId, { progressNotes: [...notes, newNote] });
+    updatePatient(currentPatient.id, { progressNotes: [newNote, ...notes] });
     setNoteText("");
-    toast.success(isAr ? "تم تسجيل وتوقيع ملاحظة التطور بنجاح في ملف المريض" : "Progress note logged and E-signed successfully!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Progress note logged and E-signed successfully!", titleAr: "تم تسجيل وتوقيع ملاحظة التطور بنجاح في ملف المريض", type: "form" } }));
   };
 
   const handleSaveNurseNote = () => {
@@ -118,9 +205,9 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
       text: nurseNoteText,
       date: new Date().toLocaleString()
     };
-    updatePatient(patientId, { nursingNotes: [...notes, newNote] });
+    updatePatient(currentPatient.id, { nursingNotes: [newNote, ...notes] });
     setNurseNoteText("");
-    toast.success(isAr ? "تم تسجيل الملاحظة التمريضية وتحديث ملف العناية بالسرير" : "Nursing observation note logged successfully!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Nursing observation note logged successfully!", titleAr: "تم تسجيل الملاحظة التمريضية وتحديث ملف العناية بالسرير", type: "form" } }));
   };
 
   const handleSaveAssessment = (type: string, score: number) => {
@@ -132,7 +219,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
         date: new Date().toLocaleString()
       }
     };
-    updatePatient(patientId, { assessments: updated });
+    updatePatient(currentPatient.id, { assessments: updated });
     toast.success(isAr ? `تم حفظ تقييم ${type.toUpperCase()} بنجاح` : `${type.toUpperCase()} score of ${score} logged to EHR!`);
   };
 
@@ -144,9 +231,9 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
       amount: Number(ioIntakeAmt),
       date: new Date().toLocaleTimeString().slice(0, 5)
     };
-    updatePatient(patientId, { fluidIntake: [...currentIntakes, item] });
+    updatePatient(currentPatient.id, { fluidIntake: [...currentIntakes, item] });
     setIoIntakeAmt("");
-    toast.success(isAr ? "تم تسجيل الوارد المائي للمريض" : "Fluid intake logged successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Fluid intake logged successfully", titleAr: "تم تسجيل الوارد المائي للمريض", type: "form" } }));
   };
 
   const handleAddOutput = () => {
@@ -157,9 +244,9 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
       amount: Number(ioOutputAmt),
       date: new Date().toLocaleTimeString().slice(0, 5)
     };
-    updatePatient(patientId, { fluidOutput: [...currentOutputs, item] });
+    updatePatient(currentPatient.id, { fluidOutput: [...currentOutputs, item] });
     setIoOutputAmt("");
-    toast.success(isAr ? "تم تسجيل الصادر المائي للمريض" : "Fluid output logged successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Fluid output logged successfully", titleAr: "تم تسجيل الصادر المائي للمريض", type: "form" } }));
   };
 
   useEffect(() => {
@@ -169,6 +256,9 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   const tabs = [
     { id: "summary", ar: "الملخص", en: "Summary", icon: User },
     { id: "timeline", ar: "التسلسل الزمني", en: "Timeline", icon: Clock },
+    { id: "doctor_desk", ar: "مكتب الطبيب (شامل)", en: "Doctor's Desk", icon: Stethoscope },
+    { id: "nursing_desk", ar: "محطة التمريض (شامل)", en: "Nursing Desk", icon: ClipboardList },
+    { id: "problems", ar: "التشخيصات والحساسية", en: "Problems & Allergies", icon: ShieldAlert },
     { id: "vitals", ar: "العلامات الحيوية", en: "Vital Signs", icon: HeartPulse },
     { id: "mar", ar: "إعطاء الأدوية (MAR)", en: "MAR", icon: Pill },
     { id: "orders", ar: "أوامر الطبيب", en: "Orders", icon: Stethoscope },
@@ -176,10 +266,17 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
     { id: "radiology", ar: "الأشعة", en: "Radiology", icon: Activity },
     { id: "progress_notes", ar: "ملاحظات الأطباء", en: "Progress Notes", icon: FileEdit },
     { id: "nursing_notes", ar: "ملاحظات التمريض", en: "Nursing Notes", icon: FileText },
+    { id: "reports", ar: "التقارير والطباعة", en: "Reports & Printing", icon: Printer },
+    { id: "care_plan", ar: "خطة الرعاية", en: "Care Plan", icon: CheckCircle2 },
     { id: "assessments", ar: "التقييمات السريرية", en: "Assessments", icon: ShieldAlert },
     { id: "io", ar: "السوائل (I & O)", en: "Intake & Output", icon: Droplets },
     { id: "forms", ar: "النماذج الطبية", en: "Clinical Forms", icon: FileText },
+    { id: "surgery", ar: "العمليات والإجراءات", en: "Surgery & Procedures", icon: Activity },
+    { id: "attachments", ar: "المرفقات", en: "Attachments", icon: FileText },
+    { id: "billing", ar: "الفوترة والتأمين", en: "Billing & Insurance", icon: FileText },
     { id: "handover", ar: "تسليم الشيفت", en: "Shift Handover", icon: Share },
+    { id: "consumables", ar: "المستهلكات", en: "Consumables", icon: Syringe },
+    { id: "discharge", ar: "خروج المريض", en: "Discharge", icon: User },
   ];
 
   const quickActions = [
@@ -218,7 +315,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   };
 
   const handleDocSave = (docData: any) => {
-    toast.success(isAr ? "تم حفظ التوثيق الطبي بنجاح وإرسال الأوامر للأقسام" : "Documentation saved and orders dispatched");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Documentation saved and orders dispatched", titleAr: "تم حفظ التوثيق الطبي بنجاح وإرسال الأوامر للأقسام", type: "form" } }));
     setShowDocForm(false);
     setActiveTab("progress_notes");
   };
@@ -347,7 +444,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
             </button>
             <button 
               onClick={() => {
-                toast.success(isAr ? "تم إرسال طلب النقل إلى إدارة الأسرة بنجاح." : "Transfer request sent to Bed Management successfully.");
+                window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Transfer request sent to Bed Management successfully.", titleAr: "تم إرسال طلب النقل إلى إدارة الأسرة بنجاح.", type: "form" } }));
                 setTransferStatus('pending_bed');
                 setShowTransferForm(false);
               }}
@@ -403,11 +500,11 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                   text: quickNurseText,
                   date: new Date().toLocaleString()
                 };
-                updatePatient(patientId, { nursingNotes: [newNote, ...notes] });
+                updatePatient(currentPatient.id, { nursingNotes: [newNote, ...notes] });
                 setQuickNurseText("");
                 setShowNurseNoteForm(false);
                 setActiveTab("nursing_notes");
-                toast.success(isAr ? "تم تسجيل الملاحظة التمريضية بنجاح." : "Nursing note recorded successfully.");
+                window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Nursing note recorded successfully.", titleAr: "تم تسجيل الملاحظة التمريضية بنجاح.", type: "form" } }));
               }}
               className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-bold shadow-md transition cursor-pointer"
             >
@@ -418,6 +515,16 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
       </div>
     );
   }
+
+  const getLabCatalog = () => {
+    try {
+      const saved = localStorage.getItem("hospital_test_catalog");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return DEFAULT_LAB_CATALOG;
+  };
+
+  const labCatalog = getLabCatalog();
 
   if (showOrderLabForm) {
     return (
@@ -433,24 +540,89 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
             </button>
           </div>
           <div className="p-6 space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "اختر الفحص المخبري المطلوب" : "Select Lab Test"}</label>
-              <select 
+            <div className="space-y-1 relative">
+              <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "اسم الفحص (بحث)" : "Test Name (Search)"}</label>
+              <input 
                 value={quickLabName}
-                onChange={(e) => setQuickLabName(e.target.value)}
+                onChange={(e) => {
+                  setQuickLabName(e.target.value);
+                  setLabSearchFocus(true);
+                }}
+                onFocus={() => setLabSearchFocus(true)}
+                onBlur={() => setTimeout(() => setLabSearchFocus(false), 200)}
+                type="text" 
+                placeholder={isAr ? "ابحث في أكثر من 2000 تحليل..." : "Search over 2000+ tests..."}
                 className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 p-2.5 focus:border-rose-500 outline-none font-bold"
-              >
-                <option value="CBC (صورة دم كاملة)">CBC (صورة دم كاملة)</option>
-                <option value="BMP (لوحة التمثيل الغذائي الأساسية)">BMP (لوحة التمثيل الغذائي الأساسية)</option>
-                <option value="LFT (وظائف الكبد)">LFT (وظائف الكبد)</option>
-                <option value="KFT / Kidney Function Test (وظائف الكلى)">KFT (وظائف الكلى)</option>
-                <option value="Troponin I (تحليل تروپونين للقلب)">Troponin I (تحليل تروپونين للقلب)</option>
-                <option value="PT / INR (سيولة الدم)">PT / INR (سيولة الدم)</option>
-                <option value="Arterial Blood Gas (ABG) (غازات الدم الشرياني)">Arterial Blood Gas (ABG) (غازات الدم الشرياني)</option>
-              </select>
+              />
+              {labSearchFocus && quickLabName.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {EXTENDED_LAB_TESTS.filter((t: string) => t?.toLowerCase()?.includes(quickLabName?.toLowerCase())).slice(0, 50).map((test: string, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className="px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer text-slate-700 font-medium"
+                      onMouseDown={() => {
+                        setQuickLabName(test);
+                        setLabSearchFocus(false);
+                      }}
+                    >
+                      {test}
+                    </div>
+                  ))}
+                  {EXTENDED_LAB_TESTS.filter((t: string) => t?.toLowerCase()?.includes(quickLabName?.toLowerCase())).length === 0 && (
+                    <div className="px-3 py-2 text-sm text-slate-500 italic">No tests found.</div>
+                  )}
+                </div>
+              )}
             </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "نوع/أولوية الطلب" : "Order Type/Priority"}</label>
+                <select 
+                  value={labPriority}
+                  onChange={(e) => setLabPriority(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 p-2.5 focus:border-rose-500 outline-none font-bold"
+                >
+                  <option value="Routine">{isAr ? "عادي (Routine)" : "Routine"}</option>
+                  <option value="Urgent">{isAr ? "عاجل (Urgent)" : "Urgent"}</option>
+                  <option value="STAT">{isAr ? "طارئ (STAT)" : "STAT"}</option>
+                  <option value="Pre-op">{isAr ? "قبل العملية (Pre-op)" : "Pre-op"}</option>
+                  <option value="Fasting">{isAr ? "صائم (Fasting)" : "Fasting"}</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "تاريخ السحب المجدول" : "Scheduled Date"}</label>
+                <input 
+                  type="date"
+                  value={labDate}
+                  onChange={(e) => setLabDate(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 p-2.5 focus:border-rose-500 outline-none font-bold"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "وقت السحب" : "Scheduled Time"}</label>
+                <input 
+                  type="time"
+                  value={labTime}
+                  onChange={(e) => setLabTime(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 p-2.5 focus:border-rose-500 outline-none font-bold"
+                />
+              </div>
+              <div className="space-y-1 flex items-center mt-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={labAck}
+                    onChange={(e) => setLabAck(e.target.checked)}
+                    className="w-4 h-4 text-rose-600 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-xs font-bold text-slate-700">{isAr ? "إشعار عند استلام المختبر" : "Notify upon LIS receipt"}</span>
+                </label>
+              </div>
+            </div>
+
             <div className="text-xs text-rose-600 bg-rose-50 border border-rose-100 p-3 rounded-lg font-semibold font-sans leading-relaxed">
-              {isAr ? "سيتم توقيع الطلب إلكترونياً باسم الدكتور أحمد علي وإرساله فوراً للمختبر الطبي المركزي (LIS) للمستشفى." : "This order will be digitally signed by Dr. Ahmed Ali and dispatched to the Hospital Laboratory Information System (LIS)."}
+              {isAr ? "سيتم توقيع الطلب إلكترونياً وإرساله فوراً للمختبر الطبي المركزي (LIS)." : "This order will be digitally signed and dispatched to the Hospital Laboratory Information System (LIS)."}
             </div>
           </div>
           <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
@@ -459,15 +631,31 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
             </button>
             <button 
               onClick={() => {
+                if (!quickLabName.trim()) return toast.error(isAr ? "الرجاء تحديد اسم الفحص" : "Please specify test name");
                 const currentOrders = currentPatient.orders || [];
                 const newOrder = {
                   id: "ord-" + Date.now(),
                   type: "LAB",
                   name: quickLabName,
                   status: "Ordered",
-                  date: new Date().toLocaleDateString()
+                  priority: labPriority,
+                  date: `${labDate} ${labTime}`.trim(),
+                  ack: labAck
                 };
-                updatePatient(patientId, { orders: [newOrder, ...currentOrders] });
+                updatePatient(currentPatient.id, { orders: [newOrder, ...currentOrders] });
+                setCpoeOrders((prev: any[]) => [
+                  {
+                    id: newOrder.id,
+                    patientName: currentPatient.nameEn || currentPatient.nameAr,
+                    mrn: currentPatient.mrn,
+                    orderType: "Lab",
+                    orderName: quickLabName,
+                    priority: labPriority,
+                    status: "Pending",
+                    timestamp: new Date().toISOString()
+                  },
+                  ...(prev || [])
+                ]);
                 setShowOrderLabForm(false);
                 setActiveTab("orders");
                 toast.success(isAr ? `تم إرسال طلب تحليل (${quickLabName}) بنجاح للمختبر.` : `Lab order for (${quickLabName}) sent successfully to LIS.`);
@@ -484,106 +672,290 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
   if (showOrderRadForm) {
     return (
-      <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden flex flex-col">
-          <div className="bg-slate-900 text-white p-4 flex items-center justify-between shrink-0">
-            <h2 className="font-bold text-lg flex items-center gap-2">
-              <Activity className="w-5 h-5 text-amber-500" />
-              {isAr ? "طلب فحص تصوير أشعة جديد" : "New Radiology Order"}
-            </h2>
-            <button onClick={() => setShowOrderRadForm(false)} className="hover:bg-slate-700 p-2 rounded-lg transition text-white cursor-pointer">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="p-6 space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "اختر نوع الأشعة المطلوب" : "Select Radiology Procedure"}</label>
-              <select 
-                value={quickRadName}
-                onChange={(e) => setQuickRadName(e.target.value)}
-                className="w-full border-slate-300 rounded-lg text-sm bg-slate-50 p-2.5 focus:border-amber-500 outline-none font-bold"
-              >
-                <option value="Chest X-Ray Portable (أشعة صدر متنقلة)">Chest X-Ray Portable (أشعة صدر متنقلة)</option>
-                <option value="CT Brain W/O Contrast (أشعة مقطعية للمخ بدون صبغة)">CT Brain W/O Contrast (أشعة مقطعية للمخ بدون صبغة)</option>
-                <option value="CT Abdomen & Pelvis (أشعة مقطعية للبطن والحوض)">CT Abdomen & Pelvis (أشعة مقطعية للبطن والحوض)</option>
-                <option value="MRI Brain W/ Contrast (رنين مغناطيسي على المخ بالصبغة)">MRI Brain W/ Contrast (رنين مغناطيسي على المخ بالصبغة)</option>
-                <option value="Ultrasound Abdomen (أشعة تلفزيونية للبطن)">Ultrasound Abdomen (أشعة تلفزيونية للبطن)</option>
-              </select>
-            </div>
-            <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 p-3 rounded-lg font-semibold font-sans leading-relaxed">
-              {isAr ? "سيتم تسجيل الطلب في نظام إدارة قسم الأشعة (RIS) وإشعار فني الأشعة المناوب فوراً." : "This order will be filed in the Radiology Information System (RIS) and dispatch alerts sent to the on-duty imaging tech."}
-            </div>
-          </div>
-          <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-            <button onClick={() => setShowOrderRadForm(false)} className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">
-              {isAr ? "إلغاء" : "Cancel"}
-            </button>
-            <button 
-              onClick={() => {
-                const currentOrders = currentPatient.orders || [];
-                const newOrder = {
-                  id: "ord-" + Date.now(),
-                  type: "RAD",
-                  name: quickRadName,
-                  status: "Ordered",
-                  date: new Date().toLocaleDateString()
-                };
-                updatePatient(patientId, { orders: [newOrder, ...currentOrders] });
-                setShowOrderRadForm(false);
-                setActiveTab("orders");
-                toast.success(isAr ? `تم إرسال طلب أشعة (${quickRadName}) بنجاح.` : `Radiology order for (${quickRadName}) registered successfully in RIS.`);
-              }}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold shadow-md transition cursor-pointer"
-            >
-              {isAr ? "تأكيد وإرسال الطلب" : "Sign & Dispatch RIS Order"}
-            </button>
-          </div>
-        </div>
-      </div>
+      <RadiologyOrderForm 
+        isAr={isAr}
+        patientGender={currentPatient?.gender || currentPatient?.genderEn}
+        onClose={() => setShowOrderRadForm(false)}
+        onSubmit={(orderData) => {
+          const currentOrders = currentPatient.orders || [];
+          const newOrders = orderData.procedures.map((procName: string, index: number) => ({
+            id: `ord-${Date.now()}-${index}`,
+            type: "RAD",
+            name: procName,
+            status: "Ordered",
+            date: new Date().toLocaleDateString(),
+            urgency: orderData.urgency,
+            clinicalIndication: orderData.clinicalIndication,
+            transportMode: orderData.transportMode,
+            pregnancyStatus: orderData.pregnancyStatus,
+            timestamp: orderData.timestamp
+          }));
+          
+          updatePatient(currentPatient.id, { orders: [...newOrders, ...currentOrders] });
+          
+          setCpoeOrders((prev: any[]) => [
+            ...newOrders.map((ord: any) => ({
+              id: ord.id,
+              patientName: currentPatient.nameEn || currentPatient.nameAr,
+              mrn: currentPatient.mrn,
+              orderType: "Radiology",
+              orderName: ord.name,
+              priority: ord.urgency,
+              status: "Pending",
+              timestamp: ord.timestamp
+            })),
+            ...(prev || [])
+          ]);
+          
+          setShowOrderRadForm(false);
+          setActiveTab("orders");
+          toast.success(isAr ? `تم إرسال ${orderData.procedures.length} طلبات أشعة بنجاح (RIS).` : `Successfully dispatched ${orderData.procedures.length} radiology orders to RIS.`);
+        }}
+      />
     );
   }
 
   if (showPrescribeForm) {
     return (
-      <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden flex flex-col">
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 overflow-y-auto animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col my-8">
+          
+          {/* Modal Header */}
           <div className="bg-slate-900 text-white p-4 flex items-center justify-between shrink-0">
             <h2 className="font-bold text-lg flex items-center gap-2">
-              <Pill className="w-5 h-5 text-emerald-400" />
-              {isAr ? "وصف علاج ووصفة دوائية جديدة" : "New Medication Prescription"}
+              <Pill className="w-5 h-5 text-emerald-400 animate-pulse" />
+              {isAr ? "وصف علاج ووصفة دوائية جديدة (CPOE)" : "New Medication Prescription (CPOE)"}
             </h2>
-            <button onClick={() => setShowPrescribeForm(false)} className="hover:bg-slate-700 p-2 rounded-lg transition text-white cursor-pointer">
+            <button onClick={() => setShowPrescribeForm(false)} className="hover:bg-slate-800 p-2 rounded-lg transition text-slate-400 hover:text-white cursor-pointer">
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="p-6 space-y-4">
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "اسم الدواء العلمي أو التجاري" : "Drug Name"}</label>
-                <input 
-                  type="text" 
-                  value={quickDrugName}
-                  onChange={(e) => setQuickDrugName(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:border-emerald-500 p-2.5 outline-none font-bold text-slate-800 font-sans"
-                  placeholder={isAr ? "مثال: Ceftriaxone 1g, Paracetamol 500mg..." : "e.g., Ceftriaxone 1g, Paracetamol 500mg..."}
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "الجرعة وتكرار الاستخدام" : "Dose & Frequency"}</label>
-                <input 
-                  type="text" 
-                  value={quickDrugDose}
-                  onChange={(e) => setQuickDrugDose(e.target.value)}
-                  className="w-full border-slate-300 rounded-lg text-sm bg-slate-50 focus:border-emerald-500 p-2.5 outline-none font-bold text-slate-800 font-sans"
-                  placeholder={isAr ? "مثال: 1g IV Q12H, 500mg PO TID..." : "e.g., 500mg PO BID..."}
-                />
-              </div>
+
+          {/* Patient Context Banner (Safety Check) */}
+          <div className="bg-rose-50 border-b border-rose-100 p-3 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
+            <div className="flex items-center gap-2 text-rose-800">
+              <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>
+                {isAr ? "شريط بيانات التحقق من المريض:" : "Patient Context Banner (Safety Check):"}
+              </span>
+              <strong className="text-slate-900 bg-rose-100/50 px-2 py-0.5 rounded">
+                {currentPatient.nameAr || currentPatient.nameEn}
+              </strong>
+              <span className="text-slate-400">|</span>
+              <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">MRN: {currentPatient.mrn}</span>
+              <span className="text-slate-400">|</span>
+              <span>{isAr ? `${currentPatient.age || 45} سنة` : `Age: ${currentPatient.age || 45}`}</span>
             </div>
-            <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 p-3 rounded-lg font-semibold font-sans leading-relaxed">
-              {isAr ? "سيتم فحص التداخلات الدوائية تلقائياً وإدراج الوصفة فوراً في ورقة علاج المريض (MAR) لتسهيل الصرف." : "The drug interaction check will auto-run and insert the prescription into the MAR sheet for nurse administration."}
+            <div className="bg-rose-600 text-white font-bold px-2 py-1 rounded text-[10px] uppercase tracking-wider animate-pulse shadow-sm">
+              {isAr ? "⚠️ تحذير: حساسية البنسلين" : "⚠️ Penicillin Allergy Alert"}
             </div>
           </div>
-          <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+
+          {/* Modal Content Form */}
+          <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+            
+            {/* Medication Name */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                {isAr ? "اسم الدواء العلمي أو التجاري" : "Scientific/Generic or Brand Drug Name"} <span className="text-rose-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                value={quickDrugName}
+                onChange={(e) => setQuickDrugName(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                placeholder={isAr ? "مثال: Ceftriaxone, Paracetamol, Nexium..." : "e.g., Ceftriaxone, Paracetamol, Nexium..."}
+              />
+            </div>
+
+            {/* Dismantled Dose & Route */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Dose Number */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "قيمة الجرعة" : "Dose Amount"}
+                </label>
+                <input 
+                  type="number" 
+                  value={quickDrugDoseNum}
+                  onChange={(e) => setQuickDrugDoseNum(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                  placeholder="500"
+                />
+              </div>
+
+              {/* Dose Unit */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "وحدة الجرعة" : "Dose Unit"}
+                </label>
+                <select
+                  value={quickDrugDoseUnit}
+                  onChange={(e) => setQuickDrugDoseUnit(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                >
+                  <option value="mg">mg (ملجم)</option>
+                  <option value="g">g (جرام)</option>
+                  <option value="ml">ml (مل)</option>
+                  <option value="mcg">mcg (ميكروجرام)</option>
+                  <option value="units">IU (وحدة دولية)</option>
+                  <option value="tab">Tablet (قرص)</option>
+                  <option value="cap">Capsule (كبسولة)</option>
+                  <option value="vial">Vial (فلاكون)</option>
+                  <option value="amp">Ampoule (أمبول)</option>
+                  <option value="puff">Puff (بخة)</option>
+                </select>
+              </div>
+
+              {/* Route of Administration */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "طريقة الإعطاء (المسار)" : "Route of Administration"}
+                </label>
+                <select
+                  value={quickDrugRoute}
+                  onChange={(e) => setQuickDrugRoute(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                >
+                  <option value="PO">PO (فموي)</option>
+                  <option value="IV">IV (حقن وريدي)</option>
+                  <option value="IM">IM (حقن عضلي)</option>
+                  <option value="SC">SC (تحت الجلد)</option>
+                  <option value="SL">SL (تحت اللسان)</option>
+                  <option value="INH">INH (استنشاق)</option>
+                  <option value="PR">PR (شرجي)</option>
+                  <option value="TOP">TOP (موضعي)</option>
+                  <option value="NG">NG (أنبوب معدي)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Frequency & Order Priority */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Frequency */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "تكرار الجرعة (Frequency)" : "Frequency"}
+                </label>
+                <select
+                  value={quickDrugFrequency}
+                  onChange={(e) => setQuickDrugFrequency(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                >
+                  <option value="QD">QD (مرة واحدة يومياً)</option>
+                  <option value="BID">BID (مرتين يومياً)</option>
+                  <option value="TID">TID (3 مرات يومياً)</option>
+                  <option value="QID">QID (4 مرات يومياً)</option>
+                  <option value="q8h">q8h (كل 8 ساعات)</option>
+                  <option value="q12h">q12h (كل 12 ساعة)</option>
+                  <option value="q6h">q6h (كل 6 ساعات)</option>
+                  <option value="q4h">q4h (كل 4 ساعات)</option>
+                  <option value="PRN">PRN (عند اللزوم)</option>
+                  <option value="STAT">STAT (فوراً / جرعة واحدة عاجلة)</option>
+                </select>
+              </div>
+
+              {/* Order Type Priority */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "نوع ومستوى الأولوية للاوردر" : "Order Priority Type"}
+                </label>
+                <select
+                  value={quickDrugOrderType}
+                  onChange={(e) => setQuickDrugOrderType(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                >
+                  <option value="routine">{isAr ? "روتيني (Routine)" : "Routine"}</option>
+                  <option value="stat">{isAr ? "عاجل / فوري (STAT)" : "STAT / Urgent"}</option>
+                  <option value="prn">{isAr ? "عند اللزوم (PRN)" : "PRN (As Needed)"}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* PRN Reason - Conditionally visible if Order Type is PRN */}
+            {quickDrugOrderType === "prn" && (
+              <div className="animate-slide-down bg-amber-50 border border-amber-150 p-3 rounded-lg space-y-1">
+                <label className="text-xs font-bold text-amber-900 block">
+                  {isAr ? "دواعي الاستعمال عند اللزوم (PRN Reason) *" : "PRN Reason *"}
+                </label>
+                <input 
+                  type="text"
+                  value={quickDrugPrnReason}
+                  onChange={(e) => setQuickDrugPrnReason(e.target.value)}
+                  className="w-full border border-amber-300 rounded-lg text-sm bg-white focus:border-amber-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                  placeholder={isAr ? "مثال: للحرارة أعلى من 38.5 درجة، أو عند الألم الشديد" : "e.g., for temp > 38.5 C or pain"}
+                />
+              </div>
+            )}
+
+            {/* Treatment Duration & Start Date & Time */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Duration */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "مدة العلاج (أيام)" : "Duration (Days)"}
+                </label>
+                <input 
+                  type="number" 
+                  value={quickDrugDuration}
+                  onChange={(e) => setQuickDrugDuration(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                  placeholder="5"
+                  min="1"
+                />
+              </div>
+
+              {/* Start Date */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "تاريخ البدء" : "Start Date"}
+                </label>
+                <input 
+                  type="date" 
+                  value={quickDrugStartDate}
+                  onChange={(e) => setQuickDrugStartDate(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                />
+              </div>
+
+              {/* Start Time */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  {isAr ? "وقت البدء" : "Start Time"}
+                </label>
+                <input 
+                  type="time" 
+                  value={quickDrugStartTime}
+                  onChange={(e) => setQuickDrugStartTime(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 outline-none font-bold text-slate-800 font-sans transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Special Instructions */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                {isAr ? "تعليمات خاصة (للصيدلية أو التمريض)" : "Special Instructions"}
+              </label>
+              <textarea 
+                value={quickDrugSpecialInstructions}
+                onChange={(e) => setQuickDrugSpecialInstructions(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 p-2.5 h-16 outline-none font-bold text-slate-800 font-sans transition-all"
+                placeholder={isAr ? "مثال: يعطى ببطء وريدياً، أو خلط في محلول ملحي 100 مل، أو بعد الطعام" : "e.g., Infuse slowly over 30 mins, or take with food"}
+              />
+            </div>
+
+            {/* Smart safety warning */}
+            <div className="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 p-3 rounded-lg font-semibold font-sans leading-relaxed flex items-start gap-2">
+              <ShieldAlert className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+              <span>
+                {isAr ? "سيتم فحص التداخلات الدوائية تلقائياً وإدراج الوصفة فوراً في ورقة علاج المريض (MAR) لتسهيل المراجعة والصرف من قِبل الصيدلي." : "The drug interaction check will auto-run and insert the prescription into the MAR sheet for nurse administration."}
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 shrink-0">
             <button onClick={() => setShowPrescribeForm(false)} className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">
               {isAr ? "إلغاء" : "Cancel"}
             </button>
@@ -593,19 +965,61 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                   toast.error(isAr ? "يرجى كتابة اسم الدواء" : "Please input drug name");
                   return;
                 }
-                const prescriptions = currentPatient.prescriptions || [];
+                if (quickDrugOrderType === "prn" && !quickDrugPrnReason.trim()) {
+                  toast.error(isAr ? "يرجى كتابة دواعي الاستعمال للـ PRN" : "Please input PRN reason");
+                  return;
+                }
+
+                const displayDosageStr = `${quickDrugDoseNum}${quickDrugDoseUnit} ${quickDrugRoute} ${quickDrugFrequency.toUpperCase()}${quickDrugOrderType === "prn" ? " (PRN: " + quickDrugPrnReason + ")" : ""}`;
+                const prescriptionsList = currentPatient.prescriptions || [];
+                const newRxId = "rx-" + Date.now();
+                
                 const newRx = {
-                  id: "rx-" + Date.now(),
+                  id: newRxId,
                   name: quickDrugName,
-                  dosage: quickDrugDose,
-                  status: "Active",
+                  dosage: displayDosageStr,
+                  doseNum: quickDrugDoseNum,
+                  doseUnit: quickDrugDoseUnit,
+                  route: quickDrugRoute,
+                  frequency: quickDrugFrequency,
+                  orderType: quickDrugOrderType,
+                  prnReason: quickDrugOrderType === "prn" ? quickDrugPrnReason : "",
+                  durationDays: Number(quickDrugDuration) || 5,
+                  startDate: quickDrugStartDate,
+                  startTime: quickDrugStartTime,
+                  specialInstructions: quickDrugSpecialInstructions,
+                  status: "pending", // starts as pending pharmacy verification!
                   date: new Date().toLocaleDateString()
                 };
-                updatePatient(patientId, { prescriptions: [newRx, ...prescriptions] });
+
+                // 1. Save locally/nested to active patient
+                updatePatient(currentPatient.id, { prescriptions: [newRx, ...prescriptionsList] });
+
+                // 2. Add globally to context for Pharmacy/CPOE
+                addPrescription({
+                  id: newRxId,
+                  patientId: currentPatient.id,
+                  medication: quickDrugName,
+                  dose: displayDosageStr,
+                  qty: 1,
+                  status: "pending",
+                  date: new Date().toLocaleDateString(),
+                  doseNum: quickDrugDoseNum,
+                  doseUnit: quickDrugDoseUnit,
+                  route: quickDrugRoute,
+                  frequency: quickDrugFrequency,
+                  orderType: quickDrugOrderType,
+                  prnReason: quickDrugOrderType === "prn" ? quickDrugPrnReason : "",
+                  durationDays: Number(quickDrugDuration) || 5,
+                  startDate: quickDrugStartDate,
+                  startTime: quickDrugStartTime,
+                  specialInstructions: quickDrugSpecialInstructions,
+                } as any);
+
                 setQuickDrugName("");
                 setShowPrescribeForm(false);
                 setActiveTab("mar");
-                toast.success(isAr ? `تمت إضافة وصفة (${quickDrugName}) وإرسالها للصيدلية الإلكترونية.` : `Medication prescription for (${quickDrugName}) signed and sent to Pharmacy.`);
+                toast.success(isAr ? `تمت إضافة وصفة (${quickDrugName}) وإرسالها للصيدلية الإلكترونية للمراجعة.` : `Medication prescription for (${quickDrugName}) signed and sent to Pharmacy.`);
               }}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md transition cursor-pointer"
             >
@@ -617,64 +1031,102 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999999] flex items-center justify-center p-2 sm:p-4" dir={isAr ? "rtl" : "ltr"}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl h-[95vh] overflow-hidden flex flex-col animate-fade-in">
+  const content = (
+    <>
+    <div className={`bg-white shadow-xl w-full flex flex-col animate-fade-in ${isEmbedded ? 'h-full flex-1 rounded-none' : 'rounded-2xl max-w-7xl h-[95vh] overflow-hidden'}`}>
         
         {/* Header - Command Center Style */}
-        <div className="bg-slate-900 text-white p-4 shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-4 border-indigo-500">
-          <div className="flex items-center gap-4">
+        <div className="bg-slate-900 text-white p-3 sm:p-4 shrink-0 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b-4 border-indigo-500">
+          <div className="flex items-center gap-3 sm:gap-4 w-full lg:w-auto">
             <button onClick={onClose} className="hover:bg-slate-800 p-2 rounded-lg transition shrink-0 border border-slate-700">
-              <ArrowLeft className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
+              <ArrowLeft className={`w-4 h-4 sm:w-5 sm:h-5 ${isAr ? 'rotate-180' : ''}`} />
             </button>
-            <div className="w-12 h-12 bg-indigo-500/20 text-indigo-300 rounded-full flex items-center justify-center shrink-0 border border-indigo-500/30">
-              <User className="w-6 h-6" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/20 text-indigo-300 rounded-full flex items-center justify-center shrink-0 border border-indigo-500/30">
+              <User className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-black text-xl">{patientName || "Unknown Patient"}</h2>
-                <BadgeCheck className="w-5 h-5 text-emerald-400" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setActiveTab("summary")}>
+                <h2 className="font-black text-lg sm:text-xl group-hover:text-indigo-300 transition truncate">{patientName || "Unknown Patient"}</h2>
+                <BadgeCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-mono mt-1">
-                <span className="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">MRN: {patientId || "10293847"}</span>
-                <span>•</span>
-                <span>{isAr ? "العمر: 45 سنة" : "Age: 45"}</span>
-                <span>•</span>
-                <span>{isAr ? "النوع: ذكر" : "Gender: Male"}</span>
-                <span>•</span>
-                <span className="text-rose-400 font-bold">{isAr ? "حساسية: بنسيلين" : "Allergies: Penicillin"}</span>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] sm:text-xs text-slate-300 font-mono mt-0.5 sm:mt-1">
+                <span className="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">MRN: {currentPatient.mrn || patientId}</span>
+                <span className="hidden xs:inline">•</span>
+                <span>{isAr ? `${currentPatient.age || 45} سنة` : `Age: ${currentPatient.age || 45}`}</span>
+                <span className="hidden xs:inline">•</span>
+                <span className="text-rose-400 font-bold">{isAr ? "حساسية: بنسيلين" : "Penicillin Allergy"}</span>
               </div>
             </div>
           </div>
           
           {/* Quick Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 hide-scrollbar">
             {quickActions.map(action => (
               <button 
                 key={action.id}
                 onClick={() => handleQuickAction(action.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition hover:opacity-80 shadow-sm ${action.color}`}
+                className={`flex-none flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition hover:opacity-80 shadow-sm ${action.color}`}
               >
-                <action.icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{isAr ? action.ar : action.en}</span>
+                <action.icon className="w-3.5 h-3.5" />
+                <span>{isAr ? action.ar : action.en}</span>
               </button>
             ))}
             <button 
-              onClick={() => {
-                toast.success(isAr ? "جاري تحضير التقرير للطباعة..." : "Preparing report for printing...");
-                setTimeout(() => {
-                  setShowPrintPreview(true);
-                }, 500);
-              }} 
-              className="bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 px-3 py-1.5 rounded-lg transition ml-auto sm:ml-2 flex items-center gap-2 text-xs font-bold shadow-sm border border-slate-700"
+              onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Creating New Visit", titleAr: "إضافة زيارة جديدة", type: "form" } }))}
+              className="flex-none bg-emerald-600 text-white hover:bg-emerald-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 text-[10px] sm:text-xs font-bold shadow-sm"
             >
-              <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">{isAr ? "طباعة التقرير" : "Print Record"}</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>{isAr ? "زيارة جديدة" : "New Visit"}</span>
             </button>
-            <button onClick={onClose} className="text-slate-400 hover:text-white p-2 rounded-lg transition bg-slate-800 hover:bg-slate-700 border border-slate-700">
-              <X className="w-5 h-5" />
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Uploading Clinical Document", titleAr: "رفع وثيقة طبية", type: "form" } }))}
+              className="flex-none bg-sky-600 text-white hover:bg-sky-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 text-[10px] sm:text-xs font-bold shadow-sm"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>{isAr ? "رفع وثيقة" : "Upload Document"}</span>
+            </button>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Adding New Medical Report", titleAr: "إضافة تقرير طبي جديد", type: "form" } }))}
+              className="flex-none bg-indigo-600 text-white hover:bg-indigo-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 text-[10px] sm:text-xs font-bold shadow-sm"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>{isAr ? "إضافة تقرير" : "Add Report"}</span>
+            </button>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Patient Details", titleAr: "تعديل بيانات المريض", type: "patient", entityId: patientId } }))} 
+              className="flex-none bg-indigo-600 text-white hover:bg-indigo-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 text-[10px] sm:text-xs font-bold shadow-sm"
+            >
+              <FileEdit className="w-3.5 h-3.5" />
+              <span>{isAr ? "تعديل" : "Edit"}</span>
+            </button>
+            <button 
+              onClick={() => setShowPrintPreview(true)}
+              className="flex-none bg-white text-slate-900 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 text-[10px] sm:text-xs font-bold shadow-sm"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>{isAr ? "طباعة" : "Print"}</span>
             </button>
           </div>
+        </div>
+
+        {/* Patient Status Strip */}
+        <div className="bg-slate-800 text-slate-400 p-2 border-b border-slate-700 flex flex-wrap items-center gap-4 text-[10px] font-bold overflow-x-auto hide-scrollbar shrink-0">
+           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20">
+             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+             {isAr ? "الحالة: مستقر" : "Status: Stable"}
+           </div>
+           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700 text-slate-300 rounded border border-slate-600">
+             {isAr ? "القسم: الرعاية المركزة (ICU-2)" : "Ward: ICU-2"}
+           </div>
+           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700 text-slate-300 rounded border border-slate-600">
+             {isAr ? "الطبيب المعالج: د. أحمد كمال" : "Physician: Dr. Ahmed Kamal"}
+           </div>
+           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-500/10 text-rose-400 rounded border border-rose-500/20">
+             {isAr ? "نظام الغذاء: NPO" : "Diet: NPO"}
+           </div>
+           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20">
+             {isAr ? "الاحتياطات: عزل تنفسي" : "Precautions: Respiratory Isolation"}
+           </div>
         </div>
 
         {transferStatus === 'pending_bed' && (
@@ -698,7 +1150,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
             </div>
             <button 
               onClick={() => {
-                toast.success(isAr ? "تم تأكيد وصول المريض للقسم الجديد بنجاح، وتم إشعار الخدمات الفندقية لتنظيف السرير القديم." : "Patient arrival confirmed. Housekeeping notified to clean old bed.");
+                window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient arrival confirmed. Housekeeping notified to clean old bed.", titleAr: "تم تأكيد وصول المريض للقسم الجديد بنجاح، وتم إشعار الخدمات الفندقية لتنظيف السرير القديم.", type: "form" } }));
                 setTransferStatus('transferred');
               }}
               className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-2 shadow-sm"
@@ -718,15 +1170,15 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
           </div>
         )}
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* Vertical Sidebar Tabs */}
-          <div className="w-48 sm:w-56 bg-slate-50 border-l border-slate-200 overflow-y-auto shrink-0 hide-scrollbar">
-            <div className="p-2 space-y-1">
+          <div className="w-full md:w-48 lg:w-56 bg-slate-50 border-b md:border-b-0 md:border-l rtl:md:border-r rtl:md:border-l-0 border-slate-200 overflow-x-auto md:overflow-y-auto shrink-0 hide-scrollbar">
+            <div className="p-2 flex flex-row md:flex-col gap-1 md:space-y-1">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold transition-all text-right ${
+                  className={`w-auto md:w-full flex shrink-0 items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold transition-all text-right ${
                     activeTab === tab.id 
                       ? "bg-indigo-600 text-white shadow-md" 
                       : "text-slate-600 hover:bg-slate-200"
@@ -741,6 +1193,15 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
           {/* Main Content Area */}
           <div className="flex-1 overflow-y-auto bg-white p-4 sm:p-6">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="w-full"
+              >
             
             {activeTab === "summary" && (
               <div className="space-y-6 max-w-5xl mx-auto">
@@ -824,27 +1285,36 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                    {isAr ? "التسلسل الزمني للمريض" : "Patient Clinical Timeline"}
                  </h3>
                  <div className="relative border-l-2 border-indigo-100 ml-4 pl-6 space-y-8" dir={isAr ? "rtl" : "ltr"} style={{ borderLeftWidth: isAr ? 0 : '2px', borderRightWidth: isAr ? '2px' : 0, marginLeft: isAr ? 0 : '1rem', marginRight: isAr ? '1rem' : 0, paddingLeft: isAr ? 0 : '1.5rem', paddingRight: isAr ? '1.5rem' : 0 }}>
-                   <div className="relative">
-                     <div className={`absolute top-0 w-4 h-4 rounded-full bg-indigo-500 ring-4 ring-white ${isAr ? '-right-[1.95rem]' : '-left-[1.95rem]'}`}></div>
+                   <div className="relative group cursor-pointer" onClick={() => setActiveTab("mar")}>
+                     <div className={`absolute top-0 w-4 h-4 rounded-full bg-indigo-500 ring-4 ring-white transition group-hover:scale-125 ${isAr ? '-right-[1.95rem]' : '-left-[1.95rem]'}`}></div>
                      <p className="text-xs font-bold text-indigo-600 mb-1">Today, 10:45 AM</p>
-                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                       <p className="font-bold text-slate-800">{isAr ? "تم إعطاء الأدوية" : "Medication Administered"}</p>
+                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm transition group-hover:border-indigo-400 group-hover:shadow-md">
+                       <p className="font-bold text-slate-800 flex items-center justify-between">
+                         {isAr ? "تم إعطاء الأدوية" : "Medication Administered"}
+                         <ArrowLeft className={`w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition ${isAr ? 'rotate-180' : ''}`} />
+                       </p>
                        <p className="text-sm text-slate-500 mt-1">{isAr ? "Aspirin 81mg بواسطة الممرضة سارة" : "Aspirin 81mg administered by Nurse Sarah"}</p>
                      </div>
                    </div>
-                   <div className="relative">
-                     <div className={`absolute top-0 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-white ${isAr ? '-right-[1.95rem]' : '-left-[1.95rem]'}`}></div>
+                   <div className="relative group cursor-pointer" onClick={() => setActiveTab("labs")}>
+                     <div className={`absolute top-0 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-white transition group-hover:scale-125 ${isAr ? '-right-[1.95rem]' : '-left-[1.95rem]'}`}></div>
                      <p className="text-xs font-bold text-emerald-600 mb-1">Today, 08:30 AM</p>
-                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                       <p className="font-bold text-slate-800">{isAr ? "نتائج المختبر متاحة" : "Lab Results Available"}</p>
+                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm transition group-hover:border-emerald-400 group-hover:shadow-md">
+                       <p className="font-bold text-slate-800 flex items-center justify-between">
+                         {isAr ? "نتائج المختبر متاحة" : "Lab Results Available"}
+                         <ArrowLeft className={`w-3.5 h-3.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition ${isAr ? 'rotate-180' : ''}`} />
+                       </p>
                        <p className="text-sm text-slate-500 mt-1">{isAr ? "نتائج تحليل الدم الشامل ضمن النطاق الطبيعي" : "CBC results are within normal ranges"}</p>
                      </div>
                    </div>
-                   <div className="relative">
-                     <div className={`absolute top-0 w-4 h-4 rounded-full bg-sky-500 ring-4 ring-white ${isAr ? '-right-[1.95rem]' : '-left-[1.95rem]'}`}></div>
+                   <div className="relative group cursor-pointer" onClick={() => setActiveTab("progress_notes")}>
+                     <div className={`absolute top-0 w-4 h-4 rounded-full bg-sky-500 ring-4 ring-white transition group-hover:scale-125 ${isAr ? '-right-[1.95rem]' : '-left-[1.95rem]'}`}></div>
                      <p className="text-xs font-bold text-sky-600 mb-1">Yesterday, 11:15 PM</p>
-                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                       <p className="font-bold text-slate-800">{isAr ? "ملاحظة الطبيب" : "Physician Note Added"}</p>
+                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm transition group-hover:border-sky-400 group-hover:shadow-md">
+                       <p className="font-bold text-slate-800 flex items-center justify-between">
+                         {isAr ? "ملاحظة الطبيب" : "Physician Note Added"}
+                         <ArrowLeft className={`w-3.5 h-3.5 text-sky-400 opacity-0 group-hover:opacity-100 transition ${isAr ? 'rotate-180' : ''}`} />
+                       </p>
                        <p className="text-sm text-slate-500 mt-1">{isAr ? "حالة المريض مستقرة، مستمر على نفس الخطة العلاجية" : "Patient stable, continuing current care plan"}</p>
                      </div>
                    </div>
@@ -916,6 +1386,75 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                </div>
             )}
 
+            {activeTab === "doctor_desk" && (
+              <div className="flex-1 overflow-hidden h-full flex flex-col bg-slate-50">
+                <DoctorConsultationDesk 
+                  language={isAr ? "ar" : "en"} 
+                  forcedPatientId={patientId}
+                  isEmbedded={true}
+                />
+              </div>
+            )}
+
+            {activeTab === "nursing_desk" && (
+              <div className="flex-1 overflow-hidden h-full flex flex-col bg-slate-50">
+                <NursingConsole 
+                  patient={currentPatient} 
+                  staffId={currentUserObj?.id || "nurse1"} 
+                  language={isAr ? "ar" : "en"}
+                />
+              </div>
+            )}
+
+            {activeTab === "reports" && (
+               <div className="p-6 space-y-6">
+                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-xl border border-slate-200 gap-4">
+                   <div>
+                     <h3 className="font-bold text-lg text-slate-800">{isAr ? "التقارير الطبية والطباعة" : "Medical Reports & Printing"}</h3>
+                     <p className="text-xs text-slate-500">{isAr ? "يمكنك توليد تقارير شاملة أو مخصصة وطباعتها" : "Generate and print comprehensive or custom reports"}</p>
+                   </div>
+                   <div className="flex gap-2 w-full sm:w-auto">
+                     <button className="flex-1 sm:flex-none bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition">
+                       <Plus className="w-4 h-4" />
+                       {isAr ? "إنشاء تقرير" : "Create Report"}
+                     </button>
+                     <button 
+                       onClick={() => setShowPrintPreview(true)}
+                       className="flex-1 sm:flex-none bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-900 transition"
+                     >
+                       <Printer className="w-4 h-4" />
+                       {isAr ? "طباعة الملف" : "Print Record"}
+                     </button>
+                   </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      { id: "sum", ar: "تقرير ملخص الحالة", en: "Case Summary Report", date: "2026-07-10" },
+                      { id: "lab", ar: "تقرير نتائج المختبر", en: "Lab Results Report", date: "2026-07-11" },
+                      { id: "rad", ar: "تقرير الأشعة", en: "Radiology Report", date: "2026-07-09" },
+                      { id: "dis", ar: "ملخص الخروج", en: "Discharge Summary", date: "N/A" }
+                    ].map(report => (
+                      <div key={report.id} className="bg-white border border-slate-200 p-4 rounded-xl hover:shadow-md transition group cursor-pointer">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 font-mono">{report.date}</span>
+                        </div>
+                        <h4 className="font-bold text-slate-800 mb-1">{isAr ? report.ar : report.en}</h4>
+                        <div className="flex items-center justify-between mt-4">
+                          <button className="text-indigo-600 hover:text-indigo-800 text-xs font-bold">{isAr ? "عرض" : "View"}</button>
+                          <button className="text-slate-500 hover:text-slate-800">
+                             <Printer className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                 </div>
+               </div>
+            )}
+
             {activeTab === "progress_notes" && (
               <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -946,7 +1485,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     />
                     <div className="flex justify-between items-center">
                       <div className="text-[10px] font-bold text-slate-400 font-mono">
-                        Author: Dr. Ahmed Ali (Cardiology)
+                        ✍️ E-Signature (Timestamped): Dr. Ahmed Ali (Cardiology)
                       </div>
                       <button 
                         onClick={handleSaveProgressNote}
@@ -964,14 +1503,24 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     { id: "pn1", author: "Dr. Ahmed Ali (Cardiology)", text: isAr ? "حالة المريض مستقرة بعد العملية. العلامات الحيوية جيدة وقيد المتابعة مستمرة." : "Patient status is stable post-op. Vital signs are within normal limits and being monitored.", date: "2026-06-29 09:00" },
                     { id: "pn2", author: "Dr. Samir Hassan (Consultant)", text: isAr ? "يجب مراقبة مستويات السكر في الدم وضبط جرعة الأنسولين بناءً على الفحوصات الطبية الدورية." : "Monitor blood glucose levels and adjust Insulin dosage accordingly based on tests.", date: "2026-06-29 14:30" }
                   ]).map((note: any) => (
-                    <div key={note.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs flex gap-3 items-start relative hover:border-slate-300 transition">
+                    <div key={note.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs flex gap-3 items-start relative hover:border-slate-300 transition group">
                       <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-xs border border-indigo-100 uppercase shrink-0">
                         Dr
                       </div>
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <span className="font-bold text-xs text-slate-800">{note.author}</span>
-                          <span className="text-[10px] text-slate-400 font-mono font-bold">{note.date}</span>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => {
+                                window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Progress Note", titleAr: "تعديل ملاحظة التطور", type: "form" } }));
+                              }}
+                              className="opacity-0 group-hover:opacity-100 transition text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                            >
+                                <FileEdit className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-[10px] text-slate-400 font-mono font-bold">{note.date}</span>
+                          </div>
                         </div>
                         <p className="text-sm font-semibold text-slate-600 leading-relaxed whitespace-pre-wrap">{note.text}</p>
                       </div>
@@ -1011,7 +1560,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     />
                     <div className="flex justify-between items-center">
                       <div className="text-[10px] font-bold text-slate-400 font-mono">
-                        Author: RN. Fatima Saeed
+                        ✍️ E-Signature (Timestamped): RN. Fatima Saeed
                       </div>
                       <button 
                         onClick={handleSaveNurseNote}
@@ -1029,14 +1578,24 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     { id: "nn1", author: "RN. Sarah Jones", text: isAr ? "تم إعطاء الأدوية الوريدية المقررة في موعدها المعتمد. المريض لا يعاني من ألم حالياً." : "Prescribed IV medications administered on schedule. Patient reports no pain currently.", date: "2026-06-30 08:00" },
                     { id: "nn2", author: "RN. Fatima Saeed", text: isAr ? "تم تغيير ضماد الجرح الجراحي بنجاح. الجرح نظيف تماماً ولا توجد أي علامات للالتهاب الموضعي." : "Surgical wound dressing changed successfully. Wound is clean, no signs of infection.", date: "2026-06-30 11:30" }
                   ]).map((note: any) => (
-                    <div key={note.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs flex gap-3 items-start relative hover:border-slate-300 transition">
+                    <div key={note.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs flex gap-3 items-start relative hover:border-slate-300 transition group">
                       <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-600 font-bold flex items-center justify-center text-xs border border-sky-100 uppercase shrink-0">
                         RN
                       </div>
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <span className="font-bold text-xs text-slate-800">{note.author}</span>
-                          <span className="text-[10px] text-slate-400 font-mono font-bold">{note.date}</span>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => {
+                                window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Nursing Note", titleAr: "تعديل ملاحظة التمريض", type: "form" } }));
+                              }}
+                              className="opacity-0 group-hover:opacity-100 transition text-sky-600 hover:text-sky-800 cursor-pointer"
+                            >
+                                <FileEdit className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-[10px] text-slate-400 font-mono font-bold">{note.date}</span>
+                          </div>
                         </div>
                         <p className="text-sm font-semibold text-slate-600 leading-relaxed whitespace-pre-wrap">{note.text}</p>
                       </div>
@@ -1410,8 +1969,8 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                           spo2: parseInt(vitalsSpO2) || 98,
                           rr: parseInt(vitalsRR) || 16
                         };
-                        updatePatient(patientId, { vitalsLog: [newEntry, ...logs] });
-                        toast.success(isAr ? "تم حفظ العلامة الحيوية الجديدة بنجاح" : "Vital signs recorded successfully");
+                        updatePatient(currentPatient.id, { vitalsLog: [newEntry, ...logs] });
+                        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Vital signs recorded successfully", titleAr: "تم حفظ العلامة الحيوية الجديدة بنجاح", type: "form" } }));
                       }}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
                     >
@@ -1435,6 +1994,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                               <th className="py-2 text-center">{isAr ? "الحرارة" : "Temp (°C)"}</th>
                               <th className="py-2 text-center">{isAr ? "الأكسجين" : "SpO2 (%)"}</th>
                               <th className="py-2 text-center">{isAr ? "التنفس" : "RR (bpm)"}</th>
+                              <th className="py-2 text-center w-10"></th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
@@ -1450,13 +2010,18 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                               const isSpO2Low = spo2Num < 95;
 
                               return (
-                                <tr key={idx} className="hover:bg-slate-50/50 transition">
+                                <tr key={idx} className="hover:bg-slate-50/50 transition group">
                                   <td className="py-3 font-mono text-slate-500 text-[10px]">{log.time}</td>
                                   <td className="py-3 text-center font-mono font-black text-indigo-700">{log.bp}</td>
                                   <td className={`py-3 text-center font-mono ${isHrHigh ? "text-rose-600 font-black" : ""}`}>{log.hr} {isHrHigh && "⚠️"}</td>
                                   <td className={`py-3 text-center font-mono ${isTempHigh ? "text-rose-600 font-black" : ""}`}>{log.temp}°C</td>
                                   <td className={`py-3 text-center font-mono ${isSpO2Low ? "text-rose-600 font-black" : ""}`}>{log.spo2}%</td>
                                   <td className="py-3 text-center font-mono">{log.rr}</td>
+                                  <td className="py-3 text-center">
+                                    <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="opacity-0 group-hover:opacity-100 transition text-indigo-600 hover:text-indigo-800 p-1">
+<FileEdit className="w-3.5 h-3.5" />
+</button>
+                                  </td>
                                 </tr>
                               );
                             })}
@@ -1491,63 +2056,337 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     {(currentPatient.prescriptions && currentPatient.prescriptions.length > 0 ? currentPatient.prescriptions : [
                       { id: "rx-default-1", name: "Ceftriaxone IV (مضاد حيوي)", dosage: "1g IV Q12H", status: "Active", date: "2026-06-29" },
                       { id: "rx-default-2", name: "Paracetamol Infusion (مسكن)", dosage: "1g IV Q8H", status: "Active", date: "2026-06-29" }
-                    ]).map((rx: any) => (
-                      <div key={rx.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/20 transition">
-                        <div className="space-y-1">
-                          <p className="font-extrabold text-sm text-slate-800 flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                            {rx.name}
-                          </p>
-                          <div className="flex gap-4 text-xs text-slate-500 font-semibold font-mono">
-                            <span>Dosage: <strong className="text-slate-700">{rx.dosage || "500mg PO BID"}</strong></span>
-                            <span>Ordered: {rx.date}</span>
+                    ]).map((rx: any) => {
+                      const isDc = rx.status === "discontinued";
+                      return (
+                        <div key={rx.id} className={`p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/20 transition ${isDc ? "bg-slate-50/50 opacity-60" : ""}`}>
+                          <div className="space-y-1.5 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {isDc ? (
+                                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span>
+                              ) : (
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                              )}
+                              <p className={`font-extrabold text-sm text-slate-800 ${isDc ? "line-through text-slate-400" : ""}`}>
+                                {rx.name || rx.medication}
+                              </p>
+                              {isDc && (
+                                <span className="text-[10px] bg-rose-50 text-rose-700 px-2 py-0.5 rounded-md border border-rose-200 font-bold">
+                                  {isAr ? `موقوف: ${rx.discontinueReason === 'allergy' ? 'تحسس دواء' : rx.discontinueReason === 'plan_change' ? 'تغيير الخطة' : rx.discontinueReason === 'improved' ? 'تحسن الحالة' : 'سبب طبي'}` : `Discontinued: ${rx.discontinueReason || "Plan changed"}`}
+                                </span>
+                              )}
+                              {rx.status === "pending" && (
+                                <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200 font-bold animate-pulse">
+                                  {isAr ? "بانتظار موافقة الصيدلية" : "Pending Pharmacy Verification"}
+                                </span>
+                              )}
+                              {rx.status === "dispensed" && (
+                                <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md border border-indigo-200 font-bold">
+                                  {isAr ? "تم الصرف والمطابقة" : "Verified & Dispensed"}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-xs text-slate-500 font-semibold font-mono">
+                              <span>Dosage: <strong className={`text-slate-700 ${isDc ? "line-through text-slate-400" : ""}`}>{rx.dosage || rx.dose || "500mg PO BID"}</strong></span>
+                              <span>Ordered: {rx.date}</span>
+                              {rx.route && <span>Route: <strong className="text-indigo-600">{rx.route}</strong></span>}
+                              {rx.frequency && <span>Frequency: <strong className="text-purple-600">{rx.frequency}</strong></span>}
+                            </div>
+                            {rx.specialInstructions && (
+                              <p className="text-[11px] text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-100 font-sans">
+                                <strong className="text-slate-700">{isAr ? "تعليمات خاصة:" : "Instructions:"}</strong> {rx.specialInstructions}
+                              </p>
+                            )}
                           </div>
-                        </div>
 
-                        {/* eMAR Timeline Slots */}
-                        <div className="flex flex-wrap items-center gap-3">
-                          {["08:00", "14:00", "20:00"].map((slot) => {
-                            const marKey = `${rx.id}-${slot}`;
-                            const adminRecord = (currentPatient.marLog || {})[marKey];
+                          {/* Action timeline / slots & Physician Discontinue button */}
+                          <div className="flex flex-wrap items-center gap-3 shrink-0">
+                            {/* eMAR Timeline Slots */}
+                            {["08:00", "14:00", "20:00"].map((slot) => {
+                              const marKey = `${rx.id}-${slot}`;
+                              const adminRecord = (currentPatient.marLog || {})[marKey];
 
-                            if (adminRecord) {
+                              if (isDc) {
+                                return (
+                                  <div key={slot} className="bg-slate-100 border border-slate-200 text-slate-400 p-2 rounded-xl text-[10px] font-semibold line-through">
+                                    {isAr ? `موقوف @ ${slot}` : `D/C @ ${slot}`}
+                                  </div>
+                                );
+                              }
+
+                              if (adminRecord) {
+                                const isHold = adminRecord.status === "Hold";
+                                return (
+                                  <div 
+                                    key={slot} 
+                                    className={`p-2 rounded-xl text-[10px] flex items-center gap-2 font-semibold border ${
+                                      isHold 
+                                        ? "bg-amber-50 border-amber-300 text-amber-800" 
+                                        : "bg-emerald-50 border-emerald-300 text-emerald-800"
+                                    }`}
+                                  >
+                                    <BadgeCheck className={`w-4 h-4 ${isHold ? "text-amber-600" : "text-emerald-600"}`} />
+                                    <div className="text-left font-mono">
+                                      <p className="font-black">
+                                        {isHold 
+                                          ? `${isAr ? "تأخير" : "Hold"} @ ${slot}` 
+                                          : `${isAr ? "أعطي" : "Given"} @ ${slot}`}
+                                      </p>
+                                      {isHold && (
+                                        <p className="text-[9px] text-amber-700 font-sans max-w-[120px] truncate">
+                                          {isAr ? adminRecord.reasonAr : adminRecord.reasonEn}
+                                        </p>
+                                      )}
+                                      <p className="text-[8px] text-slate-400 font-sans">{adminRecord.by}</p>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
                               return (
-                                <div key={slot} className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-2 rounded-xl text-[10px] flex items-center gap-2 font-semibold">
-                                  <BadgeCheck className="w-4 h-4 text-emerald-600" />
-                                  <div className="text-left font-mono">
-                                    <p className="font-black">Given @ {slot}</p>
-                                    <p className="text-[8px] text-slate-400 font-sans">{adminRecord.by}</p>
+                                <div key={slot} className="flex flex-col gap-1 items-stretch bg-slate-50/50 p-2 rounded-xl border border-slate-200">
+                                  <span className="text-[10px] text-slate-400 font-extrabold text-center font-mono">{slot}</span>
+                                  <div className="flex gap-1">
+                                    {/* Give button */}
+                                    <button
+                                      onClick={() => {
+                                        const marLog = currentPatient.marLog || {};
+                                        const updatedMarLog = {
+                                          ...marLog,
+                                          [marKey]: {
+                                            status: "Administered",
+                                            time: new Date().toLocaleTimeString().slice(0, 5),
+                                            by: isAr ? "سارة أحمد، ممرض قانوني (E-Signed)" : "Sarah Smith, RN (E-Signed)"
+                                          }
+                                        };
+                                        updatePatient(currentPatient.id, { marLog: updatedMarLog });
+                                        updatePrescriptionStatus(rx.id, "administered");
+                                        toast.success(isAr ? `تم تسجيل إعطاء جرعة ${rx.name || rx.medication} الساعة ${slot}` : `Recorded administration of ${rx.name || rx.medication} at ${slot}`);
+                                      }}
+                                      className="bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-600 hover:text-white px-2 py-1 rounded-lg text-[10px] font-black transition cursor-pointer"
+                                    >
+                                      {isAr ? "إعطاء" : "Give"}
+                                    </button>
+
+                                    {/* Hold button */}
+                                    <button
+                                      onClick={() => {
+                                        setNotGivenState({ rxId: rx.id, slot });
+                                      }}
+                                      className="bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-600 hover:text-white px-2 py-1 rounded-lg text-[10px] font-black transition cursor-pointer"
+                                    >
+                                      {isAr ? "تأخير" : "Hold"}
+                                    </button>
                                   </div>
                                 </div>
                               );
-                            }
+                            })}
 
-                            return (
+                            {/* Discontinue drug button (Physician Only or Admin) */}
+                            {!isDc && (userRole === "doctor" || userRole === "admin") && (
                               <button
-                                key={slot}
-                                onClick={() => {
-                                  const marLog = currentPatient.marLog || {};
-                                  const updatedMarLog = {
-                                    ...marLog,
-                                    [marKey]: {
-                                      status: "Administered",
-                                      time: new Date().toLocaleTimeString().slice(0, 5),
-                                      by: isAr ? "د. أحمد علي (E-Signed)" : "Sarah Smith, RN (E-Signed)"
-                                    }
-                                  };
-                                  updatePatient(patientId, { marLog: updatedMarLog });
-                                  toast.success(isAr ? `تم تسجيل إعطاء ${rx.name} بنجاح` : `Administration of ${rx.name} recorded at ${slot}`);
-                                }}
-                                className="border border-dashed border-slate-300 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 font-black px-4 py-2 rounded-xl text-xs transition cursor-pointer"
+                                onClick={() => setDiscontinueRxId(rx.id)}
+                                className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white px-2.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                                title={isAr ? "إيقاف صرف هذا الدواء" : "Discontinue Medication"}
                               >
-                                {isAr ? `إعطاء ${slot}` : `Give @ ${slot}`}
+                                <X className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">{isAr ? "إيقاف" : "D/C"}</span>
                               </button>
-                            );
-                          })}
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Mandate Reason Code Dialog for "Not Given / Delay" */}
+                  {notGivenState && (
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[999999] flex items-center justify-center p-4 animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
+                      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+                        <div className="bg-amber-600 text-white p-4 flex items-center justify-between shrink-0">
+                          <h3 className="font-bold text-base flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5 animate-bounce" />
+                            {isAr ? "تحديد سبب عدم إعطاء الجرعة / التأخير" : "Reason Code for Hold/Delay"}
+                          </h3>
+                          <button onClick={() => setNotGivenState(null)} className="hover:bg-amber-700 p-1.5 rounded-lg text-white transition cursor-pointer">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="p-5 space-y-4 overflow-y-auto custom-scrollbar">
+                          <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                            {isAr 
+                              ? "يتطلب بروتوكول سلامة المرضى المغلق (Closed-Loop) توثيق كود السبب الطبي لعدم تسليم الجرعة وضمان تسلم النوبتجية القادمة للبيانات بدقة."
+                              : "The closed-loop protocol requires documenting a reason code for omitting/delaying medication doses."}
+                          </p>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">
+                              {isAr ? "اختر كود السبب" : "Select Reason Code"}
+                            </label>
+                            {[
+                              { code: "patient_out", en: "Patient off-ward / outside department", ar: "المريض خارج القسم أو الجناح" },
+                              { code: "patient_refusal", en: "Patient refused dose", ar: "رفض المريض تناول الجرعة" },
+                              { code: "clinical_hold", en: "Clinical Hold (e.g. low blood pressure, bradycardia)", ar: "مانع طبي مؤقت للجرعة (Clinical Hold)" },
+                              { code: "npo", en: "Patient is Fasting (NPO)", ar: "المريض صائم (NPO)" },
+                              { code: "out_of_stock", en: "Medication out of stock / unavailable", ar: "الدواء غير متوفر / نافد من القسم" },
+                              { code: "complication", en: "Immediate complications (vomiting, etc.)", ar: "مضاعفات فورية (مثل القيء الحاد)" }
+                            ].map((item) => (
+                              <button
+                                key={item.code}
+                                onClick={() => setSelectedHoldReason(item.code)}
+                                className={`w-full text-right sm:text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between border ${
+                                  selectedHoldReason === item.code 
+                                    ? "bg-amber-50 border-amber-400 text-amber-900" 
+                                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                                }`}
+                              >
+                                <span>{isAr ? item.ar : item.en}</span>
+                                {selectedHoldReason === item.code && <BadgeCheck className="w-4 h-4 text-amber-600 shrink-0" />}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="space-y-1 pt-2 border-t border-slate-100">
+                            <label className="text-xs font-bold text-slate-700 block">
+                              {isAr ? "ملاحظات إضافية (اختياري)" : "Additional Notes (Optional)"}
+                            </label>
+                            <textarea
+                              value={holdNotes}
+                              onChange={(e) => setHoldNotes(e.target.value)}
+                              rows={2}
+                              placeholder={isAr ? "أضف أي تفاصيل أخرى لتوضيح سبب عدم الإعطاء..." : "Add any other details..."}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:ring-2 focus:ring-amber-500 text-slate-700 resize-none"
+                            ></textarea>
+                          </div>
+                        </div>
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
+                          <button onClick={() => setNotGivenState(null)} className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+                            {isAr ? "إلغاء" : "Cancel"}
+                          </button>
+                          <button 
+                            onClick={() => {
+                              const marLog = currentPatient.marLog || {};
+                              const marKey = `${notGivenState.rxId}-${notGivenState.slot}`;
+                              
+                              const holdReasonsAr = {
+                                patient_out: "المريض خارج القسم",
+                                patient_refusal: "رفض المريض الجرعة",
+                                clinical_hold: "مانع طبي مؤقت",
+                                npo: "المريض صائم (NPO)",
+                                out_of_stock: "الدواء غير متوفر بالقسم",
+                                complication: "مضاعفات فورية (تقيؤ)"
+                              };
+                              const holdReasonsEn = {
+                                patient_out: "Patient off-ward",
+                                patient_refusal: "Patient refused",
+                                clinical_hold: "Clinical hold",
+                                npo: "Patient is NPO (fasting)",
+                                out_of_stock: "Medication unavailable",
+                                complication: "Immediate complications"
+                              };
+
+                              const fullReasonAr = holdNotes.trim() ? `${holdReasonsAr[selectedHoldReason]} - ${holdNotes}` : holdReasonsAr[selectedHoldReason];
+                              const fullReasonEn = holdNotes.trim() ? `${holdReasonsEn[selectedHoldReason]} - ${holdNotes}` : holdReasonsEn[selectedHoldReason];
+
+                              const updatedMarLog = {
+                                ...marLog,
+                                [marKey]: {
+                                  status: "Hold",
+                                  time: new Date().toLocaleTimeString().slice(0, 5),
+                                  by: isAr ? "سارة أحمد، ممرض قانوني (E-Signed)" : "Sarah Smith, RN (E-Signed)",
+                                  reasonAr: fullReasonAr,
+                                  reasonEn: fullReasonEn
+                                }
+                              };
+                              updatePatient(currentPatient.id, { marLog: updatedMarLog });
+                              updatePrescriptionStatus(notGivenState.rxId, "not_given", {
+                                holdReason: fullReasonEn
+                              });
+                              setNotGivenState(null);
+                              setHoldNotes("");
+                              toast.warning(isAr ? "تم تسجيل تأخير إعطاء الجرعة وتوثيق كود السبب بنجاح." : "Omitting/hold of medication dose documented successfully.");
+                            }}
+                            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-md transition cursor-pointer"
+                          >
+                            {isAr ? "حفظ وتوثيق السبب" : "Save & Document Hold"}
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Discontinue Order Reason Dialog */}
+                  {discontinueRxId && (
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[999999] flex items-center justify-center p-4 animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
+                      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200">
+                        <div className="bg-rose-600 text-white p-4 flex items-center justify-between">
+                          <h3 className="font-bold text-base flex items-center gap-2">
+                            <Ban className="w-5 h-5 animate-pulse" />
+                            {isAr ? "إيقاف صرف الدواء (D/C)" : "Discontinue Medication (D/C)"}
+                          </h3>
+                          <button onClick={() => setDiscontinueRxId(null)} className="hover:bg-rose-700 p-1.5 rounded-lg text-white transition cursor-pointer">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="p-5 space-y-4">
+                          <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                            {isAr 
+                              ? "سيتم شطب الدواء من جدول إعطاء الأدوية وإبلاغ الصيدلية فوراً. يرجى تحديد السبب الطبي:"
+                              : "This will strike through the medication on the MAR and notify pharmacy immediately. Select clinical reason:"}
+                          </p>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">
+                              {isAr ? "اختر كود إيقاف العلاج" : "Select Discontinuation Code"}
+                            </label>
+                            {[
+                              { code: "allergy", en: "Adverse Reaction / Allergy", ar: "رد فعل تحسسي / تفاعل عكسي" },
+                              { code: "completed", en: "Course Completed", ar: "انتهاء فترة العلاج المقررة" },
+                              { code: "ineffective", en: "Ineffective / Switch required", ar: "غير فعال / يتطلب تغييراً" },
+                              { code: "error", en: "Entered in error", ar: "أُدخل بالخطأ" }
+                            ].map((item) => (
+                              <button
+                                key={item.code}
+                                onClick={() => setSelectedDiscontinueReason(item.code)}
+                                className={`w-full text-right sm:text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between border ${
+                                  selectedDiscontinueReason === item.code 
+                                    ? "bg-rose-50 border-rose-400 text-rose-900" 
+                                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                                }`}
+                              >
+                                <span>{isAr ? item.ar : item.en}</span>
+                                {selectedDiscontinueReason === item.code && <BadgeCheck className="w-4 h-4 text-rose-600 shrink-0" />}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                          <button onClick={() => setDiscontinueRxId(null)} className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+                            {isAr ? "تراجع" : "Cancel"}
+                          </button>
+                          <button 
+                            onClick={() => {
+                              const updatedPrescriptions = currentPatient.prescriptions?.map(rx => 
+                                rx.id === discontinueRxId ? { ...rx, status: "discontinued" as "discontinued" } : rx
+                              );
+                              
+                              // Update active patient prescriptions nested
+                              updatePatient(currentPatient.id, { prescriptions: updatedPrescriptions });
+                              
+                              // Update global context prescriptions
+                              updatePrescriptionStatus(discontinueRxId, "discontinued", {
+                                discontinueReason: selectedDiscontinueReason
+                              });
+
+                              setDiscontinueRxId(null);
+                              toast.success(isAr ? "تم إيقاف الدواء وشطبه بنجاح من شاشات التمريض والصيدلية." : "Medication order discontinued and struck through on MAR.");
+                            }}
+                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-md transition cursor-pointer"
+                          >
+                            {isAr ? "توقيع وإيقاف العلاج" : "Sign & Discontinue Order"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1825,6 +2664,499 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
               </div>
             )}
 
+            {/* Problems & Allergies Tab */}
+            {activeTab === "problems" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-rose-600" />
+                    {isAr ? "التشخيصات والحساسية" : "Problems & Allergies"}
+                  </h3>
+                  <button 
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Add Problem or Allergy", titleAr: "إضافة تشخيص أو حساسية", type: "form" } }));
+                    }}
+                    className="bg-rose-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-rose-700 transition flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {isAr ? "إضافة تشخيص/حساسية" : "Add Problem/Allergy"}
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Allergies */}
+                  <div className="bg-white border border-rose-200 rounded-2xl p-6 shadow-sm">
+                    <h4 className="font-black text-rose-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4" />
+                      {isAr ? "تنبيهات الحساسية" : "Allergies"}
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-rose-50 border border-rose-100 rounded-xl group relative">
+                        <div>
+                          <p className="font-bold text-rose-900">Penicillin (بنسيلين)</p>
+                          <p className="text-xs text-rose-700 mt-1">Reaction: Severe Rash & Anaphylaxis risk</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="opacity-0 group-hover:opacity-100 transition text-rose-600 hover:text-rose-800">
+<FileEdit className="w-4 h-4" />
+</button>
+                          <span className="bg-rose-200 text-rose-800 px-2 py-1 rounded text-xs font-black uppercase">Active</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Problems */}
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <h4 className="font-black text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-indigo-500" />
+                      {isAr ? "التشخيصات النشطة" : "Active Problem List"}
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition group">
+                        <div>
+                          <p className="font-bold text-slate-800">Essential Hypertension</p>
+                          <p className="text-xs text-slate-500 mt-1 font-mono">ICD-10: I10</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="opacity-0 group-hover:opacity-100 transition text-indigo-600 hover:text-indigo-800">
+<FileEdit className="w-4 h-4" />
+</button>
+                          <span className="text-xs text-slate-400 font-bold">Diagnosed: 2024</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition group">
+                        <div>
+                          <p className="font-bold text-slate-800">Type 2 Diabetes Mellitus</p>
+                          <p className="text-xs text-slate-500 mt-1 font-mono">ICD-10: E11.9</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="opacity-0 group-hover:opacity-100 transition text-indigo-600 hover:text-indigo-800">
+<FileEdit className="w-4 h-4" />
+</button>
+                          <span className="text-xs text-slate-400 font-bold">Diagnosed: 2025</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Care Plan Tab */}
+            {activeTab === "care_plan" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                    {isAr ? "خطة الرعاية" : "Care Plan"}
+                  </h3>
+                  <div className="flex gap-2">
+                    <button className="bg-indigo-50 text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-indigo-100 transition flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      {isAr ? "سجل الخطط السابقة" : "History"}
+                    </button>
+                    <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-emerald-700 transition flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      {isAr ? "تحديث الخطة" : "Update Plan"}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                  <div className="space-y-6">
+                    <div className="group relative">
+                      <h4 className="font-black text-slate-800 text-sm mb-2 flex items-center justify-between">
+                        {isAr ? "أهداف الرعاية الحالية" : "Current Goals of Care"}
+                        <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="opacity-0 group-hover:opacity-100 transition text-indigo-600 hover:text-indigo-800 bg-white shadow-sm border border-slate-200 p-1.5 rounded-md cursor-pointer">
+<FileEdit className="w-3.5 h-3.5" />
+</button>
+                      </h4>
+                      <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        Patient to maintain stable blood pressure below 130/80 mmHg. Achieve pain control level below 3/10. Early mobilization on post-op day 1.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-black text-slate-800 text-sm mb-3 flex items-center justify-between">
+                        {isAr ? "التدخلات التمريضية والطبية" : "Interventions"}
+                        <button className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 cursor-pointer">
+                            <Plus className="w-3.5 h-3.5" />
+                            {isAr ? "إضافة تدخل" : "Add Intervention"}
+                        </button>
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="group relative flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" defaultChecked />
+                            <span className="text-sm font-semibold text-slate-700 line-through">Vitals monitoring every 4 hours</span>
+                          </label>
+                          <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition">
+                             <span className="text-[10px] text-slate-400 font-bold font-mono">08:00 AM</span>
+                             <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="text-indigo-600 hover:text-indigo-800 cursor-pointer"><FileEdit className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                        <div className="group relative flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" />
+                            <span className="text-sm font-semibold text-slate-700">Strict Intake and Output charting</span>
+                          </label>
+                          <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition">
+                             <span className="text-[10px] text-slate-400 font-bold font-mono">Pending</span>
+                             <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="text-indigo-600 hover:text-indigo-800 cursor-pointer"><FileEdit className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                        <div className="group relative flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" />
+                            <span className="text-sm font-semibold text-slate-700">Physical therapy consultation for mobility</span>
+                          </label>
+                          <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition">
+                             <span className="text-[10px] text-slate-400 font-bold font-mono">Pending</span>
+                             <button onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Record", titleAr: "تعديل السجل", type: "form" } }))} className="text-indigo-600 hover:text-indigo-800 cursor-pointer"><FileEdit className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Surgery & Procedures Tab */}
+            {activeTab === "surgery" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-indigo-600" />
+                    {isAr ? "العمليات والإجراءات السريرية" : "Surgery & Clinical Procedures"}
+                  </h3>
+                </div>
+                
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                  <table className="w-full text-xs text-left" dir="ltr">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-black uppercase text-[10px] tracking-wider">
+                        <th className="p-4">{isAr ? "الإجراء" : "Procedure"}</th>
+                        <th className="p-4">{isAr ? "التاريخ" : "Date"}</th>
+                        <th className="p-4">{isAr ? "الجراح / الطبيب" : "Surgeon / Physician"}</th>
+                        <th className="p-4">{isAr ? "الملاحظات" : "Notes"}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                      <tr className="hover:bg-slate-50/50 transition">
+                        <td className="p-4">
+                          <p className="font-extrabold text-slate-800">Laparoscopic Appendectomy</p>
+                          <p className="text-[10px] text-slate-400 font-mono">CPT: 44970</p>
+                        </td>
+                        <td className="p-4">2023-05-12</td>
+                        <td className="p-4">Dr. Tarek Mahmoud</td>
+                        <td className="p-4 text-slate-500">Uncomplicated. Patient discharged POD 1.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Attachments Tab */}
+            {activeTab === "attachments" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-sky-600" />
+                    {isAr ? "المرفقات والمستندات" : "Attachments & Documents"}
+                  </h3>
+                  <button className="bg-sky-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-sky-700 transition flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    {isAr ? "إضافة ملف" : "Upload File"}
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="border border-slate-200 p-4 rounded-2xl flex items-center gap-4 bg-white hover:border-sky-300 transition cursor-pointer">
+                    <div className="w-12 h-12 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center shrink-0">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-slate-800">National ID Card</p>
+                      <p className="text-[10px] text-slate-400">PDF • 1.2 MB • Uploaded 2026-01-10</p>
+                    </div>
+                  </div>
+                  <div className="border border-slate-200 p-4 rounded-2xl flex items-center gap-4 bg-white hover:border-sky-300 transition cursor-pointer">
+                    <div className="w-12 h-12 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center shrink-0">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-slate-800">External Lab Results</p>
+                      <p className="text-[10px] text-slate-400">PDF • 2.4 MB • Uploaded 2026-06-25</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Billing Tab */}
+            {activeTab === "billing" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-emerald-600" />
+                    {isAr ? "الفوترة والتأمين" : "Billing & Insurance"}
+                  </h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <h4 className="font-black text-slate-800 uppercase tracking-widest mb-4">{isAr ? "بيانات التأمين" : "Insurance Details"}</h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between border-b border-slate-100 pb-2">
+                        <span className="text-slate-500">{isAr ? "الشركة" : "Provider"}</span>
+                        <span className="font-bold text-slate-800">Bupa Arabia</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-100 pb-2">
+                        <span className="text-slate-500">{isAr ? "رقم البوليصة" : "Policy Number"}</span>
+                        <span className="font-mono font-bold text-slate-800">POL-883726</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-100 pb-2">
+                        <span className="text-slate-500">{isAr ? "شبكة التغطية" : "Network"}</span>
+                        <span className="font-bold text-slate-800">Class A</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-100 pb-2">
+                        <span className="text-slate-500">{isAr ? "الحالة" : "Status"}</span>
+                        <span className="bg-emerald-100 text-emerald-800 px-2 rounded text-xs font-bold uppercase">Active</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <h4 className="font-black text-slate-800 uppercase tracking-widest mb-4">{isAr ? "الرصيد الحالي للزيارة" : "Current Encounter Balance"}</h4>
+                    <div className="space-y-4">
+                      <div className="flex flex-col items-center justify-center h-28 bg-slate-50 rounded-xl border border-slate-100">
+                        <span className="text-slate-500 text-xs font-bold uppercase mb-2">{isAr ? "المبلغ المستحق (غير مغطى)" : "Patient Responsibility"}</span>
+                        <span className="text-4xl font-black text-slate-900">
+                          ${(120 + (currentPatient.consumables?.reduce((acc: number, curr: any) => acc + (curr.price * curr.qty), 0) || 0)).toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      {currentPatient.consumables?.length > 0 && (
+                        <div className="pt-4 border-t border-slate-100">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{isAr ? "تفاصيل المستهلكات" : "Consumables Breakdown"}</p>
+                          <div className="space-y-1.5 max-h-32 overflow-y-auto pr-2">
+                            {currentPatient.consumables.map((c: any) => (
+                              <div key={c.id} className="flex justify-between text-xs font-bold text-slate-600">
+                                <span>{isAr ? c.nameAr : c.nameEn} (x{c.qty})</span>
+                                <span className="font-mono">${(c.price * c.qty).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Consumables Tab */}
+            {activeTab === "consumables" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <Syringe className="w-5 h-5 text-emerald-600" />
+                    {isAr ? "المستهلكات الطبية" : "Medical Consumables"}
+                  </h3>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    {isAr ? "إضافة مستهلكات للفاتورة" : "Record Supplies for Billing"}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Entry Form */}
+                  <div className="lg:col-span-1 space-y-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-500 uppercase tracking-wider">{isAr ? "البحث عن صنف" : "Search Item"}</label>
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition font-bold"
+                            placeholder={isAr ? "ابحث بالاسم..." : "Search by name..."}
+                            value={consumableSearchTerm}
+                            onChange={(e) => setConsumableSearchTerm(e.target.value)}
+                          />
+                          {consumableSearchTerm && !selectedConsumable && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto">
+                              {filteredInventory.map(item => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => {
+                                    setSelectedConsumable(item);
+                                    setConsumableSearchTerm(isAr ? item.nameAr : item.nameEn);
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-emerald-50 text-sm font-bold border-b border-slate-50 last:border-0"
+                                >
+                                  <div className="flex justify-between items-center">
+                                    <span>{isAr ? item.nameAr : item.nameEn}</span>
+                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase">{item.stock} in stock</span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider">{isAr ? "الكمية" : "Quantity"}</label>
+                          <input 
+                            type="number" 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none font-black"
+                            value={consumableQty}
+                            onChange={(e) => setConsumableQty(Math.max(1, parseInt(e.target.value) || 1))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider">{isAr ? "المخزن" : "Store"}</label>
+                          <select 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                            value={selectedStore}
+                            onChange={(e) => setSelectedStore(e.target.value)}
+                          >
+                            <option value="Sub-Store (Nursing)">{isAr ? "مخزن فرعي (تمريض)" : "Sub-Store (Nursing)"}</option>
+                            <option value="Main Medical Store">{isAr ? "المخزن الرئيسي" : "Main Medical Store"}</option>
+                            <option value="ER Pharmacy">{isAr ? "صيدلية الطوارئ" : "ER Pharmacy"}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={handleRecordConsumable}
+                        disabled={!selectedConsumable}
+                        className={`w-full py-3 rounded-xl text-sm font-black transition flex items-center justify-center gap-2 shadow-sm ${
+                          selectedConsumable 
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98]" 
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                        }`}
+                      >
+                        <Plus className="w-4 h-4" />
+                        {isAr ? "إضافة للفاتورة" : "Add to Invoice"}
+                      </button>
+                    </div>
+
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                      <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-1">{isAr ? "ملاحظة النظام" : "System Note"}</p>
+                      <p className="text-[11px] text-amber-700 font-medium">
+                        {isAr 
+                          ? "سيتم خصم الكميات المختارة آلياً من المخزن المحدد بمجرد الحفظ، وتضاف تكلفتها لفاتورة المريض الحالية." 
+                          : "Selected quantities will be automatically deducted from stock and added to the current patient invoice."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Consumables History List */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                      <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
+                        <h4 className="font-black text-slate-800 text-xs uppercase tracking-wider">{isAr ? "المستهلكات المسجلة للزيارة" : "Recorded Consumables for Visit"}</h4>
+                        <span className="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full uppercase">
+                          {currentPatient.consumables?.length || 0} ITEMS
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-100 text-slate-400 font-black uppercase text-[9px] tracking-widest">
+                              <th className="px-5 py-3">{isAr ? "الصنف" : "Item"}</th>
+                              <th className="px-5 py-3 text-center">{isAr ? "الكمية" : "Qty"}</th>
+                              <th className="px-5 py-3 text-center">{isAr ? "المخزن" : "Store"}</th>
+                              <th className="px-5 py-3 text-center">{isAr ? "الوقت" : "Time"}</th>
+                              <th className="px-5 py-3 text-right">{isAr ? "الإجمالي" : "Total"}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
+                            {(currentPatient.consumables || []).map((c: any) => (
+                              <tr key={c.id} className="hover:bg-slate-50 transition">
+                                <td className="px-5 py-3">
+                                  <p className="text-slate-900">{isAr ? c.nameAr : c.nameEn}</p>
+                                  <p className="text-[9px] text-slate-400 font-mono uppercase tracking-tighter">{c.recordedBy}</p>
+                                </td>
+                                <td className="px-5 py-3 text-center">
+                                  <span className="bg-slate-100 px-2 py-0.5 rounded font-mono text-slate-600">{c.qty} {c.unit}</span>
+                                </td>
+                                <td className="px-5 py-3 text-center text-slate-500 font-medium text-[10px]">{c.store}</td>
+                                <td className="px-5 py-3 text-center text-slate-400 font-mono text-[10px]">{c.date?.split(',')[1] || c.date}</td>
+                                <td className="px-5 py-3 text-right font-black text-slate-900">${(c.price * c.qty).toFixed(2)}</td>
+                              </tr>
+                            ))}
+                            {(!currentPatient.consumables || currentPatient.consumables.length === 0) && (
+                              <tr>
+                                <td colSpan={5} className="px-5 py-10 text-center text-slate-400 font-bold italic">
+                                  {isAr ? "لا يوجد مستهلكات مسجلة لهذه الزيارة بعد." : "No consumables recorded for this visit yet."}
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                          {currentPatient.consumables?.length > 0 && (
+                            <tfoot className="bg-slate-50 font-black">
+                              <tr>
+                                <td colSpan={4} className="px-5 py-3 text-right text-slate-500 uppercase tracking-widest">{isAr ? "إجمالي المستهلكات" : "Total Consumables"}</td>
+                                <td className="px-5 py-3 text-right text-emerald-600 font-mono">
+                                  ${currentPatient.consumables.reduce((acc: number, curr: any) => acc + (curr.price * curr.qty), 0).toFixed(2)}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          )}
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Discharge Tab */}
+            {activeTab === "discharge" && (
+              <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
+                <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
+                  <h3 className="font-black text-lg text-slate-800 flex items-center gap-2">
+                    <User className="w-5 h-5 text-indigo-600" />
+                    {isAr ? "ملخص وتخطيط خروج المريض" : "Discharge Planning & Summary"}
+                  </h3>
+                  <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-indigo-700 transition flex items-center gap-2">
+                    <Printer className="w-4 h-4" />
+                    {isAr ? "طباعة ملخص الخروج" : "Print Summary"}
+                  </button>
+                </div>
+                
+                <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+                  <div className="max-w-3xl mx-auto space-y-6">
+                    <div>
+                      <h4 className="font-black text-slate-800 text-sm mb-2">{isAr ? "تعليمات الخروج للمريض" : "Discharge Instructions"}</h4>
+                      <textarea 
+                        className="w-full border border-slate-300 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none h-24 bg-slate-50"
+                        placeholder={isAr ? "اكتب تعليمات المريض هنا..." : "Write instructions for the patient to follow at home..."}
+                        defaultValue="Take medications exactly as prescribed. Avoid heavy lifting (>10 lbs) for 2 weeks. Schedule follow up with clinic in 7 days."
+                      ></textarea>
+                    </div>
+                    <div>
+                      <h4 className="font-black text-slate-800 text-sm mb-2">{isAr ? "أدوية الخروج (Rx)" : "Discharge Medications (Rx)"}</h4>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <p className="text-sm font-bold text-slate-700">1. Augmentin 1g PO BID x 7 Days</p>
+                        <p className="text-sm font-bold text-slate-700">2. Ibuprofen 400mg PO PRN for pain</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-4 border-t border-slate-100">
+                      <button className="bg-rose-600 text-white px-6 py-3 rounded-xl text-sm font-black shadow-md hover:bg-rose-700 transition">
+                        {isAr ? "توقيع وتنفيذ الخروج النهائي" : "E-Sign & Execute Final Discharge"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -2489,6 +3821,20 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (isEmbedded) {
+    return content;
+  }
+
+  if (isEmbedded) {
+    return <div className="h-full w-full flex flex-col bg-slate-50 overflow-hidden" dir={isAr ? "rtl" : "ltr"}>{content}</div>;
+  }
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999999] flex items-center justify-center p-2 sm:p-4" dir={isAr ? "rtl" : "ltr"}>
+      {content}
     </div>
   );
 }

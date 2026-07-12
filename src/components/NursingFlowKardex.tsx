@@ -26,7 +26,7 @@ export default function NursingFlowKardex({ language }: Props) {
   ]);
 
   const handleSaveAssessment = () => {
-    toast.success(isAr ? "تم حفظ التقييم بنجاح!" : "Assessment saved successfully!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Assessment saved successfully!", titleAr: "تم حفظ التقييم بنجاح!", type: "form" } }));
   };
 
   return (

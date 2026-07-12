@@ -77,17 +77,17 @@ interface QualityAnalyticsHubProps {
   gapResolutionNote: string;
   setGapResolutionNote: (val: string) => void;
   handleSaveGapResolution: () => void;
-  handleSeedMockAuditData: () => void;
-  setRecords: (val: SavedRecord[]) => void;
-  sentinelIncidents: any[];
-  setSentinelIncidents: (val: any[]) => void;
-  jciCheckedArray: number[];
-  setJciCheckedArray: (val: number[]) => void;
-  analyticsSubTab: "kpis" | "sentinel" | "compliance";
-  setAnalyticsSubTab: (val: "kpis" | "sentinel" | "compliance") => void;
-  showIncidentForm: boolean;
-  setShowIncidentForm: (val: boolean) => void;
-  newIncidentForm: {
+  handleSeedMockAuditData?: () => void;
+  setRecords?: (val: SavedRecord[]) => void;
+  sentinelIncidents?: any[];
+  setSentinelIncidents?: (val: any[]) => void;
+  jciCheckedArray?: number[];
+  setJciCheckedArray?: (val: number[]) => void;
+  analyticsSubTab?: "kpis" | "sentinel" | "compliance";
+  setAnalyticsSubTab?: (val: "kpis" | "sentinel" | "compliance") => void;
+  showIncidentForm?: boolean;
+  setShowIncidentForm?: (val: boolean) => void;
+  newIncidentForm?: {
     department: string;
     typeAr: string;
     typeEn: string;
@@ -99,12 +99,12 @@ interface QualityAnalyticsHubProps {
     actionAr: string;
     actionEn: string;
   };
-  setNewIncidentForm: (val: any) => void;
+  setNewIncidentForm?: (val: any) => void;
   addSystemLog: (msg: string, type: "info" | "warning" | "error" | "success") => void;
-  notifications: any[];
-  setNotifications: (val: any[]) => void;
-  handleNotificationClick: (notif: any) => void;
-  hospitalSettings: any;
+  notifications?: any[];
+  setNotifications?: (val: any[]) => void;
+  handleNotificationClick?: (notif: any) => void;
+  hospitalSettings?: any;
   systemUsers?: any[];
 }
 
@@ -131,23 +131,34 @@ export default function QualityAnalyticsHub({
   gapResolutionNote,
   setGapResolutionNote,
   handleSaveGapResolution,
-  handleSeedMockAuditData,
-  setRecords,
-  sentinelIncidents,
-  setSentinelIncidents,
-  jciCheckedArray,
-  setJciCheckedArray,
-  analyticsSubTab,
-  setAnalyticsSubTab,
-  showIncidentForm,
-  setShowIncidentForm,
-  newIncidentForm,
-  setNewIncidentForm,
+  handleSeedMockAuditData = () => {},
+  setRecords = () => {},
+  sentinelIncidents = [],
+  setSentinelIncidents = () => {},
+  jciCheckedArray = [],
+  setJciCheckedArray = () => {},
+  analyticsSubTab = "kpis",
+  setAnalyticsSubTab = () => {},
+  showIncidentForm = false,
+  setShowIncidentForm = () => {},
+  newIncidentForm = {
+    department: "EMERGENCY UNIT",
+    typeAr: "",
+    typeEn: "",
+    severity: "low",
+    descAr: "",
+    descEn: "",
+    rcaAr: "",
+    rcaEn: "",
+    actionAr: "",
+    actionEn: "",
+  },
+  setNewIncidentForm = () => {},
   addSystemLog,
-  notifications,
-  setNotifications,
-  handleNotificationClick,
-  hospitalSettings,
+  notifications = [],
+  setNotifications = () => {},
+  handleNotificationClick = () => {},
+  hospitalSettings = {},
   systemUsers = []
 }: QualityAnalyticsHubProps) {
 
@@ -258,7 +269,7 @@ export default function QualityAnalyticsHub({
   }, []);
 
   const handleToggleGaharCheckedValue = async (id: number) => {
-    const next = gaharChecked.includes(id) 
+    const next = gaharChecked?.includes(id) 
       ? gaharChecked.filter(x => x !== id) 
       : [...gaharChecked, id];
     setGaharChecked(next);
@@ -612,7 +623,7 @@ export default function QualityAnalyticsHub({
   const compliancePercent = totalChecks > 0 ? Math.round((successfulChecks / totalChecks) * 100) : 100;
 
   const handleToggleJci = (id: number) => {
-    if (jciCheckedArray.includes(id)) {
+    if (jciCheckedArray?.includes(id)) {
       setJciCheckedArray(jciCheckedArray.filter(i => i !== id));
     } else {
       setJciCheckedArray([...jciCheckedArray, id]);
@@ -645,7 +656,7 @@ export default function QualityAnalyticsHub({
       alert(isAr ? "⚠️ يرجى تفصيل الواقعة ووصف الأضرار مسبقاً!" : "Please write a description of the occurrence variance.");
       return;
     }
-    const categoryEnTranslation = ovrForm.categoryAr.includes("الدواء") ? "Medication Error" : "Safety Variance";
+    const categoryEnTranslation = ovrForm.categoryAr?.includes("الدواء") ? "Medication Error" : "Safety Variance";
     
     const newOvr = {
       id: `ovr-${Date.now()}`,
@@ -783,7 +794,7 @@ export default function QualityAnalyticsHub({
 
   // 4. POLICY DIGEST & ELECTRONIC ACKNOWLEDGEMENT
   const handleAcknowledgePolicy = (policyId: string) => {
-    if (acknowledgedPolicies.includes(policyId)) {
+    if (acknowledgedPolicies?.includes(policyId)) {
       alert(isAr ? "لقد تم إمضاء الالتزام وتوثيق هذه السياسة مسبقاً باسمك." : "Already acknowledged.");
       return;
     }
@@ -936,10 +947,10 @@ export default function QualityAnalyticsHub({
   const [selectedArchiveItem, setSelectedArchiveItem] = useState<any | null>(null);
 
   const filteredPolicies = POLICIES_ARRAY.filter(p => 
-    p.titleAr.toLowerCase().includes(policySearch.toLowerCase()) ||
-    p.titleEn.toLowerCase().includes(policySearch.toLowerCase()) ||
-    p.code.toLowerCase().includes(policySearch.toLowerCase()) ||
-    p.chapter.toLowerCase().includes(policySearch.toLowerCase())
+    p.titleAr?.toLowerCase()?.includes(policySearch?.toLowerCase()) ||
+    p.titleEn?.toLowerCase()?.includes(policySearch?.toLowerCase()) ||
+    p.code?.toLowerCase()?.includes(policySearch?.toLowerCase()) ||
+    p.chapter?.toLowerCase()?.includes(policySearch?.toLowerCase())
   );
 
   return (
@@ -1585,8 +1596,8 @@ export default function QualityAnalyticsHub({
             {/* Logs List rendering */}
             {(() => {
               const filtered = decisionLogs.filter(log => {
-                const matchesSearch = log.patientName.toLowerCase().includes(simSearchTerm.toLowerCase()) || 
-                                     log.patientMRN.toLowerCase().includes(simSearchTerm.toLowerCase());
+                const matchesSearch = log.patientName?.toLowerCase()?.includes(simSearchTerm?.toLowerCase()) || 
+                                     log.patientMRN?.toLowerCase()?.includes(simSearchTerm?.toLowerCase());
                 const matchesDept = simDeptFilter ? log.department === simDeptFilter : true;
                 return matchesSearch && matchesDept;
               });
@@ -1818,7 +1829,7 @@ export default function QualityAnalyticsHub({
                   { id: 5, nameAr: "5. التحكم بغسيل وتقليل مخاطر العدوى (clinical Hand Hygiene)", nameEn: "WHO 5 moments sanitization auditing in oncological departments." },
                   { id: 6, nameAr: "6. رصد وتفادي حوادث سقوط المرضى (Patient Fall assessment)", nameEn: "Documented evaluation of Fall-Risk Morse indicators." }
                 ].map(goal => {
-                  const isChecked = jciCheckedArray.includes(goal.id);
+                  const isChecked = jciCheckedArray?.includes(goal.id);
                   return (
                     <div 
                       key={goal.id}
@@ -2468,9 +2479,9 @@ export default function QualityAnalyticsHub({
                   { id: 15, code: "GAHAR-PCI", chapter: "نظام المنشأة ومراقبة الجودة (HOM)", nameAr: "الوقاية والتحكم والحد من انتقال العدوى السريرية (PCI)", desc: "صناديق الحاد الأصفر والأحمر، ومكافحة معقمات اليدين.", progress: 94 },
                   { id: 16, code: "GAHAR-FMS", chapter: "نظام المنشأة ومراقبة الجودة (HOM)", nameAr: "أمان المرفق والمنشأة وإدارة الحرائق والسلامة (FMS)", desc: "الصيانة الوقائية ومخارج الهروب والإنقاص وجهاز التبريد.", progress: 80 }
                 ].map(chapterItem => {
-                  const isChecked = gaharChecked.includes(chapterItem.id);
+                  const isChecked = gaharChecked?.includes(chapterItem.id);
                   const handleToggleGahar = () => {
-                    if (gaharChecked.includes(chapterItem.id)) {
+                    if (gaharChecked?.includes(chapterItem.id)) {
                       setGaharChecked(gaharChecked.filter(id => id !== chapterItem.id));
                     } else {
                       setGaharChecked([...gaharChecked, chapterItem.id]);
@@ -2878,7 +2889,7 @@ export default function QualityAnalyticsHub({
             {/* Grid of Policies */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredPolicies.map(policy => {
-                const isAcked = acknowledgedPolicies.includes(policy.id);
+                const isAcked = acknowledgedPolicies?.includes(policy.id);
                 return (
                   <div key={policy.id} className="bg-white hover:bg-slate-50/50 border border-slate-200 rounded-2xl p-5 shadow-sm transition flex flex-col justify-between space-y-4 text-right hover:shadow-md">
                     <div className="space-y-2.5">
@@ -3290,10 +3301,10 @@ export default function QualityAnalyticsHub({
         // Filter items
         const filteredLedgerItems = rawLedgerItems.filter(item => {
           const matchesKeyword = archiveSearchTerm === "" ||
-            item.titleAr.toLowerCase().includes(archiveSearchTerm.toLowerCase()) ||
-            item.titleEn.toLowerCase().includes(archiveSearchTerm.toLowerCase()) ||
-            item.id.toLowerCase().includes(archiveSearchTerm.toLowerCase()) ||
-            item.operator.toLowerCase().includes(archiveSearchTerm.toLowerCase());
+            item.titleAr?.toLowerCase()?.includes(archiveSearchTerm?.toLowerCase()) ||
+            item.titleEn?.toLowerCase()?.includes(archiveSearchTerm?.toLowerCase()) ||
+            item.id?.toLowerCase()?.includes(archiveSearchTerm?.toLowerCase()) ||
+            item.operator?.toLowerCase()?.includes(archiveSearchTerm?.toLowerCase());
 
           const matchesType = archiveFilterType === "all" || item.type === archiveFilterType;
           const matchesDept = archiveDeptFilter === "all" || item.department === archiveDeptFilter;

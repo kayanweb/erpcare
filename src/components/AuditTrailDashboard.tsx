@@ -15,11 +15,11 @@ export default function AuditTrailDashboard({ language }: { language: "ar" | "en
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = 
-      log.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (log.detailsEn && log.detailsEn.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (log.detailsAr && log.detailsAr.includes(searchTerm));
+      log.userName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) || 
+      log.action?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      log.module?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      (log.detailsEn && log.detailsEn?.toLowerCase()?.includes(searchTerm?.toLowerCase())) ||
+      (log.detailsAr && log.detailsAr?.includes(searchTerm));
     const matchesModule = filterModule === "ALL" || log.module === filterModule;
     return matchesSearch && matchesModule;
   });

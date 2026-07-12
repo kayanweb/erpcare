@@ -2,6 +2,7 @@ import React from 'react';
 import { useHIS } from '../context/HISContext';
 import { FileText, Search, Archive, UserCheck, ShieldAlert, BarChart, Settings, CheckCircle2, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { GlobalEntityLink } from './GlobalEntityLink';
 
 export default function MedicalRecordsDashboard() {
   const { language } = useHIS();
@@ -15,10 +16,10 @@ export default function MedicalRecordsDashboard() {
   ];
 
   const recentRecords = [
-    { id: "REC-10293", patient: "Ahmed Ali", mrn: "MRN-5521", status: "completed", date: "2026-06-29" },
-    { id: "REC-10294", patient: "Fatima Khalid", mrn: "MRN-8832", status: "pending_coding", date: "2026-06-29" },
-    { id: "REC-10295", patient: "Omar Saeed", mrn: "MRN-1123", status: "pending_review", date: "2026-06-28" },
-    { id: "REC-10296", patient: "Sara Mahmoud", mrn: "MRN-9941", status: "completed", date: "2026-06-28" },
+    { id: "REC-10293", patient: "Ahmed Ali", mrn: "MRN-2026-5521", status: "completed", date: "2026-06-29" },
+    { id: "REC-10294", patient: "Fatima Khalid", mrn: "MRN-2026-8832", status: "pending_coding", date: "2026-06-29" },
+    { id: "REC-10295", patient: "Omar Saeed", mrn: "MRN-2026-1123", status: "pending_review", date: "2026-06-28" },
+    { id: "REC-10296", patient: "Sara Mahmoud", mrn: "MRN-2026-9941", status: "completed", date: "2026-06-28" },
   ];
 
   return (
@@ -72,9 +73,21 @@ export default function MedicalRecordsDashboard() {
             <tbody className="divide-y divide-slate-100">
               {recentRecords.map((record) => (
                 <tr key={record.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-mono font-bold text-indigo-600">{record.id}</td>
-                  <td className="px-6 py-4 font-bold text-slate-800">{record.patient}</td>
-                  <td className="px-6 py-4 font-mono text-slate-500">{record.mrn}</td>
+                  <td className="px-6 py-4 font-mono font-bold text-indigo-600">
+                    <GlobalEntityLink entityId={record.id} entityType="case" isAr={isAr}>
+                      {record.id}
+                    </GlobalEntityLink>
+                  </td>
+                  <td className="px-6 py-4 font-bold text-slate-800">
+                    <GlobalEntityLink entityId={record.mrn} entityName={record.patient} entityType="patient" isAr={isAr}>
+                      {record.patient}
+                    </GlobalEntityLink>
+                  </td>
+                  <td className="px-6 py-4 font-mono text-slate-500">
+                    <GlobalEntityLink entityId={record.mrn} entityName={record.patient} entityType="patient" isAr={isAr}>
+                      {record.mrn}
+                    </GlobalEntityLink>
+                  </td>
                   <td className="px-6 py-4">
                     {record.status === 'completed' && <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">{isAr ? 'مكتمل' : 'Completed'}</span>}
                     {record.status === 'pending_coding' && <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">{isAr ? 'بانتظار الترميز' : 'Pending Coding'}</span>}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, onSnapshot, query } from "../lib/firestoreService";
-import { db } from '../lib/firebase';
 import { saveNotification, saveRosterWish, saveDepartmentRoster } from '../lib/firestoreService';
+import { subscribeToClinicalData, saveDataPermanently } from '../lib/realTimeService';
 import { 
   MessageSquare, 
   Send, 
@@ -236,22 +235,20 @@ function ChatView({
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   // Checks if the current user has administrative/supervisory permissions
-  const isSupervisorOrAdmin = ['admin', 'head_nurse', 'quality', 'president', 'it'].includes(currentUser?.role || '');
+  const isSupervisorOrAdmin = ['admin', 'head_nurse', 'quality', 'president', 'it']?.includes(currentUser?.role || '');
 
   // Subscribe to real-time messages
   useEffect(() => {
-    const q = collection(db, 'messages');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+    const unsubscribe = subscribeToClinicalData<Message>('messages', (msgs) => {
       // Sort client-side by timestamp to prevent index errors
       msgs.sort((a, b) => {
-        const t1 = a.timestamp?.seconds || 0;
-        const t2 = b.timestamp?.seconds || 0;
+        const t1 = a.timestamp?.seconds || (a.timestamp ? new Date(a.timestamp).getTime() / 1000 : 0);
+        const t2 = b.timestamp?.seconds || (b.timestamp ? new Date(b.timestamp).getTime() / 1000 : 0);
         return t1 - t2;
       });
       setMessages(msgs);
     }, (error) => {
-      console.error("Firestore Subscribe Error:", error);
+      console.error("Messages Subscribe Error:", error);
     });
     return unsubscribe;
   }, []);
@@ -366,7 +363,9 @@ function ChatView({
       const messageContent = newMessage;
       setNewMessage(''); // Clear immediately for snappy UX
 
-      await addDoc(collection(db, 'messages'), {
+      const msgId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      await saveDataPermanently('messages', {
+        id: msgId,
         senderId: currentUser?.id || 'anonymous',
         senderNameAr: currentUser?.nameAr || 'مستخدم مجهول',
         senderNameEn: currentUser?.nameEn || 'Anonymous User',
@@ -379,7 +378,7 @@ function ChatView({
         recipientId: messageType === 'supervisor' 
           ? (isSupervisorOrAdmin ? selectedRecipientId : currentUser?.supervisorId)
           : (messageType === 'department' ? (selectedRecipientId || null) : null),
-        timestamp: serverTimestamp(),
+        timestamp: new Date().toISOString(),
       });
     } catch (err: any) {
       console.error("Error sending message to Firestore: ", err);
@@ -657,7 +656,7 @@ function SwapRequestView({
   const [successMsg, setSuccessMsg] = useState("");
 
   const isStaff = currentUser?.role === 'staff' || currentUser?.role === 'Staff';
-  const isSupervisorOrAdmin = ['admin', 'head_nurse', 'quality', 'president', 'it'].includes(currentUser?.role || '');
+  const isSupervisorOrAdmin = ['admin', 'head_nurse', 'quality', 'president', 'it']?.includes(currentUser?.role || '');
 
   // Filter swap requests (exclude vacations AL)
   const swapWishes = rosterWishes.filter(w => w.requestedShift !== 'AL');
@@ -725,7 +724,7 @@ function SwapRequestView({
       const hasEmployee = rost.rows.some((row: any) => 
         row.employeeId === wish.employeeId || 
         row.employeeCode === wish.employeeId ||
-        row.employeeNameEn.toLowerCase().trim() === wish.employeeNameEn.toLowerCase().trim()
+        row.employeeNameEn?.toLowerCase().trim() === wish.employeeNameEn?.toLowerCase().trim()
       );
       if (hasEmployee) {
         return {
@@ -734,7 +733,7 @@ function SwapRequestView({
             if (
               row.employeeId === wish.employeeId || 
               row.employeeCode === wish.employeeId ||
-              row.employeeNameEn.toLowerCase().trim() === wish.employeeNameEn.toLowerCase().trim()
+              row.employeeNameEn?.toLowerCase().trim() === wish.employeeNameEn?.toLowerCase().trim()
             ) {
               return {
                 ...row,
@@ -1006,10 +1005,10 @@ function VacationRequestView({
   const [successMsg, setSuccessMsg] = useState("");
 
   const isStaff = currentUser?.role === 'staff' || currentUser?.role === 'Staff';
-  const isSupervisorOrAdmin = ['admin', 'head_nurse', 'quality', 'president', 'it'].includes(currentUser?.role || '');
+  const isSupervisorOrAdmin = ['admin', 'head_nurse', 'quality', 'president', 'it']?.includes(currentUser?.role || '');
 
   // Filter vacations (where requestedShift is AL or is related to vacation)
-  const vacationWishes = rosterWishes.filter(w => w.requestedShift === 'AL' || w.reasonAr.includes("إجازة") || w.reasonEn.toLowerCase().includes("vacation") || w.reasonEn.toLowerCase().includes("leave") || w.requestedShift === 'OFF' && w.reasonAr.includes("إجازة"));
+  const vacationWishes = rosterWishes.filter(w => w.requestedShift === 'AL' || w.reasonAr?.includes("إجازة") || w.reasonEn?.toLowerCase()?.includes("vacation") || w.reasonEn?.toLowerCase()?.includes("leave") || w.requestedShift === 'OFF' && w.reasonAr?.includes("إجازة"));
 
   const handleCreateVacation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1065,7 +1064,7 @@ function VacationRequestView({
       const hasEmployee = rost.rows.some((row: any) => 
         row.employeeId === wish.employeeId || 
         row.employeeCode === wish.employeeId ||
-        row.employeeNameEn.toLowerCase().trim() === wish.employeeNameEn.toLowerCase().trim()
+        row.employeeNameEn?.toLowerCase().trim() === wish.employeeNameEn?.toLowerCase().trim()
       );
       if (hasEmployee) {
         const updatedRost = {
@@ -1074,7 +1073,7 @@ function VacationRequestView({
             if (
               row.employeeId === wish.employeeId || 
               row.employeeCode === wish.employeeId ||
-              row.employeeNameEn.toLowerCase().trim() === wish.employeeNameEn.toLowerCase().trim()
+              row.employeeNameEn?.toLowerCase().trim() === wish.employeeNameEn?.toLowerCase().trim()
             ) {
               return {
                 ...row,

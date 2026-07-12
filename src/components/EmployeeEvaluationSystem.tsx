@@ -108,7 +108,7 @@ export default function EmployeeEvaluationSystem({ language, currentUser, system
     }
     
     // Check permission to evaluate
-    if (!["head_nurse", "admin", "quality", "president", "medical_director", "supervisor"].includes(authorizer.role || "")) {
+    if (!["head_nurse", "admin", "quality", "president", "medical_director", "supervisor"]?.includes(authorizer.role || "")) {
       alert(isAr ? "ليس لديك صلاحية لإضافة تقييم." : "You do not have permission to evaluate.");
       return;
     }
@@ -330,7 +330,7 @@ export default function EmployeeEvaluationSystem({ language, currentUser, system
                       </tr>
                     </thead>
                     <tbody className={`${isAr ? 'text-right' : 'text-left'} divide-y divide-slate-50`}>
-                      {evaluations.filter(e => e.employeeName.includes(searchTerm) || e.department.includes(searchTerm)).length === 0 ? (
+                      {evaluations.filter(e => e.employeeName?.includes(searchTerm) || e.department?.includes(searchTerm)).length === 0 ? (
                         <tr>
                           <td colSpan={6} className="p-8 text-center text-slate-400">
                              <ShieldAlert className="h-10 w-10 mx-auto text-slate-300 mb-2" />
@@ -338,7 +338,7 @@ export default function EmployeeEvaluationSystem({ language, currentUser, system
                           </td>
                         </tr>
                       ) : (
-                        evaluations.filter(e => e.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) || e.department.toLowerCase().includes(searchTerm.toLowerCase())).map(ev => (
+                        evaluations.filter(e => e.employeeName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) || e.department?.toLowerCase()?.includes(searchTerm?.toLowerCase())).map(ev => (
                           <tr key={ev.id} className="hover:bg-slate-50/80 transition-colors group">
                             <td className="px-6 py-4">
                               <div className="font-bold text-slate-800">{ev.employeeName}</div>

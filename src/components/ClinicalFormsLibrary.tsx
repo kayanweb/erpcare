@@ -220,8 +220,8 @@ export default function ClinicalFormsLibrary({ isAr = true, patientId = "", pati
   };
 
   const currentForms = formsData[activeTab]?.filter(form => 
-    form.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    form.category.toLowerCase().includes(searchQuery.toLowerCase())
+    form.title?.toLowerCase()?.includes(searchQuery?.toLowerCase()) || 
+    form.category?.toLowerCase()?.includes(searchQuery?.toLowerCase())
   ) || [];
 
   const { updatePatient, patients } = useHIS();
@@ -455,7 +455,7 @@ export default function ClinicalFormsLibrary({ isAr = true, patientId = "", pati
       });
     }
 
-    toast.success(isAr ? "تم توقيع وحفظ المستند السريري في ملف المريض بنجاح" : "Clinical document signed and saved to patient file successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Clinical document signed and saved to patient file successfully", titleAr: "تم توقيع وحفظ المستند السريري في ملف المريض بنجاح", type: "form" } }));
   };
 
   const renderField = (labelAr: string, labelEn: string, key: string, type: "text" | "textarea" | "select" | "checkbox" = "text", options: string[] = []) => {
@@ -839,6 +839,132 @@ export default function ClinicalFormsLibrary({ isAr = true, patientId = "", pati
       );
     }
 
+    // Dynamic Fallback Based on Category
+    const category = selectedForm?.category || "";
+    const isLab = category?.includes("Lab") || category?.includes("المختبر") || category?.includes("Pathology");
+    const isRad = category?.includes("Radiology") || category?.includes("الأشعة") || category?.includes("Imaging");
+    const isBlood = category?.includes("Blood") || category?.includes("بنك الدم");
+    const isNursing = category?.includes("Nursing") || category?.includes("التمريض") || category?.includes("Ward");
+    const isPharmacy = category?.includes("Pharmacy") || category?.includes("الصيدلية") || category?.includes("Medication");
+    const isAdmin = category?.includes("Admin") || category?.includes("إدارة") || category?.includes("IT");
+    const isAllied = category?.includes("Allied") || category?.includes("تأهيل") || category?.includes("Nutrition");
+
+    if (isLab) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-indigo-50/40 border border-indigo-100 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("نوع العينة / مصدر التحليل", "Specimen Type / Source", "specimenType", "select", ["Blood (دم)", "Urine (بول)", "Stool (براز)", "Swab (مسحة)", "CSF", "Other"])}
+            {renderField("تاريخ ووقت سحب العينة", "Collection Date & Time", "collectionTime", "text")}
+          </div>
+          <div className="p-4 bg-white border border-slate-100 rounded-2xl">
+            {renderField("النتائج المخبرية المفصلة", "Detailed Lab Results / Values", "labResults", "textarea")}
+          </div>
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("القيم المرجعية (النطاق الطبيعي)", "Reference Ranges", "refRange", "text")}
+            {renderField("تفسير أخصائي المختبر", "Pathologist/Technician Interpretation", "interpretation", "text")}
+          </div>
+        </div>
+      );
+    }
+
+    if (isRad) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-800 text-slate-100 rounded-2xl border border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("نوع الفحص الإشعاعي (Modality)", "Radiology Modality", "modality", "select", ["X-Ray", "CT Scan", "MRI", "Ultrasound", "Nuclear Medicine", "Fluoroscopy"])}
+            {renderField("الجزء التشريحي المستهدف", "Target Anatomical Region", "bodyPart", "text")}
+          </div>
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl grid grid-cols-1 gap-4">
+            {renderField("دواعي الفحص السريرية", "Clinical Indications", "indications", "textarea")}
+            {renderField("التقرير الإشعاعي والمكتشفات (Findings)", "Radiological Findings", "findings", "textarea")}
+          </div>
+          <div className="p-4 bg-sky-50/40 border border-sky-100 rounded-2xl">
+            {renderField("التشخيص الإشعاعي النهائي (Impression)", "Final Impression / Conclusion", "impression", "textarea")}
+          </div>
+        </div>
+      );
+    }
+
+    if (isBlood) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-rose-50/40 border border-rose-100 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-4">
+            {renderField("فصيلة دم المريض المعتمدة", "Patient Blood Group", "ptBlood", "text")}
+            {renderField("فصيلة الوحدة المنصرفة", "Unit Blood Group", "unitBlood", "text")}
+            {renderField("رقم وحدة الدم (Unit ID)", "Blood Unit ID/Barcode", "unitId", "text")}
+          </div>
+          <div className="p-4 bg-white border border-slate-100 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("نوع المشتقات", "Component Type", "componentType", "select", ["PRBC (كرات دم حمراء)", "FFP (بلازما)", "Platelets (صفائح)", "Cryoprecipitate"])}
+            {renderField("كمية الوحدات المطلوبة", "Volume/Quantity Requested", "qty", "text")}
+          </div>
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+            {renderField("العلامات الحيوية قبل وأثناء وبعد النقل", "Vital Signs Monitoring Log (Pre, During, Post)", "transfusionVitals", "textarea")}
+          </div>
+        </div>
+      );
+    }
+
+    if (isNursing) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-emerald-50/30 border border-emerald-100 rounded-2xl grid grid-cols-2 md:grid-cols-4 gap-4">
+            {renderField("الوعي (GCS)", "Level of Consciousness", "gcs", "text")}
+            {renderField("الحركة والنشاط", "Mobility / Activity", "mobility", "select", ["Independent", "Assisted", "Bedridden"])}
+            {renderField("التغذية والبلع", "Diet / Swallowing", "diet", "text")}
+            {renderField("الإخراج والسوائل", "Elimination & Input/Output", "io", "text")}
+          </div>
+          <div className="p-4 bg-white border border-slate-100 rounded-2xl grid grid-cols-1 gap-4">
+            {renderField("تقييم تمريضي مفصل للحالة الحالية", "Detailed Nursing Assessment", "nursingAssessment", "textarea")}
+            {renderField("التدخلات التمريضية والإجراءات", "Nursing Interventions Performed", "interventions", "textarea")}
+          </div>
+        </div>
+      );
+    }
+
+    if (isPharmacy) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-sky-50/40 border border-sky-100 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("اسم الدواء أو الصنف الدوائي", "Medication / Drug Name", "drugName", "text")}
+            {renderField("الجرعة والشكل الصيدلاني", "Dosage & Formulation", "dosage", "text")}
+          </div>
+          <div className="p-4 bg-white border border-slate-100 rounded-2xl grid grid-cols-1 gap-4">
+            {renderField("مراجعة التفاعلات الدوائية أو الحساسية", "Drug Interactions / Allergy Review", "interactions", "textarea")}
+            {renderField("تعليمات الصرف للمريض / الصيدلي", "Dispensing Instructions", "instructions", "textarea")}
+          </div>
+        </div>
+      );
+    }
+
+    if (isAdmin) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-800 text-slate-100 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("معرف النظام / النظام الفرعي", "System / Module ID", "sysId", "text")}
+            {renderField("تصنيف الإجراء الإداري", "Administrative Action Type", "actionType", "select", ["Create", "Update", "Delete", "Audit", "Grant Access", "Revoke Access"])}
+          </div>
+          <div className="p-4 bg-white border border-slate-200 rounded-2xl grid grid-cols-1 gap-4">
+            {renderField("وصف الإجراء أو المشكلة بالتفصيل", "Detailed Description of Action/Issue", "adminDesc", "textarea")}
+            {renderField("أثر الإجراء وملاحظات الأمان", "Impact & Security Notes", "impact", "textarea")}
+          </div>
+        </div>
+      );
+    }
+
+    if (isAllied) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-orange-50/40 border border-orange-100 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("التقييم الوظيفي المبدئي", "Initial Functional Assessment", "funcAssessment", "textarea")}
+            {renderField("أهداف الخطة العلاجية والتأهيلية", "Therapeutic / Rehab Goals", "goals", "textarea")}
+          </div>
+          <div className="p-4 bg-white border border-slate-100 rounded-2xl grid grid-cols-1 gap-4">
+            {renderField("سجل الجلسة والتطور المحرز", "Session Log & Progress Tracked", "progress", "textarea")}
+          </div>
+        </div>
+      );
+    }
+
     // Default Fallback
     return (
       <div className="space-y-4">
@@ -1111,7 +1237,7 @@ export default function ClinicalFormsLibrary({ isAr = true, patientId = "", pati
                 <button
                   onClick={() => {
                     window.print();
-                    toast.success(isAr ? "تم إرسال المستند للطباعة المباشرة" : "Document sent to print queue");
+                    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Document sent to print queue", titleAr: "تم إرسال المستند للطباعة المباشرة", type: "form" } }));
                   }}
                   className="px-4 py-2.5 text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2"
                 >

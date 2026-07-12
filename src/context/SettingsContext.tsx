@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { db } from "../firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
 
 interface Settings {
   institutionNameAr: string;
@@ -34,13 +32,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const docRef = doc(db, "config", "settings");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setSettings(docSnap.data() as Settings);
+        const res = await fetch('/api/settings/config_settings');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.value) {
+            setSettings(data.value as Settings);
+          }
         }
       } catch (error) {
-        console.warn("Firestore offline or configuration missing in SettingsContext. Using default values.", error);
+        console.warn("Backend API offline or configuration missing in SettingsContext. Using default values.", error);
       } finally {
         setLoading(false);
       }
@@ -50,11 +50,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateSettings = async (newSettings: Settings) => {
     try {
-      const docRef = doc(db, "config", "settings");
-      await setDoc(docRef, newSettings);
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'config_settings', value: newSettings })
+      });
       setSettings(newSettings);
     } catch (error) {
-      console.warn("Firestore offline or configuration missing. Saving settings locally.", error);
+      console.warn("Backend API offline. Saving settings locally.", error);
       setSettings(newSettings);
     }
   };

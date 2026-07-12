@@ -20,7 +20,7 @@ export default function HousekeepingDashboard() {
 
   const handleStartCleaning = (taskId: string) => {
     setCleaningTasks(tasks => tasks.map(t => t.id === taskId ? { ...t, status: 'in_progress' } : t));
-    toast.info(isAr ? 'تم بدء عملية التنظيف' : 'Cleaning process started');
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Cleaning process started", titleAr: "تم بدء عملية التنظيف", type: "form" } }));
   };
 
   return (

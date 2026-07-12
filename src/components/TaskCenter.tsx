@@ -43,9 +43,9 @@ export const TaskCenter: React.FC<TaskCenterProps> = ({ userRole, userId, onTask
   const filteredTasks = tasks.filter(task => {
     const matchesFilter = filter === "all" || task.status === filter;
     const matchesSearch = 
-      task.patientMRN.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.titleEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.titleAr.includes(searchQuery);
+      task.patientMRN?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      task.titleEn?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      task.titleAr?.includes(searchQuery);
     return matchesFilter && matchesSearch;
   });
 

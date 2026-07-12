@@ -342,7 +342,7 @@ export default function ClinicalTimelinesHub({ language }: Props) {
     setCprCycleTime(0);
     setCodeLogs([]);
     setMetronomeOn(false);
-    toast.info(isAr ? "تم إعادة تعيين مسجل الصدمات والإنعاش" : "Resuscitation tracker has been reset");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Resuscitation tracker has been reset", titleAr: "تم إعادة تعيين مسجل الصدمات والإنعاش", type: "form" } }));
   };
 
   // Recalculate status dynamically based on target minutes
@@ -364,17 +364,17 @@ export default function ClinicalTimelinesHub({ language }: Props) {
         };
       })
     );
-    toast.info(isAr ? "تم محاكاة تذبذب عشوائي في أزمنة المعامل والعيادات" : "Simulated delay updates on all care stages!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Simulated delay updates on all care stages!", titleAr: "تم محاكاة تذبذب عشوائي في أزمنة المعامل والعيادات", type: "form" } }));
   };
 
   // --- Search Filtering ---
   const filteredCatalog = ORDERABLE_CATALOG.filter(item => {
     const matchesCategory = selectedCategory === "all" || item.type === selectedCategory;
     const matchesSearch = 
-      item.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.nameAr.includes(searchQuery) ||
-      item.categoryEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.categoryAr.includes(searchQuery);
+      item.nameEn?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      item.nameAr?.includes(searchQuery) ||
+      item.categoryEn?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      item.categoryAr?.includes(searchQuery);
     return matchesCategory && matchesSearch;
   });
 
@@ -1339,7 +1339,7 @@ export default function ClinicalTimelinesHub({ language }: Props) {
               <button
                 onClick={() => {
                   setInfusedVolume(0);
-                  toast.success(isAr ? "تم تعليق كيس محاليل هيبارين جديد (250 مل) بنجاح" : "New IV bag of Heparin 250ml hung successfully!");
+                  window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "New IV bag of Heparin 250ml hung successfully!", titleAr: "تم تعليق كيس محاليل هيبارين جديد (250 مل) بنجاح", type: "form" } }));
                 }}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs transition-colors"
               >
@@ -1559,7 +1559,7 @@ export default function ClinicalTimelinesHub({ language }: Props) {
                       toast.error(isAr ? "السجل فارغ! قم بتسجيل إجراءات أولاً." : "Nothing logged yet!");
                       return;
                     }
-                    toast.success(isAr ? "تم إرسال الشيت الطبي لملف المريض بنجاح" : "CPR resuscitation sequence exported to Patient EMR!");
+                    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "CPR resuscitation sequence exported to Patient EMR!", titleAr: "تم إرسال الشيت الطبي لملف المريض بنجاح", type: "form" } }));
                   }}
                   className="text-xs font-black text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5"
                 >

@@ -15,16 +15,19 @@ import {
   Printer
 } from "lucide-react";
 import { ClinicalNote, Patient, WorkflowStage } from "../types";
-import { collection, addDoc, onSnapshot, query, where, orderBy } from "firebase/firestore";
-import { db } from "../firebase";
+import { subscribeToClinicalData, saveDataPermanently } from "../lib/realTimeService";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 interface Props {
-  patient: Patient;
-  workflowId: string;
-  staffId: string;
-  staffName: string;
+  patient?: Patient;
+  patientId?: string;
+  patientName?: string;
+  workflowId?: string;
+  staffId?: string;
+  staffName?: string;
+  isAr?: boolean;
+  onSave?: (data: any) => void;
 }
 
 const NOTE_TYPES = [
@@ -40,7 +43,10 @@ const NOTE_TYPES = [
   { value: "ICU", labelAr: "ملاحظات العناية المركزة", labelEn: "ICU Notes" },
 ];
 
-export const ClinicalDocumentation: React.FC<Props> = ({ patient, workflowId, staffId, staffName }) => {
+export const ClinicalDocumentation: React.FC<Props> = ({ patient, patientId, patientName, workflowId, staffId, staffName, isAr, onSave }) => {
+  const pId = patient?.id || patientId || "unknown";
+  const pName = patient?.nameEn || patientName || "unknown";
+  const pMrn = patient?.mrn || patientId || "unknown";
   const [noteType, setNoteType] = useState<ClinicalNote["noteType"]>("SOAP");
   const [history, setHistory] = useState<ClinicalNote[]>([]);
   const [soapData, setSoapData] = useState({
@@ -54,25 +60,27 @@ export const ClinicalDocumentation: React.FC<Props> = ({ patient, workflowId, st
   const [isAiProcessing, setIsAiProcessing] = useState(false);
 
   React.useEffect(() => {
-    const q = query(
-      collection(db, "hospital_clinical_notes"), 
-      where("patientId", "==", patient.id),
-      orderBy("timestamp", "desc")
+    const unsubscribe = subscribeToClinicalData<ClinicalNote>(
+      "hospital_clinical_notes",
+      (data) => {
+        const filtered = data
+          .filter(note => note.patientId === pId)
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setHistory(filtered);
+      },
+      (err) => console.error("Error loading clinical notes:", err)
     );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setHistory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClinicalNote)));
-    });
     return () => unsubscribe();
-  }, [patient.id]);
+  }, [pId]);
 
   const handleAiSummarize = () => {
     setIsAiProcessing(true);
     // Mocking AI processing
     setTimeout(() => {
-      const summary = `AI SUMMARY: Patient ${patient.nameEn} (MRN: ${patient.mrn}) is currently in the ${patient.currentWorkflowStage} stage. Latest vitals were stable. Recommendation: Continue current protocol and monitor oxygen saturation.`;
+      const summary = `AI SUMMARY: Patient ${pName} (MRN: ${pMrn}) is currently in the ${patient?.currentWorkflowStage || 'Ward'} stage. Latest vitals were stable. Recommendation: Continue current protocol and monitor oxygen saturation.`;
       setContent(prev => prev + (prev ? "\n\n" : "") + summary);
       setIsAiProcessing(false);
-      toast.success("AI Summary generated");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "AI Summary generated", titleAr: "AI Summary generated", type: "form" } }));
     }, 1500);
   };
 
@@ -80,23 +88,29 @@ export const ClinicalDocumentation: React.FC<Props> = ({ patient, workflowId, st
     setIsSaving(true);
     try {
       const newNote: Partial<ClinicalNote> = {
-        workflowId,
-        patientId: patient.id,
-        patientMRN: patient.mrn,
-        staffId,
-        staffName,
+        workflowId: workflowId || "unknown",
+        patientId: pId,
+        patientMRN: pMrn,
+        staffId: staffId || "unknown",
+        staffName: staffName || "unknown",
         noteType,
         timestamp: new Date().toISOString(),
         content: noteType === "SOAP" ? JSON.stringify(soapData) : freeText,
         soapData: noteType === "SOAP" ? soapData : undefined
       };
 
-      await addDoc(collection(db, "hospital_clinical_notes"), newNote);
-      toast.success("Note saved successfully");
+      const noteToSave = {
+        id: `note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...newNote
+      } as ClinicalNote;
+
+      await saveDataPermanently("hospital_clinical_notes", noteToSave);
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Note saved successfully", titleAr: "Note saved successfully", type: "form" } }));
       
       // Clear form
       setSoapData({ subjective: "", objective: "", assessment: "", plan: "" });
       setContent("");
+      if (onSave) onSave(noteToSave);
     } catch (error) {
       console.error("Error saving note:", error);
       toast.error("Failed to save note");
@@ -115,7 +129,7 @@ export const ClinicalDocumentation: React.FC<Props> = ({ patient, workflowId, st
           </div>
           <div>
             <h3 className="font-bold text-slate-900 leading-tight">Clinical Documentation</h3>
-            <p className="text-xs text-slate-500">{patient.nameAr} | MRN: {patient.mrn}</p>
+            <p className="text-xs text-slate-500">{patient?.nameAr || pName} | MRN: {pMrn}</p>
           </div>
         </div>
         
@@ -227,7 +241,7 @@ export const ClinicalDocumentation: React.FC<Props> = ({ patient, workflowId, st
             <textarea 
               value={freeText}
               onChange={(e) => setContent(e.target.value)}
-              placeholder={`Enter ${noteType.toLowerCase()} details here...`}
+              placeholder={`Enter ${noteType?.toLowerCase()} details here...`}
               className="w-full h-64 p-6 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none bg-slate-50/30 font-serif leading-relaxed"
             />
           </div>
@@ -254,18 +268,18 @@ export const ClinicalDocumentation: React.FC<Props> = ({ patient, workflowId, st
                     <span className="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded border border-indigo-100 uppercase tracking-tight">
                       {note.noteType}
                     </span>
-                    <span className="text-[9px] font-medium text-slate-400">
-                      {format(new Date(note.timestamp), "MMM dd, HH:mm")}
+                    <span className="text-[9px] font-mono text-slate-400">
+                      {format(new Date(note.timestamp), "yyyy-MM-dd HH:mm:ss")}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 font-medium line-clamp-3 mb-2 leading-relaxed">
                     {note.noteType === "SOAP" && note.soapData ? 
                       `${note.soapData.assessment}` : note.content}
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-2 mt-2">
                     <div className="flex items-center gap-1.5 text-[9px] text-slate-400 font-bold">
-                       <User className="w-3 h-3" />
-                       {note.staffName}
+                       <User className="w-3 h-3 text-slate-300" />
+                       E-Signed: <span className="text-slate-700">{note.staffName}</span>
                     </div>
                     <Printer className="w-3 h-3 text-slate-300 group-hover:text-slate-500 transition-colors" />
                   </div>

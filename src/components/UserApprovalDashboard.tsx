@@ -49,7 +49,7 @@ const SYSTEM_MODULES = [
   { id: "mod_transport", nameAr: "حركة نقل المرضى", nameEn: "Patient Transport" },
   { id: "mod_quality", nameAr: "لوحة الجودة والتحليلات البصرية", nameEn: "Quality Analytics Hub" },
   { id: "mod_archives", nameAr: "سجلات الأرشيف المحفوظة", nameEn: "Saved Archives" },
-  { id: "mod_wsd_console", nameAr: "لوحة الإدارة الأكاديمية", nameEn: "WSD Academic Console" },
+  { id: "mod_wsd_console", nameAr: "لوحة الإدارة (WSD)", nameEn: "WSD Console" },
   { id: "mod_profile", nameAr: "الصفحة الشخصية", nameEn: "Profile View" },
   { id: "mod_medical_tools", nameAr: "الأدوات والآلات الحسابية", nameEn: "Medical Tools & Calculators" },
   { id: "mod_messaging", nameAr: "المراسلات والطلبات", nameEn: "Messaging & Requests" },
@@ -117,8 +117,8 @@ export default function UserApprovalDashboard({
   const [justApprovedPin, setJustApprovedPin] = useState<{ name: string; pin: string } | null>(null);
   const [templateSearch, setTemplateSearch] = useState("");
 
-  const pendingUsers = users.filter((u) => u.status === "pending" || !u.status);
-  const activeUsers = users.filter((u) => u.status === "active");
+  const pendingUsers = (Array.isArray(users) ? users : []).filter((u) => u.status === "pending" || !u.status);
+  const activeUsers = (Array.isArray(users) ? users : []).filter((u) => u.status === "active");
 
   // Fetch departments dynamically or fallbacks
   const getDeptsList = (): string[] => {
@@ -269,8 +269,8 @@ export default function UserApprovalDashboard({
     if (!selectedUserForModal) return;
 
     // Check Role Conflict Guards
-    const isMedicalRole = ["staff", "intern", "head_nurse", "nursing_director", "ward_clerk"].includes(modalForm.role);
-    const isITRole = ["it", "admin"].includes(modalForm.role);
+    const isMedicalRole = ["staff", "intern", "head_nurse", "nursing_director", "ward_clerk"]?.includes(modalForm.role);
+    const isITRole = ["it", "admin"]?.includes(modalForm.role);
     if (isMedicalRole && isITRole) {
       alert(language === "ar" 
         ? "🚨 حاجز تداخل الصلاحيات (Role-Conflict Guard): غير مسموح بالجمع بين الأدوار السريرية والتحكم بقواعد ومعدات الاستضافة (IT/Admin) للحفاظ على معايير HIPAA وسلامة الجرود." 
@@ -489,14 +489,14 @@ export default function UserApprovalDashboard({
             <tbody className="divide-y divide-slate-100">
               {(() => {
                 const filtered = activeUsers.filter((usr) => {
-                  const s = userRegistrySearch.toLowerCase().trim();
+                  const s = userRegistrySearch?.toLowerCase().trim();
                   if (!s) return true;
                   return (
-                    (usr.nameAr || "").toLowerCase().includes(s) ||
-                    (usr.nameEn || "").toLowerCase().includes(s) ||
-                    (usr.staffId || "").toLowerCase().includes(s) ||
-                    (usr.department || "").toLowerCase().includes(s) ||
-                    (usr.role || "").toLowerCase().includes(s)
+                    (usr.nameAr || "")?.toLowerCase()?.includes(s) ||
+                    (usr.nameEn || "")?.toLowerCase()?.includes(s) ||
+                    (usr.staffId || "")?.toLowerCase()?.includes(s) ||
+                    (usr.department || "")?.toLowerCase()?.includes(s) ||
+                    (usr.role || "")?.toLowerCase()?.includes(s)
                   );
                 });
 
@@ -922,11 +922,11 @@ export default function UserApprovalDashboard({
                         const dept = modalForm.department;
                         const matchingIds = allAvailableTemplates.filter(t => {
                           if (t.departmentDefault === dept) return true;
-                          const tId = t.id.toLowerCase();
+                          const tId = t.id?.toLowerCase();
                           if (dept === "EMERGENCY UNIT" && (tId.startsWith("er-") || tId.startsWith("emergency"))) return true;
-                          if (dept.toUpperCase().includes("INTENSIVE") && (tId.startsWith("icu-") || tId.startsWith("intensive"))) return true;
-                          if (dept.toUpperCase().includes("CHEMO") && (tId.startsWith("chemo-") || tId.startsWith("chemo"))) return true;
-                          if (dept.toUpperCase().includes("OPERATING") && (tId.startsWith("onco-") || tId.startsWith("surgical") || tId.startsWith("or-"))) return true;
+                          if (dept.toUpperCase()?.includes("INTENSIVE") && (tId.startsWith("icu-") || tId.startsWith("intensive"))) return true;
+                          if (dept.toUpperCase()?.includes("CHEMO") && (tId.startsWith("chemo-") || tId.startsWith("chemo"))) return true;
+                          if (dept.toUpperCase()?.includes("OPERATING") && (tId.startsWith("onco-") || tId.startsWith("surgical") || tId.startsWith("or-"))) return true;
                           return false;
                         }).map(t => t.id);
                         setModalForm({ ...modalForm, permissions: matchingIds });
@@ -939,8 +939,8 @@ export default function UserApprovalDashboard({
                       type="button"
                       onClick={() => {
                         const coreIds = allAvailableTemplates.filter(t => 
-                          t.id.includes("crash-cart") || t.id.includes("dc-shock") || t.id.includes("med-cart") || 
-                          t.id.includes("temp-fridge") || t.id.includes("chest-tube") || t.id.includes("supplies")
+                          t.id?.includes("crash-cart") || t.id?.includes("dc-shock") || t.id?.includes("med-cart") || 
+                          t.id?.includes("temp-fridge") || t.id?.includes("chest-tube") || t.id?.includes("supplies")
                         ).map(t => t.id);
                         setModalForm({ ...modalForm, permissions: coreIds });
                       }}
@@ -960,16 +960,16 @@ export default function UserApprovalDashboard({
                   {/* Scrollable Templates Grid (شريط التمرير مريح جداً لمنع التراكم) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-white border border-slate-200 rounded-xl max-h-[360px] overflow-y-auto scrollbar-thin">
                     {allAvailableTemplates.filter(tpl => {
-                      const lowerS = templateSearch.toLowerCase();
+                      const lowerS = templateSearch?.toLowerCase();
                       return (
-                        tpl.id.toLowerCase().includes(lowerS) ||
-                        (tpl.titleAr || "").toLowerCase().includes(lowerS) ||
-                        (tpl.titleEn || "").toLowerCase().includes(lowerS) ||
-                        (tpl.code || "").toLowerCase().includes(lowerS) ||
-                        (tpl.departmentDefault || "").toLowerCase().includes(lowerS)
+                        tpl.id?.toLowerCase()?.includes(lowerS) ||
+                        (tpl.titleAr || "")?.toLowerCase()?.includes(lowerS) ||
+                        (tpl.titleEn || "")?.toLowerCase()?.includes(lowerS) ||
+                        (tpl.code || "")?.toLowerCase()?.includes(lowerS) ||
+                        (tpl.departmentDefault || "")?.toLowerCase()?.includes(lowerS)
                       );
                     }).map((tpl) => {
-                      const isChecked = modalForm.permissions.includes(tpl.id);
+                      const isChecked = modalForm.permissions?.includes(tpl.id);
                       return (
                         <label 
                           key={tpl.id} 
@@ -1061,7 +1061,7 @@ export default function UserApprovalDashboard({
               <h3 className="text-sm font-black text-pink-100">🔒 المصادقة الإدارية وتفويض الصلاحيات لـ HIPAA</h3>
               <p className="text-[11px] text-slate-300 font-bold bg-slate-950/50 py-2 px-3 rounded-xl border border-slate-800">
                 👤 المسؤول الحالي: <span className="text-pink-400 font-extrabold">{currentUser.nameAr || currentUser.nameEn}</span>
-                <span className="block text-[9px] text-slate-400 mt-0.5">كود الموظف: {currentUser.staffId} | الدور: {currentUser.role.toUpperCase()}</span>
+                <span className="block text-[9px] text-slate-400 mt-0.5">كود الموظف: {currentUser.staffId} | الدور: {(currentUser.role || "").toUpperCase()}</span>
               </p>
               <p className="text-[10px] text-slate-400 pt-1">
                 من فضلك أدخل رمز PIN المصرح به الخاص بحسابك لإتمام عملية الحفظ السحابية الآمنة. سيتم رفض أي رمز مغاير للرمز الحقيقي لـ <span className="text-pink-400">{currentUser.nameAr || currentUser.nameEn}</span>.

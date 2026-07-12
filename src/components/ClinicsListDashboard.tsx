@@ -41,8 +41,8 @@ export default function ClinicsListDashboard({ language, systemUsers = [], depar
   ];
 
   const filteredClinics = clinics.filter(c => 
-    c.nameEn.toLowerCase().includes(search.toLowerCase()) || 
-    c.nameAr.includes(search)
+    c.nameEn?.toLowerCase()?.includes(search?.toLowerCase()) || 
+    c.nameAr?.includes(search)
   );
 
   return (
@@ -95,10 +95,10 @@ export default function ClinicsListDashboard({ language, systemUsers = [], depar
             </div>
             
             <div className="flex gap-2 mt-auto">
-               <button onClick={() => onNavigate ? onNavigate("appointments") : toast.info(isAr ? "فتح جدول المواعيد" : "Opened schedule")} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold transition flex justify-center items-center gap-1.5">
+               <button onClick={() => onNavigate ? onNavigate("appointments") : window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Opened schedule", titleAr: "فتح جدول المواعيد", type: "form" } }))} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold transition flex justify-center items-center gap-1.5">
                  <Calendar className="w-3.5 h-3.5" /> {isAr ? "الجدول" : "Schedule"}
                </button>
-               <button onClick={() => onNavigate ? onNavigate("physician_desk") : toast.success(isAr ? "الدخول للعيادة" : "Entering clinic EMR")} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2 rounded-lg text-xs font-bold transition flex justify-center items-center gap-1.5">
+               <button onClick={() => onNavigate ? onNavigate("physician_desk") : window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Entering clinic EMR", titleAr: "الدخول للعيادة", type: "form" } }))} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2 rounded-lg text-xs font-bold transition flex justify-center items-center gap-1.5">
                  <Clock className="w-3.5 h-3.5" /> {isAr ? "دخول" : "Enter"}
                </button>
             </div>

@@ -34,7 +34,7 @@ export default function VitalsDashboard({ language }: Props) {
   const handleSaveVitals = async (data: any) => {
     try {
         await firestoreService.add(firestoreService.collections.vitals, data);
-        toast.success(isAr ? "تم حفظ العلامات الحيوية!" : "Vitals saved successfully!");
+        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Vitals saved successfully!", titleAr: "تم حفظ العلامات الحيوية!", type: "form" } }));
         loadData();
     } catch (error) {
         toast.error(isAr ? "حدث خطأ أثناء الحفظ" : "Error saving vitals");
@@ -42,7 +42,7 @@ export default function VitalsDashboard({ language }: Props) {
   };
 
   const filteredData = vitalsData.filter(d => 
-    Object.values(d).some(val => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
+    Object.values(d).some(val => String(val)?.toLowerCase()?.includes(searchTerm?.toLowerCase()))
   );
 
   return (

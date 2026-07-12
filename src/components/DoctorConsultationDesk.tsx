@@ -8,6 +8,7 @@ import {
 import { motion } from "motion/react";
 import { useHIS } from "../context/HISContext";
 import { toast } from "sonner";
+import { PatientClinicalHeader } from "./PatientClinicalHeader";
 import SearchableCombobox from "./SearchableCombobox";
 import { LAB_CATALOG, RAD_CATALOG, PROC_CATALOG, MED_CATALOG } from "../data/medicalCatalog";
 
@@ -17,6 +18,8 @@ interface Props {
   systemUsers?: any[];
   departments?: string[];
   onNavigate?: (tab: string) => void;
+  forcedPatientId?: string;
+  isEmbedded?: boolean;
 }
 
 export interface ClinicalNote {
@@ -43,6 +46,7 @@ const clinicalTabs = [
   { id: "Diagnosis", ar: "التشخيص (ICD-10)", en: "Diagnosis" },
   { id: "Orders", ar: "الطلبات والفحوصات", en: "Orders" },
   { id: "Prescription", ar: "الوصفة الدوائية", en: "Prescription" },
+  { id: "Consumables", ar: "المستهلكات", en: "Consumables" },
   { id: "Clinical Notes", ar: "الملاحظات السريرية", en: "Clinical Notes" },
 ];
 
@@ -115,25 +119,35 @@ const getInitialNotesForPatient = (patientId: string, isAr: boolean): ClinicalNo
   }
 };
 
-export default function DoctorConsultationDesk({ language, currentUser, systemUsers, departments, onNavigate }: Props) {
+export default function DoctorConsultationDesk({ language, currentUser, systemUsers, departments, onNavigate, forcedPatientId, isEmbedded }: Props) {
   const isAr = language === "ar";
   
-  const { patients, updatePatientStatus, updatePatient, prescriptions, addPrescription } = useHIS();
+  const { 
+    patients, 
+    updatePatientStatus, 
+    updatePatient, 
+    prescriptions, 
+    addPrescription, 
+    inventory, 
+    addConsumableToPatient 
+  } = useHIS();
   const queuePatients = patients.filter(p => p.status !== "discharged");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(forcedPatientId || null);
   const [isQueueCollapsed, setIsQueueCollapsed] = useState(true);
 
   // Set first active patient if none selected
   useEffect(() => {
-    if (!selectedPatientId && patients.length > 0) {
+    if (forcedPatientId) {
+      setSelectedPatientId(forcedPatientId);
+    } else if (!selectedPatientId && patients.length > 0) {
       const firstActive = patients.find(p => p.status !== "discharged");
       if (firstActive) {
         setSelectedPatientId(firstActive.id);
       }
     }
-  }, [patients.length, selectedPatientId]);
+  }, [patients.length, selectedPatientId, forcedPatientId]);
 
-  const activePatient = patients.find(p => p.id === selectedPatientId) || queuePatients[0] || null;
+  const activePatient = patients.find(p => p.id === (forcedPatientId || selectedPatientId)) || queuePatients[0] || null;
 
   // Active Main Tab
   const [activeTab, setActiveTab] = useState("Overview");
@@ -225,6 +239,10 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
   const [newChronicName, setNewChronicName] = useState("");
 
   const [isEditVitalsOpen, setIsEditVitalsOpen] = useState(false);
+
+  const [isAddConsumableOpen, setIsAddConsumableOpen] = useState(false);
+  const [consumableQty, setConsumableQty] = useState(1);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<any>(null);
 
   // Memoized Timeline Events Assembler (Chronological Event Reel)
   const timelineEvents = React.useMemo(() => {
@@ -433,7 +451,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
 
     // Sort them chronological: latest events first
     const parseDate = (dStr: string) => {
-      if (!dStr || dStr.includes("Live") || dStr.includes("Today")) return Infinity; // Put live first
+      if (!dStr || dStr?.includes("Live") || dStr?.includes("Today")) return Infinity; // Put live first
       const cleaned = dStr.replace(/-/g, ' ');
       return new Date(cleaned).getTime() || 0;
     };
@@ -599,7 +617,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
         notesSOAPHistory: updatedHistory
       });
 
-      toast.success(isAr ? "تم حفظ الملاحظات الطبية (SOAP) وأرشفتها في السجل السريري" : "SOAP notes saved and archived in clinical history successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "SOAP notes saved and archived in clinical history successfully", titleAr: "تم حفظ الملاحظات الطبية (SOAP) وأرشفتها في السجل السريري", type: "form" } }));
     } catch (e: any) {
       toast.error(isAr ? "فشل حفظ الملاحظات" : "Failed to save SOAP notes: " + e.message);
     }
@@ -650,7 +668,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
           clinicalNotes: updatedNotes,
           notesSOAP: legacySOAP
         });
-        toast.success(isAr ? "تم حفظ وأرشفة الملاحظة السريرية بنجاح" : "Clinical progress note saved & archived successfully");
+        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Clinical progress note saved & archived successfully", titleAr: "تم حفظ وأرشفة الملاحظة السريرية بنجاح", type: "form" } }));
         
         // Reset form except author/role
         setNewNoteFields(prev => ({
@@ -678,7 +696,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
         await updatePatient(activePatient.id, {
           clinicalNotes: updatedNotes
         });
-        toast.success(isAr ? "تم حذف الملاحظة السريرية بنجاح" : "Clinical note deleted successfully");
+        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Clinical note deleted successfully", titleAr: "تم حذف الملاحظة السريرية بنجاح", type: "form" } }));
         if (updatedNotes.length > 0) {
           setSelectedNoteId(updatedNotes[0].id);
         } else {
@@ -744,7 +762,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
         vitalsHistory: updatedHistory
       });
 
-      toast.success(isAr ? "تم تحديث المؤشرات الحيوية وأرشفتها بنجاح" : "Vitals updated and archived in history successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Vitals updated and archived in history successfully", titleAr: "تم تحديث المؤشرات الحيوية وأرشفتها بنجاح", type: "form" } }));
       setIsEditVitalsOpen(false);
     } catch (e: any) {
       toast.error(isAr ? "فشل تحديث المؤشرات الحيوية" : "Failed to update vitals: " + e.message);
@@ -802,8 +820,9 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
     if (!newDrugName || !newDrugDose) {
       return toast.error(isAr ? "يرجى تعبئة اسم الدواء والجرعة" : "Please enter Medication Name and Dosage");
     }
+    const newRxId = "rx-" + Date.now();
     const rx = {
-      id: "rx-" + Date.now(),
+      id: newRxId,
       patientId: activePatient.id,
       medication: newDrugName,
       dose: newDrugDose,
@@ -812,8 +831,23 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
       date: new Date().toLocaleDateString()
     };
     try {
+      // 1. Add globally for Pharmacy/CPOE
       await addPrescription(rx);
-      toast.success(isAr ? "تم إضافة الدواء للوصفة الإلكترونية" : "Medication added to eRx successfully");
+
+      // 2. Synchronize nested in patient record
+      if (activePatient) {
+        const patientRxList = activePatient.prescriptions || [];
+        const nestedRx = {
+          id: newRxId,
+          name: newDrugName,
+          dosage: newDrugDose,
+          status: "pending",
+          date: new Date().toLocaleDateString()
+        };
+        updatePatient(activePatient.id, { prescriptions: [nestedRx, ...patientRxList] });
+      }
+
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Medication added to eRx successfully", titleAr: "تم إضافة الدواء للوصفة الإلكترونية", type: "form" } }));
       setNewDrugName("");
       setNewDrugDose("");
       setNewDrugSig("");
@@ -850,7 +884,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
         complaintsHistory: updatedHistory
       });
       
-      toast.success(isAr ? "تم حفظ الشكاوى وتوثيقها بالكامل في السجل التاريخي" : "Chief complaints saved and logged in history successfully");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Chief complaints saved and logged in history successfully", titleAr: "تم حفظ الشكاوى وتوثيقها بالكامل في السجل التاريخي", type: "form" } }));
     } catch (e: any) {
       toast.error(isAr ? "فشل حفظ البيانات" : "Failed to save complaints: " + e.message);
     }
@@ -881,93 +915,15 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
     <div className="flex flex-col h-full bg-slate-50 font-sans" dir={isAr ? "rtl" : "ltr"}>
       
       {/* Top Banner - Patient Context */}
-      <div className="bg-white p-4 sm:p-6 border-b border-slate-200 shrink-0">
-        <div className="flex flex-col lg:flex-row justify-between gap-4">
-          <div className="flex gap-4 items-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-slate-100 shrink-0 shadow-sm">
-              <img src={`https://i.pravatar.cc/150?u=${activePatient?.id || "default"}`} alt="Patient Avatar" className="w-full h-full object-cover" />
-            </div>
-            
-            <div className="flex flex-col justify-center">
-              <div className="text-xs font-bold text-blue-600 mb-0.5">{activePatient?.mrn || "N/A"}</div>
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-800">{activePatient ? (isAr ? activePatient.nameAr : activePatient.nameEn) : (isAr ? "لا يوجد مريض محدد" : "No Patient Selected")}</h1>
-                <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
-                  <span className="text-xs">{activePatient?.gender === 'female' ? '♀' : '♂'}</span>
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-slate-700 mb-2">
-                {activePatient?.age || 0} {isAr ? "سنة" : "Y"} , {activePatient?.gender === 'female' ? (isAr ? "أنثى" : "Female") : (isAr ? "ذكر" : "Male")}
-              </div>
-              
-              <div className="flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-1 text-xs text-slate-600 font-medium">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-rose-500" />
-                  {isAr ? "السن والولادة" : "DOB Unknown"} ({activePatient?.age || 0} {isAr ? "عاماً" : "YO"})
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Droplets className="w-3.5 h-3.5 text-teal-500" />
-                  {activePatient?.phone || "N/A"} <span className="bg-rose-100 text-rose-700 px-1 rounded text-[10px] font-bold ml-1">B+</span>
-                </div>
-              </div>
-            </div>
+      <div className="p-4 sm:p-6 pb-2 shrink-0">
+        {activePatient ? (
+          <PatientClinicalHeader patient={activePatient} language={language} showVitals={true} />
+        ) : (
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center text-slate-500 font-bold">
+            {isAr ? "الرجاء اختيار مريض للمتابعة" : "Please select a patient to continue"}
           </div>
-          
-          <div className="hidden lg:flex gap-6 xl:gap-10">
-            <div className="flex flex-col justify-center">
-              <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">{isAr ? "الرقم القومي" : "National ID"}</div>
-              <div className="text-sm font-bold text-slate-800 mb-2">28705152203551</div>
-              <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">{isAr ? "رقم وثيقة التأمين" : "Policy No."}</div>
-              <div className="text-sm font-bold text-slate-800">AXA-987654321</div>
-            </div>
-            
-            <div className="flex flex-col justify-center">
-              <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">{isAr ? "جهة الدفع" : "Insurance"}</div>
-              <div className="text-sm font-bold text-slate-800">{activePatient?.insurance || "Cash"}</div>
-            </div>
-          </div>
- 
-          <div className="hidden xl:flex gap-4">
-            <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 w-40 flex flex-col justify-center">
-              <div className="text-xs font-bold text-rose-600 mb-2 flex justify-between items-center">
-                <span>{isAr ? "الحساسية" : "Allergies"}</span>
-                <button onClick={() => setIsAddAllergyOpen(true)} className="text-[10px] bg-rose-200 text-rose-800 font-bold px-1 rounded hover:bg-rose-300">+</button>
-              </div>
-              <div className="space-y-1 max-h-16 overflow-y-auto">
-                {allergies.map((alg, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                    <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" /> {alg}
-                  </div>
-                ))}
-              </div>
-            </div>
- 
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 w-48 flex flex-col justify-center">
-              <div className="text-xs font-bold text-blue-600 mb-2 flex justify-between items-center">
-                <span>{isAr ? "الأمراض المزمنة" : "Chronic Diseases"}</span>
-                <button onClick={() => setIsAddChronicOpen(true)} className="text-[10px] bg-blue-200 text-blue-800 font-bold px-1 rounded hover:bg-blue-300">+</button>
-              </div>
-              <div className="space-y-1 max-h-16 overflow-y-auto">
-                {chronicDiseases.map((chr, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 ml-1 shrink-0"></div> {chr}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
- 
-          <div className="flex lg:flex-col justify-end gap-2 shrink-0">
-            <div className="flex gap-2">
-              <button onClick={() => window.print()} className="flex items-center gap-1.5 border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
-                <Printer className="w-3.5 h-3.5 text-teal-600" /> {isAr ? "طباعة" : "Print"}
-              </button>
-              <button onClick={() => toast.success(isAr ? "تم مشاركة الملف" : "Medical file shared")} className="flex items-center gap-1.5 border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
-                <Share2 className="w-3.5 h-3.5 text-teal-600" /> {isAr ? "مشاركة" : "Share"}
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
+      </div>
         
         {/* Tabs */}
         <div className="mt-6 flex items-center gap-6 overflow-x-auto custom-scrollbar border-b border-slate-200">
@@ -994,7 +950,6 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
             );
           })}
         </div>
-      </div>
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 bg-slate-50">
@@ -1096,6 +1051,123 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
           <div className="lg:col-span-5 space-y-6 flex flex-col">
             
             {/* Overview / Clinical Notes / SOAP Notes tab rendering */}
+            {activeTab === "Consumables" && (
+              <div className="bg-white border border-slate-200 rounded-xl p-4 flex-1 shadow-sm space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-bold text-blue-800">{isAr ? "صرف المستهلكات والمستلزمات الطبية" : "Medical Consumables & Supplies"}</h3>
+                  <button 
+                    onClick={() => {
+                      setIsAddConsumableOpen(!isAddConsumableOpen);
+                    }} 
+                    className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 transition-colors shadow-sm"
+                  >
+                    {isAddConsumableOpen ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                    {isAr ? "إضافة مستهلك" : "Add Consumable"}
+                  </button>
+                </div>
+
+                {isAddConsumableOpen && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 text-right">
+                    <div className="text-xs font-bold text-slate-700">{isAr ? "بيانات المستهلك الجديد" : "Consumable Details"}</div>
+                    
+                    <div className="mb-2">
+                      <label className="block text-[10px] text-slate-500 font-bold mb-1">{isAr ? "البحث عن مستهلك واختياره" : "Search & Select Consumable"}</label>
+                      <select 
+                        className="w-full p-2 border border-slate-250 bg-white rounded-lg text-xs outline-none"
+                        onChange={(e) => {
+                          const item = inventory.find(i => i.id === e.target.value);
+                          if (item) setSelectedInventoryItem(item);
+                        }}
+                        value={selectedInventoryItem?.id || ""}
+                      >
+                        <option value="">{isAr ? "اختر من المخزن..." : "Select from stock..."}</option>
+                        {inventory.filter(i => i.type === 'consumable').map(item => (
+                          <option key={item.id} value={item.id}>
+                            {isAr ? item.nameAr : item.nameEn} - ({isAr ? "متوفر: " : "Stock: "} {item.stockSub + item.stockMain})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-slate-500 font-bold mb-1">{isAr ? "الكمية" : "Qty"}</label>
+                        <input 
+                          type="number" 
+                          min="1"
+                          value={consumableQty}
+                          onChange={e => setConsumableQty(Number(e.target.value))}
+                          placeholder="Qty" 
+                          className="w-full p-2 border border-slate-250 bg-white rounded-lg text-xs outline-none"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button 
+                          disabled={!selectedInventoryItem || consumableQty <= 0}
+                          onClick={() => {
+                            if (selectedInventoryItem && activePatient) {
+                              addConsumableToPatient(activePatient.id, selectedInventoryItem, consumableQty);
+                              setIsAddConsumableOpen(false);
+                              setConsumableQty(1);
+                              setSelectedInventoryItem(null);
+                            }
+                          }}
+                          className="w-full bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isAr ? "إضافة للفاتورة" : "Add to Billing"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <div className="text-xs font-bold text-slate-500 border-b pb-1">
+                    {isAr ? "المستهلكات المسجلة على المريض" : "Consumables Billed to Patient"}
+                  </div>
+                  {activePatient?.consumables && activePatient.consumables.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-right" dir={isAr ? "rtl" : "ltr"}>
+                        <thead>
+                          <tr className="bg-slate-50 text-slate-500 border-b border-slate-100">
+                            <th className="p-2">{isAr ? "الصنف" : "Item"}</th>
+                            <th className="p-2 text-center">{isAr ? "الكمية" : "Qty"}</th>
+                            <th className="p-2 text-center">{isAr ? "السعر" : "Price"}</th>
+                            <th className="p-2 text-center">{isAr ? "الإجمالي" : "Total"}</th>
+                            <th className="p-2 text-center">{isAr ? "التاريخ" : "Date"}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activePatient.consumables.map((c) => (
+                            <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                              <td className="p-2 font-bold text-slate-800">{isAr ? c.itemNameAr : c.itemNameEn}</td>
+                              <td className="p-2 text-center">{c.qty}</td>
+                              <td className="p-2 text-center">{c.unitPrice}</td>
+                              <td className="p-2 text-center font-bold text-blue-600">{c.totalPrice}</td>
+                              <td className="p-2 text-center text-slate-400 text-[10px]">{new Date(c.date).toLocaleDateString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-blue-50/30 font-bold">
+                            <td colSpan={3} className="p-2 text-blue-800">{isAr ? "إجمالي المستهلكات" : "Total Consumables"}</td>
+                            <td className="p-2 text-center text-blue-800">
+                              {activePatient.consumables.reduce((acc, curr) => acc + curr.totalPrice, 0)}
+                            </td>
+                            <td></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="border border-dashed border-slate-250 p-6 rounded-lg text-center text-xs text-slate-400 italic">
+                      {isAr ? "لا توجد مستهلكات مسجلة حالياً." : "No consumables billed yet."}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {activeTab === "Clinical Notes" && (
               <div className="bg-white border border-slate-200 rounded-xl p-4 min-h-[500px] flex flex-col flex-1 shadow-sm">
                 
@@ -1256,9 +1328,9 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
                       {(() => {
                         const filtered = clinicalNotes.filter((note) => {
                           const matchesSearch = 
-                            note.author.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-                            note.presentation.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-                            (note.plan && note.plan.toLowerCase().includes(noteSearchQuery.toLowerCase()));
+                            note.author?.toLowerCase()?.includes(noteSearchQuery?.toLowerCase()) ||
+                            note.presentation?.toLowerCase()?.includes(noteSearchQuery?.toLowerCase()) ||
+                            (note.plan && note.plan?.toLowerCase()?.includes(noteSearchQuery?.toLowerCase()));
 
                           if (noteTypeFilter === "All") {
                             return matchesSearch && note.status !== "Archived";
@@ -2175,104 +2247,107 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
           </div>
 
           {/* Column 3: Patient Queue Sidebar & Immediate Actions */}
-          <div className="lg:col-span-4 space-y-6">
-            
-            {/* Quick Actions Panel */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <h3 className="text-sm font-bold text-blue-800 mb-4">{isAr ? "الإجراءات السريعة" : "Actions"}</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <button 
-                  onClick={() => {
-                    if (activePatient) {
-                      updatePatientStatus(activePatient.id, "ward");
-                      toast.success(isAr ? "تم نقل المريض للتنويم الداخلي" : "Patient admitted to Ward");
-                      if (onNavigate) {
-                        onNavigate("ipd");
+          {!isEmbedded && (
+            <div className="lg:col-span-4 space-y-6">
+              
+              {/* Quick Actions Panel */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                <h3 className="text-sm font-bold text-blue-800 mb-4">{isAr ? "الإجراءات السريعة" : "Actions"}</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => {
+                      if (activePatient) {
+                        updatePatientStatus(activePatient.id, "ward");
+                        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient admitted to Ward", titleAr: "تم نقل المريض للتنويم الداخلي", type: "form" } }));
+                        if (onNavigate) {
+                          onNavigate("ipd");
+                        }
                       }
-                    }
-                  }} 
-                  className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
-                >
-                  <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-rose-50 group-hover:scale-105 transition">
-                    <UserPlus className="w-5 h-5 text-rose-500" />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
-                    {isAr ? "تنويم داخلي" : "Admit Ward"}
-                  </span>
-                </button>
-
-                <button 
-                  onClick={() => {
-                    if (activePatient) {
-                      updatePatientStatus(activePatient.id, "discharged");
-                      toast.success(isAr ? "تم خروج المريض بنجاح" : "Patient discharged successfully");
-                    }
-                  }} 
-                  className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
-                >
-                  <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-emerald-50 group-hover:scale-105 transition">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
-                    {isAr ? "خروج المريض" : "Discharge"}
-                  </span>
-                </button>
-
-                <button 
-                  onClick={() => toast.success(isAr ? "تم إرسال طلب استشارة خارجية" : "Referral requested")} 
-                  className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
-                >
-                  <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-indigo-50 group-hover:scale-105 transition">
-                    <Share2 className="w-5 h-5 text-indigo-500" />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
-                    {isAr ? "إحالة طبية" : "Refer Doctor"}
-                  </span>
-                </button>
-
-                <button 
-                  onClick={() => toast.success(isAr ? "تم جدولة مراجعة المريض" : "Follow-up scheduled")} 
-                  className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
-                >
-                  <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-blue-50 group-hover:scale-105 transition">
-                    <Calendar className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
-                    {isAr ? "مراجعة لاحقة" : "Follow Up"}
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Medications Checklist */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-bold text-blue-800">{isAr ? "الأدوية النشطة المسجلة" : "Chronic Medications"}</h3>
-                <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">Standard</span>
-              </div>
-              <div className="space-y-2">
-                {[
-                  { name: "Amlodipine 5 mg", sig: isAr ? "قرص واحد يومياً بعد الفطور" : "1 Tab - Once Daily - After Breakfast" },
-                  { name: "Atorvastatin 20 mg", sig: isAr ? "قرص واحد مساءً قبل النوم" : "1 Tab - Once Daily - At Bedtime" },
-                  { name: "Metformin 500 mg", sig: isAr ? "قرص مرتين يومياً بعد الأكل" : "1 Tab - Twice Daily - After Meals" }
-                ].map((med, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 text-xs">
-                    <div>
-                      <div className="font-bold text-slate-800">{med.name}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{med.sig}</div>
+                    }} 
+                    className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
+                  >
+                    <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-rose-50 group-hover:scale-105 transition">
+                      <UserPlus className="w-5 h-5 text-rose-500" />
                     </div>
-                    <span className="text-[9px] font-bold text-teal-600 border border-teal-200 bg-teal-50 px-2 py-0.5 rounded-full">Active</span>
-                  </div>
-                ))}
+                    <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
+                      {isAr ? "تنويم داخلي" : "Admit Ward"}
+                    </span>
+                  </button>
+  
+                  <button 
+                    onClick={() => {
+                      if (activePatient) {
+                        updatePatientStatus(activePatient.id, "discharged");
+                        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient discharged successfully", titleAr: "تم خروج المريض بنجاح", type: "form" } }));
+                      }
+                    }} 
+                    className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
+                  >
+                    <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-emerald-50 group-hover:scale-105 transition">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
+                      {isAr ? "خروج المريض" : "Discharge"}
+                    </span>
+                  </button>
+  
+                  <button 
+                    onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Referral requested", titleAr: "تم إرسال طلب استشارة خارجية", type: "form" } }))} 
+                    className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
+                  >
+                    <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-indigo-50 group-hover:scale-105 transition">
+                      <Share2 className="w-5 h-5 text-indigo-500" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
+                      {isAr ? "إحالة طبية" : "Refer Doctor"}
+                    </span>
+                  </button>
+  
+                  <button 
+                    onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Follow-up scheduled", titleAr: "تم جدولة مراجعة المريض", type: "form" } }))} 
+                    className="flex flex-col items-center gap-2 group p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition"
+                  >
+                    <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-blue-50 group-hover:scale-105 transition">
+                      <Calendar className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-700 text-center leading-tight">
+                      {isAr ? "مراجعة لاحقة" : "Follow Up"}
+                    </span>
+                  </button>
+                </div>
               </div>
+  
+              {/* Quick Medications Checklist */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-bold text-blue-800">{isAr ? "الأدوية النشطة المسجلة" : "Chronic Medications"}</h3>
+                  <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">Standard</span>
+                </div>
+                <div className="space-y-2">
+                  {[
+                    { name: "Amlodipine 5 mg", sig: isAr ? "قرص واحد يومياً بعد الفطور" : "1 Tab - Once Daily - After Breakfast" },
+                    { name: "Atorvastatin 20 mg", sig: isAr ? "قرص واحد مساءً قبل النوم" : "1 Tab - Once Daily - At Bedtime" },
+                    { name: "Metformin 500 mg", sig: isAr ? "قرص مرتين يومياً بعد الأكل" : "1 Tab - Twice Daily - After Meals" }
+                  ].map((med, i) => (
+                    <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 text-xs">
+                      <div>
+                        <div className="font-bold text-slate-800">{med.name}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{med.sig}</div>
+                      </div>
+                      <span className="text-[9px] font-bold text-teal-600 border border-teal-200 bg-teal-50 px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+  
             </div>
-
-          </div>
+          )}
         </div>
       </div>
       
       {/* Patient Queue Bottom Bar */}
-      <div className="bg-white border-t border-slate-200 shrink-0 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] transition-all duration-300">
+      {!isEmbedded && (
+        <div className="bg-white border-t border-slate-200 shrink-0 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] transition-all duration-300">
         <div className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-slate-100 flex-wrap sm:flex-nowrap gap-2">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-black text-blue-800 shrink-0">{isAr ? "قائمة انتظار العيادة" : "Patient Queue"}</h3>
@@ -2314,7 +2389,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
                 const currentIndex = queuePatients.findIndex(p => p.id === selectedPatientId);
                 const nextIndex = (currentIndex + 1) % queuePatients.length;
                 setSelectedPatientId(queuePatients[nextIndex].id);
-                toast.info(isAr ? "تم الانتقال للمريض التالي" : "Switched to next patient");
+                window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Switched to next patient", titleAr: "تم الانتقال للمريض التالي", type: "form" } }));
               }
             }} 
             className="ml-auto sm:ml-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
@@ -2353,6 +2428,7 @@ export default function DoctorConsultationDesk({ language, currentUser, systemUs
           </div>
         )}
       </div>
+      )}
 
       {/* 1. Modal: Edit Vitals */}
       {isEditVitalsOpen && (

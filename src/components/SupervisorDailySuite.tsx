@@ -252,7 +252,7 @@ export default function SupervisorDailySuite({ language }: Props) {
     localStorage.setItem("suite_supervisor_census", JSON.stringify(census));
     localStorage.setItem("suite_supervisor_checklists", JSON.stringify(checklists));
     localStorage.setItem("suite_supervisor_indicators", JSON.stringify(clinicalIndicators));
-    toast.success(isAr ? "تم حفظ جميع تعديلات ونماذج السوبرفايزر بـ Cloud Storage وقاعدة البيانات بنجاح!" : "All supervisor worksheets saved securely to database!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "All supervisor worksheets saved securely to database!", titleAr: "تم حفظ جميع تعديلات ونماذج السوبرفايزر بـ Cloud Storage وقاعدة البيانات بنجاح!", type: "form" } }));
   };
 
   const handleResetToDefaults = () => {
@@ -262,7 +262,7 @@ export default function SupervisorDailySuite({ language }: Props) {
       setCensus(MOCK_NURSING_CENSUS_INITIAL);
       setChecklists(MOCK_CHECKLISTS_OBSERVATIONS_INITIAL);
       setClinicalIndicators(MOCK_CLINICAL_INDICATORS_INITIAL);
-      toast.info(isAr ? "تم استرداد قوالب النماذج الأصلية بنجاح!" : "Original Hospital templates loaded!");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Original Hospital templates loaded!", titleAr: "تم استرداد قوالب النماذج الأصلية بنجاح!", type: "form" } }));
     }
   };
 
@@ -290,13 +290,13 @@ export default function SupervisorDailySuite({ language }: Props) {
       setQuickAddClinicName("");
       setQuickAddClinicVal(0);
       setShowQuickAddDialog(false);
-      toast.success(isAr ? "تمت إضافة العيادة بنجاح!" : "Outpatient clinic added successfully!");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Outpatient clinic added successfully!", titleAr: "تمت إضافة العيادة بنجاح!", type: "form" } }));
     } else if (activeFormTab === "nursingCensus") {
       if (!quickAddWardKey.trim()) {
         toast.error(isAr ? "يرجى تحديد درجة أو طابق طبي" : "Ward name required");
         return;
       }
-      const lowerKey = quickAddWardKey.trim().toLowerCase();
+      const lowerKey = quickAddWardKey.trim()?.toLowerCase();
       setCensus({
         ...census,
         rows: {
@@ -307,7 +307,7 @@ export default function SupervisorDailySuite({ language }: Props) {
       setQuickAddWardKey("");
       setQuickAddWardBeds(10);
       setShowQuickAddDialog(false);
-      toast.success(isAr ? "تمت إضافة جناح التعداد بنجاح!" : "Sensus ward row appended!");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Sensus ward row appended!", titleAr: "تمت إضافة جناح التعداد بنجاح!", type: "form" } }));
     } else if (activeFormTab === "checklists") {
       if (!quickAddChecklistItemAr.trim()) {
         toast.error(isAr ? "يرجى تحديد البند باللغة العربية" : "Checklist item name required");
@@ -326,9 +326,9 @@ export default function SupervisorDailySuite({ language }: Props) {
       setQuickAddChecklistItemAr("");
       setQuickAddChecklistItemEn("");
       setShowQuickAddDialog(false);
-      toast.success(isAr ? "تمت إضافة بند تفتيش الجودة الجديد!" : "Checklist criteria appended!");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Checklist criteria appended!", titleAr: "تمت إضافة بند تفتيش الجودة الجديد!", type: "form" } }));
     } else {
-      toast.info(isAr ? "قسم التوزيع يحتوي على خلايا ورديات ثابتة، استخدم لوحة التمريض لإعادة مواءمة القوى والتمريض" : "Staff allocation sheet edit enabled direct grid adjustments");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Staff allocation sheet edit enabled direct grid adjustments", titleAr: "قسم التوزيع يحتوي على خلايا ورديات ثابتة، استخدم لوحة التمريض لإعادة مواءمة القوى والتمريض", type: "form" } }));
       setShowQuickAddDialog(false);
     }
   };
@@ -345,7 +345,7 @@ export default function SupervisorDailySuite({ language }: Props) {
     setQuickAddVipName("");
     setQuickAddVipComments("");
     setShowQuickAddDialog(false);
-    toast.success(isAr ? "تمت إضافة مريض VIP بنجاح!" : "VIP Case added successfully!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "VIP Case added successfully!", titleAr: "تمت إضافة مريض VIP بنجاح!", type: "form" } }));
   };
 
   const handleAddVent = () => {
@@ -359,7 +359,7 @@ export default function SupervisorDailySuite({ language }: Props) {
     });
     setQuickAddVentName("");
     setShowQuickAddDialog(false);
-    toast.success(isAr ? "تمت إضافة مريض تنفس اصطناعي بنجاح!" : "Ventilator patient log added!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Ventilator patient log added!", titleAr: "تمت إضافة مريض تنفس اصطناعي بنجاح!", type: "form" } }));
   };
 
   const handleAddBedsore = () => {
@@ -372,7 +372,7 @@ export default function SupervisorDailySuite({ language }: Props) {
         pressureUlcerHospitalPatients: updated,
         pressureUlcerHospitalCount: updated.length
       });
-      toast.success(isAr ? "تمت إضافة قرحة فراش نشأت بالمستشفى" : "New Hospital bedsore case logged!");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "New Hospital bedsore case logged!", titleAr: "تمت إضافة قرحة فراش نشأت بالمستشفى", type: "form" } }));
     } else {
       const updated = [...clinicalIndicators.pressureUlcerCommunityPatients, newB];
       setClinicalIndicators({
@@ -380,7 +380,7 @@ export default function SupervisorDailySuite({ language }: Props) {
         pressureUlcerCommunityPatients: updated,
         pressureUlcerCommunityCount: updated.length
       });
-      toast.success(isAr ? "تمت إضافة قرحة فراش خارجية مجتمعية" : "New external bedsore case logged!");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "New external bedsore case logged!", titleAr: "تمت إضافة قرحة فراش خارجية مجتمعية", type: "form" } }));
     }
     setQuickAddBedsoreName("");
     setShowQuickAddDialog(false);
@@ -397,7 +397,7 @@ export default function SupervisorDailySuite({ language }: Props) {
     });
     setQuickAddIsoName("");
     setShowQuickAddDialog(false);
-    toast.success(isAr ? "تم تسجيل حالة عزل طبي بنجاح!" : "Isolation patient log added!");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Isolation patient log added!", titleAr: "تم تسجيل حالة عزل طبي بنجاح!", type: "form" } }));
   };
 
   // Structured sidebar item array 

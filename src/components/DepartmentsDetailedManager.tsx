@@ -59,7 +59,7 @@ export function DepartmentsDetailedManager({
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
           // Align with current departments to ensure consistency
-          const filtered = parsed.filter(d => departments.includes(d.name));
+          const filtered = parsed.filter(d => departments?.includes(d.name));
           const missing = departments.filter(d => !filtered.some((f: any) => f.name === d));
           
           const missingDetails = missing.map((d, index) => {
@@ -100,13 +100,13 @@ export function DepartmentsDetailedManager({
 
   const inferTypeByName = (name: string): "medical" | "admin" | "technical" | "support" => {
     const n = name.toUpperCase();
-    if (n.includes("QUALITY") || n.includes("ADMIN") || n.includes("RECEPTION") || n.includes("SECRETARY")) {
+    if (n?.includes("QUALITY") || n?.includes("ADMIN") || n?.includes("RECEPTION") || n?.includes("SECRETARY")) {
       return "admin";
     }
-    if (n.includes("IT") || n.includes("ENGINEERING") || n.includes("BIOMEDICAL") || n.includes("TECHNICAL")) {
+    if (n?.includes("IT") || n?.includes("ENGINEERING") || n?.includes("BIOMEDICAL") || n?.includes("TECHNICAL")) {
       return "technical";
     }
-    if (n.includes("TRANSPORT") || n.includes("MEALS") || n.includes("LAUNDRY") || n.includes("CLEANING") || n.includes("SECURITY")) {
+    if (n?.includes("TRANSPORT") || n?.includes("MEALS") || n?.includes("LAUNDRY") || n?.includes("CLEANING") || n?.includes("SECURITY")) {
       return "support";
     }
     return "medical";

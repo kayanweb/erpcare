@@ -1,19 +1,4 @@
 import { 
-  collection, 
-  doc, 
-  setDoc, 
-  updateDoc, 
-  onSnapshot, 
-  query, 
-  where,
-  getDoc,
-  serverTimestamp,
-  arrayUnion,
-  addDoc,
-  orderBy
-} from "firebase/firestore";
-import { db } from "../firebase";
-import { 
   Patient, 
   PatientVisitWorkflow, 
   WorkflowStage, 
@@ -23,6 +8,7 @@ import {
 } from "../types";
 import { createNotification } from "./notificationService";
 import { logAudit } from "./auditService";
+import { subscribeToClinicalData, saveDataPermanently, fetchDocumentById } from "./realTimeService";
 
 const WORKFLOW_COLLECTION = "hospital_workflow_instances";
 const PATIENT_COLLECTION = "hospital_his_patients";
@@ -41,7 +27,8 @@ export async function logPatientActivity(
   staffId: string, 
   staffName: string
 ) {
-  const activity: Omit<PatientActivity, "id"> = {
+  const activity: PatientActivity = {
+    id: `act-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     patientId,
     workflowId,
     type,
@@ -51,35 +38,35 @@ export async function logPatientActivity(
     staffId,
     staffName
   };
-  await addDoc(collection(db, ACTIVITY_COLLECTION), activity);
+  await saveDataPermanently(ACTIVITY_COLLECTION, activity);
 }
 
 /**
  * Creates a new task in the system
  */
 export async function createHospitalTask(task: Omit<HospitalTask, "id" | "createdAt" | "updatedAt">): Promise<string> {
-  const taskRef = doc(collection(db, TASK_COLLECTION));
+  const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const newTask: HospitalTask = {
     ...task,
-    id: taskRef.id,
+    id: taskId,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  await setDoc(taskRef, newTask);
-  return taskRef.id;
+  await saveDataPermanently(TASK_COLLECTION, newTask);
+  return taskId;
 }
 
 /**
  * Updates a task status
  */
 export async function updateTaskStatus(taskId: string, status: TaskStatus, staffId: string): Promise<void> {
-  const taskRef = doc(db, TASK_COLLECTION, taskId);
-  await updateDoc(taskRef, {
+  await saveDataPermanently(TASK_COLLECTION, {
+    id: taskId,
     status,
     updatedAt: new Date().toISOString(),
     completedAt: (status === "completed" || status === "cancelled" || status === "rejected") ? new Date().toISOString() : null,
     assignedToUserId: staffId // Auto-assign to the person who takes action
-  });
+  } as any);
 }
 
 /**
@@ -105,13 +92,14 @@ export async function startPatientVisit(patient: Patient, staffId: string, staff
     ]
   };
 
-  await setDoc(doc(db, WORKFLOW_COLLECTION, workflowId), newWorkflow);
-  
+  await saveDataPermanently(WORKFLOW_COLLECTION, newWorkflow);
+
   // Update patient's current active workflow
-  await updateDoc(doc(db, PATIENT_COLLECTION, patient.id), {
+  await saveDataPermanently(PATIENT_COLLECTION, {
+    id: patient.id,
     currentWorkflowStage: "registration",
     workflowId: workflowId
-  });
+  } as any);
 
   // Log activity
   await logPatientActivity(
@@ -137,12 +125,10 @@ export async function transitionStage(
   staffName: string,
   staffRole: string = "staff"
 ): Promise<void> {
-  const workflowRef = doc(db, WORKFLOW_COLLECTION, workflowId);
-  const workflowSnap = await getDoc(workflowRef);
+  const workflow = await fetchDocumentById<PatientVisitWorkflow>(WORKFLOW_COLLECTION, workflowId);
   
-  if (!workflowSnap.exists()) throw new Error("Workflow not found");
+  if (!workflow) throw new Error("Workflow not found");
   
-  const workflow = workflowSnap.data() as PatientVisitWorkflow;
   const oldStage = workflow.currentStage;
   const now = new Date().toISOString();
 
@@ -159,15 +145,17 @@ export async function transitionStage(
     completedByStaffId: staffId
   });
 
-  await updateDoc(workflowRef, {
+  await saveDataPermanently(WORKFLOW_COLLECTION, {
+    ...workflow,
     currentStage: nextStage,
     history: updatedHistory
   });
 
   // Also update patient record for quick lookup
-  await updateDoc(doc(db, PATIENT_COLLECTION, workflow.patientId), {
+  await saveDataPermanently(PATIENT_COLLECTION, {
+    id: workflow.patientId,
     currentWorkflowStage: nextStage
-  });
+  } as any);
 
   // Log activity
   await logPatientActivity(
@@ -250,10 +238,11 @@ async function handleAutomatedTriggers(stage: WorkflowStage, workflow: PatientVi
 
     case "discharge":
       // Mark workflow as completed
-      await updateDoc(doc(db, WORKFLOW_COLLECTION, workflow.id), {
+      await saveDataPermanently(WORKFLOW_COLLECTION, {
+        id: workflow.id,
         status: "completed",
         endTime: new Date().toISOString()
-      });
+      } as any);
 
       // Notify Reception/Billing
       await createNotification({
@@ -273,52 +262,56 @@ async function handleAutomatedTriggers(stage: WorkflowStage, workflow: PatientVi
  * Sync active patient workflows
  */
 export function syncActiveWorkflows(onData: (workflows: PatientVisitWorkflow[]) => void) {
-  const q = query(collection(db, WORKFLOW_COLLECTION), where("status", "==", "active"));
-  return onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PatientVisitWorkflow));
-    onData(data);
-  });
+  return subscribeToClinicalData<PatientVisitWorkflow>(
+    WORKFLOW_COLLECTION,
+    (workflows) => {
+      const active = workflows.filter(w => w.status === "active");
+      onData(active);
+    },
+    (err) => console.error("Active workflows sync error:", err)
+  );
 }
 
 /**
  * Sync all patients
  */
 export function syncPatients(onData: (patients: Patient[]) => void) {
-  return onSnapshot(collection(db, PATIENT_COLLECTION), (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Patient));
-    onData(data);
-  });
+  return subscribeToClinicalData<Patient>(
+    PATIENT_COLLECTION,
+    (patients) => {
+      onData(patients);
+    },
+    (err) => console.error("Patients sync error:", err)
+  );
 }
 
 /**
  * Sync tasks for a specific role or user
  */
 export function syncTasks(role: string, userId: string, onData: (tasks: HospitalTask[]) => void) {
-  const q = query(
-    collection(db, TASK_COLLECTION), 
-    where("status", "in", ["pending", "in_progress"]),
-    orderBy("createdAt", "desc")
+  return subscribeToClinicalData<HospitalTask>(
+    TASK_COLLECTION,
+    (tasks) => {
+      const active = tasks.filter(t => t.status === "pending" || t.status === "in_progress");
+      const sorted = active.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      const filtered = sorted.filter(t => t.assignedToRole === role || t.assignedToUserId === userId);
+      onData(filtered);
+    },
+    (err) => console.error("Tasks sync error:", err)
   );
-
-  return onSnapshot(q, (snapshot) => {
-    const allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HospitalTask));
-    // Client-side filtering for simplicity in the prototype, but could be server-side too
-    const filtered = allTasks.filter(t => t.assignedToRole === role || t.assignedToUserId === userId);
-    onData(filtered);
-  });
 }
 
 /**
  * Sync patient timeline
  */
 export function syncPatientTimeline(workflowId: string, onData: (activities: PatientActivity[]) => void) {
-  const q = query(
-    collection(db, ACTIVITY_COLLECTION), 
-    where("workflowId", "==", workflowId),
-    orderBy("timestamp", "asc")
+  return subscribeToClinicalData<PatientActivity>(
+    ACTIVITY_COLLECTION,
+    (activities) => {
+      const filtered = activities.filter(a => a.workflowId === workflowId);
+      const sorted = filtered.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+      onData(sorted);
+    },
+    (err) => console.error("Timeline sync error:", err)
   );
-  return onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PatientActivity));
-    onData(data);
-  });
 }

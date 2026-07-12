@@ -6,7 +6,22 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
 import { withSupabase } from "@supabase/server";
-import * as firestoreService from "./src/lib/firestoreService";
+import { db } from "./server/db/index";
+import { setProvider } from "./server/db/adapterFactory";
+import { 
+  patients, 
+  prescriptions, 
+  invoices, 
+  staff, 
+  logs, 
+  dutyTasks, 
+  notifications, 
+  messages, 
+  settings, 
+  collectionsStore 
+} from "./server/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
+import { clinicalDataService } from "./server/db/enterpriseService";
 
 dotenv.config();
 
@@ -15,6 +30,10 @@ let serverSettings: any = {};
 if (fs.existsSync("server-settings.json")) {
   try {
     serverSettings = JSON.parse(fs.readFileSync("server-settings.json", "utf8"));
+    if (serverSettings.activeProvider) {
+      setProvider(serverSettings.activeProvider);
+      console.log(`📡 Restored database provider on startup: ${serverSettings.activeProvider}`);
+    }
   } catch (e) {
     console.error("Error reading server-settings.json", e);
   }
@@ -610,7 +629,7 @@ Output ONLY a JSON object based on this schema:
         for (let i = 0; i < 3; i++) {
           try {
             result = await client.models.generateContent({
-                model: "gemini-3.5-flash",
+                model: "gemini-2.5-flash",
                 contents: search_query,
                 config: {
                     systemInstruction: systemInstruction,
@@ -641,7 +660,7 @@ Output ONLY a JSON object based on this schema:
         res.json({ success: true, medication: responseJson });
 
     } catch (error: any) {
-        console.warn("Medication AI Model unavailable/failed. Activating high-fidelity fallback. Error:", error.message || error);
+        console.log("Medication AI Model offline fallback activated.");
         const responseJson = getMedicationFallback(search_query);
         res.json({ success: true, medication: responseJson, fallback: true });
     }
@@ -675,7 +694,7 @@ Output localized text in the requested language: ${isAr ? "Arabic" : "English"}.
 `;
 
         const response = await client.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: `Analyze interaction between: "${med1}" and "${med2}"`,
             config: {
                 systemInstruction: systemInstruction,
@@ -695,7 +714,7 @@ Output localized text in the requested language: ${isAr ? "Arabic" : "English"}.
         res.json({ success: true, analysis: responseJson });
 
     } catch (error: any) {
-        console.warn("Interaction AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
+        console.log("Interaction AI Model offline fallback activated.");
         const responseJson = getInteractionFallback(med1, med2, isAr);
         res.json({ success: true, analysis: responseJson, fallback: true });
     }
@@ -723,7 +742,7 @@ Output ONLY a JSON object based on this schema:
 Output text in: ${isAr ? "Arabic" : "English"}.
 `;
         const response = await client.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: `Drug 1: ${drug1}, Drug 2: ${drug2}, Base Fluid: ${fluid || "None"}`,
             config: {
                 systemInstruction: systemInstruction,
@@ -734,7 +753,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
 
         res.json({ success: true, result: JSON.parse(response.text!) });
     } catch (error: any) {
-        console.warn("IV Compatibility AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
+        console.log("IV Compatibility AI Model offline fallback activated.");
         const responseJson = getIvCompatibilityFallback(drug1, drug2, fluid || "", isAr);
         res.json({ success: true, result: responseJson, fallback: true });
     }
@@ -767,7 +786,7 @@ Output ONLY a JSON object based on this schema:
 Output text in: ${isAr ? "Arabic" : "English"}.
 `;
         const response = await client.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: `Medication: ${medication}`,
             config: {
                 systemInstruction: systemInstruction,
@@ -778,7 +797,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
 
         res.json({ success: true, counseling: JSON.parse(response.text!) });
     } catch (error: any) {
-        console.warn("Medication Counseling AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
+        console.log("Medication Counseling AI Model offline fallback activated.");
         const responseJson = getCounselingFallback(medication, isAr);
         res.json({ success: true, counseling: responseJson, fallback: true });
     }
@@ -793,7 +812,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
   // API Route: Registration & Encounters
   app.post("/api/v1/patients", async (req, res) => {
     try {
-      await firestoreService.savePatient(req.body);
+      await clinicalDataService.saveItem("patients", req.body);
       res.status(201).json({ success: true });
     } catch (err) {
       res.status(500).json({ success: false, error: "Failed to save patient" });
@@ -802,15 +821,18 @@ Output text in: ${isAr ? "Arabic" : "English"}.
 
   app.get("/api/v1/patients/search", async (req, res) => {
     const queryStr = req.query.q as string;
-    // Simple search implementation
-    const patients = await new Promise((resolve) => firestoreService.syncPatients(resolve));
-    const filtered = (patients as any[]).filter(p => p.mrn?.includes(queryStr) || p.national_id?.includes(queryStr) || p.phone_mobile?.includes(queryStr));
-    res.json({ success: true, data: filtered });
+    try {
+      const patients = await clinicalDataService.getCollection("patients");
+      const filtered = patients.filter(p => p.mrn?.includes(queryStr) || p.national_id?.includes(queryStr) || p.phone_mobile?.includes(queryStr));
+      res.json({ success: true, data: filtered });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Failed to search patients" });
+    }
   });
 
   app.post("/api/v1/encounters", async (req, res) => {
     try {
-      await firestoreService.saveEncounter(req.body);
+      await clinicalDataService.saveItem("encounters", req.body);
       res.status(201).json({ success: true });
     } catch (err) {
       res.status(500).json({ success: false, error: "Failed to save encounter" });
@@ -819,7 +841,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
 
   app.put("/api/v1/encounters/:id/check-in", async (req, res) => {
     try {
-      await firestoreService.saveEncounter({ ...req.body, id: req.params.id, status: "CHECKED_IN" });
+      await clinicalDataService.saveItem("encounters", { ...req.body, id: req.params.id, status: "CHECKED_IN" });
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ success: false, error: "Failed to check in" });
@@ -841,6 +863,7 @@ Output text in: ${isAr ? "Arabic" : "English"}.
                 
                 // Persist settings AND provider
                 fs.writeFileSync("server-settings.json", JSON.stringify({ activeProvider: provider, settings }));
+                setProvider(provider);
                 
                 console.log("Database settings updated and persisted for:", provider);
                 return res.json({ success: true, message: "Database settings updated." });
@@ -1051,7 +1074,7 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
       for (let i = 0; i < 3; i++) {
         try {
           response = await client.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: targetPrompt,
             config: {
               temperature: 0.3,
@@ -1074,7 +1097,7 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
       const text = response.text || "";
       res.json({ success: true, analysis: text });
     } catch (error: any) {
-      console.warn("Clinical Safety AI Model failed. Activating high-fidelity fallback. Error:", error.message || error);
+      console.log("Clinical Safety AI Model offline fallback activated.");
       let text = "";
       if (type === "news2") {
         text = getNews2Fallback(data, isAr);
@@ -1134,7 +1157,12 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.setHeader("Content-Encoding", "none");
     res.flushHeaders();
+
+    // Send initial keep-alive comment to flush headers through proxy
+    res.write(":\n\n");
 
     sseClients.push(res);
 
@@ -1154,142 +1182,229 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
     });
   }
 
+  // Enterprise API Aggregation (Bulk Sync)
+  app.post("/api/db/:provider/bulk-sync", async (req, res) => {
+    console.log("--> Received bulk-sync for provider", req.params.provider, "collections:", req.body.collections);
+    console.log("--> Received bulk-sync for provider", req.params.provider, "collections:", req.body.collections);
+    const { collections } = req.body;
+    if (!collections || !Array.isArray(collections)) {
+      return res.status(400).json({ success: false, error: "Invalid 'collections' array" });
+    }
+
+    try {
+      console.log("Starting bulkSync service call...");
+      console.log("Starting bulkSync service call...");
+      const data = await clinicalDataService.bulkSync(collections);
+      console.log("bulkSync service call completed.");
+      console.log("bulkSync service call completed.");
+      return res.json({ success: true, data });
+    } catch (err: any) {
+      console.error("Error doing bulk sync:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // Get all items in a collection for a given provider
   app.get("/api/db/:provider/:collection", async (req, res) => {
-    const { provider, collection: collectionName } = req.params;
-    const upperProvider = provider.toUpperCase();
-
-    const admin = (global as any).supabaseAdmin || supabaseAdmin;
-    if (upperProvider === "SUPABASE") {
-      if (!admin) {
-        console.error("SUPABASE admin client is not initialized.");
-        return res.status(500).json({ success: false, error: "Supabase client not initialized." });
-      }
-      try {
-        console.log(`[Supabase] GET collection: ${collectionName}`);
-        const { data, error } = await admin.from(collectionName).select("*");
-        if (error) {
-            console.error(`[Supabase] GET error for ${collectionName}:`, error);
-            throw error;
-        }
-        console.log(`[Supabase] GET success: ${data ? data.length : 0} items`);
-        return res.json({ success: true, data });
-      } catch (err: any) {
-        console.error(`SUPABASE API Error for ${collectionName}:`, JSON.stringify(err, null, 2));
-        return res.status(500).json({ success: false, error: err.message, details: err.details || err.hint });
-      }
+    const { collection: collectionName } = req.params;
+    
+    try {
+      const data = await clinicalDataService.getCollection(collectionName);
+      return res.json({ success: true, data });
+    } catch (err: any) {
+      console.error(`Error fetching collection ${collectionName} from PostgreSQL:`, err);
+      return res.status(500).json({ success: false, error: err.message });
     }
-
-    if (!providerStores[upperProvider]) {
-      return res.status(404).json({ success: false, error: "Database provider not supported." });
-    }
-
-    if (!providerStores[upperProvider][collectionName]) {
-      providerStores[upperProvider][collectionName] = [];
-    }
-
-    res.json({ success: true, data: providerStores[upperProvider][collectionName] });
   });
 
   // Save/Update an item in a collection
   app.post("/api/db/:provider/:collection", async (req, res) => {
-    const { provider, collection: collectionName } = req.params;
-    const upperProvider = provider.toUpperCase();
+    const { collection: collectionName } = req.params;
     const item = req.body;
-
-    const admin = (global as any).supabaseAdmin || supabaseAdmin;
-    if (upperProvider === "SUPABASE") {
-      if (!admin) {
-        console.error("SUPABASE admin client is not initialized.");
-        return res.status(500).json({ success: false, error: "Supabase client not initialized." });
-      }
-      try {
-        console.log(`[Supabase] POST collection: ${collectionName}, ID: ${item.id}`);
-        const { data, error } = await admin.from(collectionName).upsert(item).select();
-        if (error) {
-            console.error(`[Supabase] POST error for ${collectionName}:`, error);
-            throw error;
-        }
-        console.log(`[Supabase] POST success`);
-        broadcastUpdate(upperProvider, collectionName);
-        return res.json({ success: true, item: data?.[0] || item });
-      } catch (err: any) {
-        console.error(`SUPABASE API Error (POST) for ${collectionName}:`, JSON.stringify(err, null, 2));
-        return res.status(500).json({ success: false, error: err.message, details: err.details || err.hint });
-      }
-    }
-
-    if (!providerStores[upperProvider]) {
-      return res.status(404).json({ success: false, error: "Database provider not supported." });
-    }
 
     if (!item || !item.id) {
       return res.status(400).json({ success: false, error: "Item must contain an 'id' field." });
     }
 
-    if (!providerStores[upperProvider][collectionName]) {
-      providerStores[upperProvider][collectionName] = [];
+    try {
+      await clinicalDataService.saveItem(collectionName, item);
+      broadcastUpdate("LOCAL_HOST", collectionName);
+      return res.json({ success: true, item });
+    } catch (err: any) {
+      console.error(`Error saving ${collectionName} to PostgreSQL:`, err);
+      return res.status(500).json({ success: false, error: err.message });
     }
-
-    const index = providerStores[upperProvider][collectionName].findIndex(x => x.id === item.id);
-    if (index >= 0) {
-      providerStores[upperProvider][collectionName][index] = {
-        ...providerStores[upperProvider][collectionName][index],
-        ...item,
-        updatedAt: new Date().toISOString()
-      };
-    } else {
-      providerStores[upperProvider][collectionName].push({
-        ...item,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-    }
-
-    persistFallbackDatabase();
-    broadcastUpdate(upperProvider, collectionName);
-    res.json({ success: true, item });
   });
 
   // Delete an item from a collection
   app.delete("/api/db/:provider/:collection/:id", async (req, res) => {
-    const { provider, collection: collectionName, id } = req.params;
-    const upperProvider = provider.toUpperCase();
+    const { collection: collectionName, id } = req.params;
 
-    const admin = (global as any).supabaseAdmin || supabaseAdmin;
-    if (upperProvider === "SUPABASE") {
-      if (!admin) {
-        console.error("SUPABASE admin client is not initialized.");
-        return res.status(500).json({ success: false, error: "Supabase client not initialized." });
+    try {
+      await clinicalDataService.deleteItem(collectionName, id);
+      broadcastUpdate("LOCAL_HOST", collectionName);
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error(`Error deleting ${id} from ${collectionName} in PostgreSQL:`, err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // API routes
+  app.use(express.json());
+
+  app.get("/api/patients", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("patients");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.post("/api/patients", async (req, res) => {
+    try {
+      const patient = req.body;
+      await clinicalDataService.saveItem("patients", patient);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.delete("/api/patients/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await clinicalDataService.deleteItem("patients", id);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.get("/api/prescriptions", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("prescriptions");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.post("/api/prescriptions", async (req, res) => {
+    try {
+      const p = req.body;
+      await clinicalDataService.saveItem("prescriptions", p);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.get("/api/invoices", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("invoices");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.post("/api/invoices", async (req, res) => {
+    try {
+      const i = req.body;
+      await clinicalDataService.saveItem("invoices", i);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const n = req.body;
+      await clinicalDataService.saveItem("notifications", n);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("notifications");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.post("/api/notifications/clear", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (ids && ids.length > 0) {
+        for (const id of ids) {
+          await clinicalDataService.deleteItem("notifications", id);
+        }
       }
-      try {
-        const { error } = await admin.from(collectionName).delete().eq("id", id);
-        if (error) throw error;
-        broadcastUpdate(upperProvider, collectionName);
-        return res.json({ success: true });
-      } catch (err: any) {
-        console.error(`SUPABASE API Error (DELETE) for ${collectionName}:`, JSON.stringify(err, null, 2));
-        return res.status(500).json({ success: false, error: err.message, details: err.details || err.hint });
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.get("/api/messages", async (req, res) => {
+    try {
+      const data = await clinicalDataService.getCollection("messages");
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.post("/api/messages", async (req, res) => {
+    try {
+      const m = req.body;
+      await clinicalDataService.saveItem("messages", m);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
+    }
+  });
+
+  app.post("/api/messages/clear", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (ids && ids.length > 0) {
+        for (const id of ids) {
+          await clinicalDataService.deleteItem("messages", id);
+        }
       }
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
     }
+  });
 
-    if (!providerStores[upperProvider]) {
-      return res.status(404).json({ success: false, error: "Database provider not supported." });
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const data = await clinicalDataService.getCollection("settings");
+      const matched = data.find((r: any) => r.key === key || r.id === key);
+      res.json(matched || null);
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
     }
+  });
 
-    if (!providerStores[upperProvider][collectionName]) {
-      providerStores[upperProvider][collectionName] = [];
+  app.post("/api/settings", async (req, res) => {
+    try {
+      const s = req.body;
+      await clinicalDataService.saveItem("settings", s);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: (e as Error).message });
     }
-
-    const initialLength = providerStores[upperProvider][collectionName].length;
-    providerStores[upperProvider][collectionName] = providerStores[upperProvider][collectionName].filter(x => x.id !== id);
-
-    if (providerStores[upperProvider][collectionName].length !== initialLength) {
-      persistFallbackDatabase();
-      broadcastUpdate(upperProvider, collectionName);
-    }
-
-    res.json({ success: true });
   });
 
   // Vite middleware for development
@@ -1307,6 +1422,124 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
       res.sendFile(path.join(distPath, "index.html"));
     });
     console.log("Serving static files from dist.");
+  }
+
+  // --- Auto Seeding for PostgreSQL on Boot ---
+  try {
+    console.log("Checking if PostgreSQL database needs seeding...");
+    
+    // 1. Seed users
+    const existingUsers = await db.select().from(collectionsStore).where(eq(collectionsStore.collectionName, "users"));
+    if (existingUsers.length === 0) {
+      console.log("Seeding system users to collectionsStore table...");
+      const mockUsers = [
+        {
+          id: "user-it",
+          nameAr: "م. عادل الشريف (رئيس قسم نظم المعلومات IT)",
+          nameEn: "Eng. Adel El-Sherif (Head of IT & Digital Systems)",
+          role: "it",
+          avatarInitials: "IT",
+          department: "INFORMATION TECHNOLOGY / IT",
+          staffId: "2026",
+          pin: "2026",
+          email: "it-support@baheya.org",
+          supervisorId: "user-admin",
+        },
+        {
+          id: "user-nurse",
+          nameAr: "أ. فاطمة الزهراء (استاف التمريض)",
+          nameEn: "Sister Fatima El-Zahraa (Staff Nurse)",
+          role: "staff",
+          avatarInitials: "FZ",
+          department: "EMERGENCY UNIT",
+          staffId: "2525",
+          pin: "2525",
+          email: "fatima@baheya.org",
+          supervisorId: "user-head-nurse",
+        }
+      ];
+      for (const u of mockUsers) {
+        await db.insert(collectionsStore).values({
+          id: u.id,
+          collectionName: "users",
+          data: u,
+          updatedAt: new Date().toISOString()
+        });
+      }
+      console.log("System users seeded.");
+    }
+
+    // 2. Seed patients
+    const existingPatients = await db.select().from(patients);
+    if (existingPatients.length === 0) {
+      console.log("Seeding mock patients and workflows...");
+      const patientsToSeed = [
+        {
+          id: "p1",
+          mrn: "MRN-001",
+          nameAr: "أحمد محمد علي",
+          nameEn: "Ahmed Mohamed Ali",
+          age: 39,
+          gender: "male",
+          phone: "01001234567",
+          status: "registered",
+          insurance: "Cash",
+          clinicalData: {
+            dob: "1985-05-20",
+            nationality: "Egyptian",
+            nationalId: "28505200100123",
+            currentWorkflowStage: "registration",
+            workflowId: "WF-INIT-001"
+          }
+        },
+        {
+          id: "p2",
+          mrn: "MRN-002",
+          nameAr: "سارة محمود حسن",
+          nameEn: "Sara Mahmoud Hassan",
+          age: 33,
+          gender: "female",
+          phone: "01122334455",
+          status: "triage",
+          insurance: "Bupa",
+          clinicalData: {
+            dob: "1992-11-10",
+            nationality: "Egyptian",
+            nationalId: "29211100100555",
+            currentWorkflowStage: "triage",
+            workflowId: "WF-INIT-002"
+          }
+        }
+      ];
+
+      for (const p of patientsToSeed) {
+        // Save patient
+        await db.insert(patients).values(p);
+
+        // Save workflow
+        const wf = {
+          id: p.clinicalData.workflowId,
+          patientId: p.id,
+          patientMRN: p.mrn,
+          startTime: new Date().toISOString(),
+          currentStage: p.clinicalData.currentWorkflowStage,
+          status: "active",
+          history: [{
+            stage: "registration",
+            startTime: new Date().toISOString()
+          }]
+        };
+        await db.insert(collectionsStore).values({
+          id: p.clinicalData.workflowId,
+          collectionName: "hospital_workflow_instances",
+          data: wf,
+          updatedAt: new Date().toISOString()
+        });
+      }
+      console.log("Mock patients & workflows seeded successfully.");
+    }
+  } catch (seedError) {
+    console.error("Auto-seeding warning (non-fatal):", seedError);
   }
 
   app.listen(PORT, "0.0.0.0", () => {

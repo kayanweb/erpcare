@@ -10,8 +10,7 @@ import {
   AlertTriangle,
   History
 } from "lucide-react";
-import { collection, onSnapshot, query, where, orderBy, doc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { subscribeToClinicalData } from "../lib/realTimeService";
 import { toast } from "sonner";
 import { PatientVisitWorkflow } from "../types";
 
@@ -26,25 +25,23 @@ export const QueueManagement: React.FC<Props> = ({ department, language }) => {
   const [activePatient, setActivePatient] = useState<PatientVisitWorkflow | null>(null);
 
   useEffect(() => {
-    // In a real app, we'd filter by department too
-    const q = query(
-      collection(db, "hospital_workflow_instances"),
-      where("status", "==", "active"),
-      where("currentStage", "==", "triage"), // For example
-      orderBy("startTime", "asc")
+    const unsubscribe = subscribeToClinicalData<PatientVisitWorkflow>(
+      "hospital_workflow_instances",
+      (data) => {
+        const filtered = data
+          .filter(wf => wf.status === "active" && wf.currentStage === "triage")
+          .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        setQueue(filtered);
+      },
+      (err) => console.error("Error loading queue:", err)
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PatientVisitWorkflow));
-      setQueue(data);
-    });
 
     return () => unsubscribe();
   }, [department]);
 
   const callNext = async () => {
     if (queue.length === 0) {
-      toast.info(isAr ? "لا يوجد مرضى في الانتظار" : "No patients in queue");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "No patients in queue", titleAr: "لا يوجد مرضى في الانتظار", type: "form" } }));
       return;
     }
 

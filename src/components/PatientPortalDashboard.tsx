@@ -1,212 +1,172 @@
 import React, { useState } from "react";
-import { 
-  Home, Calendar, History as HistoryIcon, Pill, FileText, 
-  User, CheckCircle2, AlertCircle, Clock, Stethoscope 
-} from "lucide-react";
+import { User, Activity, FileText, Pill, CreditCard, Calendar, Search, Filter, ArrowRight, Download, FileDigit } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
   language: "ar" | "en";
-  departments?: string[];
-  systemUsers?: any[];
 }
 
-export default function PatientPortalDashboard({ language, departments = [], systemUsers = [] }: Props) {
+export default function PatientPortalDashboard({ language }: Props) {
   const isAr = language === "ar";
-  const [activeTab, setActiveTab] = useState<"home" | "booking" | "history">("home");
+  const [activeTab, setActiveTab] = useState<"appointments" | "prescriptions" | "reports" | "billing">("appointments");
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 font-sans" dir={isAr ? "rtl" : "ltr"}>
-      {/* Header */}
-      <div className="bg-indigo-700 text-white p-4 sm:p-6 border-b border-indigo-800 shrink-0">
-        <h1 className="text-2xl font-black flex items-center gap-2">
-          <User className="w-7 h-7 text-indigo-200" />
-          {isAr ? "بوابة المريض" : "Patient Portal"}
-        </h1>
-        <p className="text-sm text-indigo-200 font-medium mt-1">
-          {isAr ? "مرحباً بك، أحمد محمد. يمكنك متابعة حالتك الصحية وحجز المواعيد من هنا." : "Welcome, Ahmed Mohamed. Track your health and book appointments here."}
-        </p>
-
-        <div className="flex mt-6 gap-6">
-          <button 
-            onClick={() => setActiveTab("home")}
-            className={`pb-3 text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "home" ? "text-white border-b-2 border-white" : "text-indigo-300 hover:text-white"}`}
-          >
-            <Home className="w-4 h-4" /> {isAr ? "الرئيسية" : "Home"}
-          </button>
-          <button 
-            onClick={() => setActiveTab("booking")}
-            className={`pb-3 text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "booking" ? "text-white border-b-2 border-white" : "text-indigo-300 hover:text-white"}`}
-          >
-            <Calendar className="w-4 h-4" /> {isAr ? "حجز موعد" : "Booking"}
-          </button>
-          <button 
-            onClick={() => setActiveTab("history")}
-            className={`pb-3 text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "history" ? "text-white border-b-2 border-white" : "text-indigo-300 hover:text-white"}`}
-          >
-            <HistoryIcon className="w-4 h-4" /> {isAr ? "السجل الطبي" : "Medical History"}
-          </button>
+    <div className="p-4 md:p-6 bg-slate-50 min-h-full font-sans animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+            <User className="w-8 h-8 text-teal-600 bg-teal-100 p-1.5 rounded-xl" />
+            {isAr ? "بوابة المريض (Patient Portal)" : "Patient Portal"}
+          </h2>
+          <p className="text-sm text-slate-500 mt-1 font-medium">
+            {isAr ? "استعراض ملف المريض، المواعيد، النتائج، والوصفات الطبية" : "View patient profile, appointments, results, and prescriptions"}
+          </p>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-        {activeTab === "home" && (
-           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Upcoming Appointments */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                 <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
-                   <Calendar className="w-5 h-5 text-indigo-500" /> {isAr ? "المواعيد القادمة" : "Upcoming Appointments"}
-                 </h3>
-                 <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                       <div>
-                          <p className="font-bold text-slate-800 text-sm">{isAr ? "عيادة القلب" : "Cardiology Clinic"}</p>
-                          <p className="text-xs text-slate-600">Dr. Sarah Ahmed</p>
-                       </div>
-                       <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded">Confirmed</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-indigo-800 font-bold mt-3">
-                       <Clock className="w-4 h-4" /> 15 Oct 2024, 10:00 AM
-                    </div>
-                 </div>
-              </div>
+      <div className="flex bg-white rounded-xl shadow-sm border border-slate-200 p-1 mb-6 overflow-x-auto">
+        {[
+          { id: "appointments", labelAr: "مواعيدي", labelEn: "My Appointments", icon: Calendar },
+          { id: "prescriptions", labelAr: "وصفاتي الطبية", labelEn: "Prescriptions", icon: Pill },
+          { id: "reports", labelAr: "التقارير والنتائج", labelEn: "Reports & Results", icon: FileText },
+          { id: "billing", labelAr: "الفواتير", labelEn: "Billing", icon: CreditCard },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`flex items-center gap-2 px-6 py-2 text-sm font-bold rounded-lg transition whitespace-nowrap ${
+              activeTab === tab.id
+                ? "bg-teal-100 text-teal-700"
+                : "text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {isAr ? tab.labelAr : tab.labelEn}
+          </button>
+        ))}
+      </div>
 
-              {/* Current Medications */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                 <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
-                   <Pill className="w-5 h-5 text-teal-500" /> {isAr ? "الأدوية الحالية" : "Current Medications"}
-                 </h3>
-                 <div className="space-y-3">
-                    <div className="bg-slate-50 border border-slate-100 rounded-lg p-3">
-                       <p className="font-bold text-slate-800 text-sm">Aspirin 81mg</p>
-                       <p className="text-xs text-slate-600 mt-1">{isAr ? "قرص واحد يومياً بعد الإفطار" : "1 tablet daily after breakfast"}</p>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-100 rounded-lg p-3">
-                       <p className="font-bold text-slate-800 text-sm">Atorvastatin 20mg</p>
-                       <p className="text-xs text-slate-600 mt-1">{isAr ? "قرص واحد مساءً" : "1 tablet in the evening"}</p>
-                    </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
+        {activeTab === "appointments" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-slate-800 text-lg">{isAr ? "المواعيد القادمة" : "Upcoming Appointments"}</h3>
+              <button className="text-teal-600 font-bold text-sm hover:underline">{isAr ? "حجز موعد جديد" : "Book New Appointment"}</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               <div className="border border-slate-200 rounded-xl p-5 bg-white hover:shadow-md transition">
+                 <div className="flex justify-between items-start mb-4">
+                   <div className="bg-teal-50 text-teal-700 p-2 rounded-lg text-center min-w-[60px]">
+                     <p className="text-xs font-bold uppercase">Oct</p>
+                     <p className="text-2xl font-black">28</p>
+                   </div>
+                   <span className="px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">Upcoming</span>
                  </div>
-              </div>
-
-              {/* Recent Lab Results */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                 <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
-                   <FileText className="w-5 h-5 text-rose-500" /> {isAr ? "أحدث نتائج التحاليل" : "Recent Lab Results"}
-                 </h3>
-                 <div className="space-y-3">
-                    <div className="flex justify-between items-center bg-slate-50 border border-slate-100 rounded-lg p-3">
-                       <div>
-                          <p className="font-bold text-slate-800 text-sm">CBC (Complete Blood Count)</p>
-                          <p className="text-xs text-slate-500 mt-1">10 Oct 2024</p>
-                       </div>
-                       <button className="text-indigo-600 hover:text-indigo-700 text-[10px] font-bold underline">
-                          {isAr ? "عرض النتيجة" : "View"}
-                       </button>
-                    </div>
-                    <div className="flex justify-between items-center bg-slate-50 border border-slate-100 rounded-lg p-3">
-                       <div>
-                          <p className="font-bold text-slate-800 text-sm">Lipid Profile</p>
-                          <p className="text-xs text-slate-500 mt-1">10 Oct 2024</p>
-                       </div>
-                       <div className="flex items-center gap-1 text-rose-600 text-[10px] font-bold">
-                          <AlertCircle className="w-3 h-3" /> {isAr ? "عالي" : "High"}
-                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        )}
-
-        {activeTab === "booking" && (
-           <div className="max-w-2xl mx-auto bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
-              <div className="p-4 border-b border-slate-200 bg-slate-50">
-                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-indigo-500" /> {isAr ? "حجز موعد جديد" : "Book New Appointment"}
-                 </h3>
-              </div>
-              <div className="p-6 flex-1 space-y-6">
-                 <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">{isAr ? "التخصص" : "Specialty"}</label>
-                    <select className="w-full border border-slate-300 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none bg-slate-50">
-                       <option>{isAr ? "الرجاء الاختيار..." : "Please Select..."}</option>
-                       {departments.length > 0 ? departments.map((dept, i) => (
-                           <option key={i} value={dept}>{dept}</option>
-                        )) : (
-                          <>
-                            <option>{isAr ? "باطنة" : "Internal Medicine"}</option>
-                            <option>{isAr ? "قلب" : "Cardiology"}</option>
-                            <option>{isAr ? "عظام" : "Orthopedics"}</option>
-                          </>
-                        )}
-                    </select>
-                 </div>
-                 <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">{isAr ? "الطبيب" : "Doctor"}</label>
-                    <select className="w-full border border-slate-300 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none bg-slate-50" disabled>
-                       <option>{isAr ? "الرجاء اختيار التخصص أولاً" : "Select specialty first"}</option>
-                    </select>
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <div>
-                       <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">{isAr ? "التاريخ" : "Date"}</label>
-                       <input type="date" className="w-full border border-slate-300 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none bg-slate-50" />
-                    </div>
-                    <div>
-                       <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">{isAr ? "الوقت المتاح" : "Available Slots"}</label>
-                       <select className="w-full border border-slate-300 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none bg-slate-50" disabled>
-                          <option>{isAr ? "-" : "-"}</option>
-                       </select>
-                    </div>
-                 </div>
-                 <button onClick={() => toast.success(isAr ? "تم إرسال طلب الحجز" : "Booking Request Sent")} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-sm transition mt-4">
-                    {isAr ? "تأكيد الحجز" : "Confirm Booking"}
+                 <h4 className="font-bold text-slate-800 text-lg mb-1">Cardiology Follow-up</h4>
+                 <p className="text-sm text-slate-500 mb-4">Dr. Sarah Ahmed</p>
+                 <button className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-lg transition">
+                   {isAr ? "تفاصيل الموعد" : "View Details"}
                  </button>
-              </div>
-           </div>
+               </div>
+            </div>
+          </div>
         )}
 
-        {activeTab === "history" && (
-           <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col min-h-[600px]">
-              <div className="p-4 border-b border-slate-200 bg-slate-50">
-                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                    <HistoryIcon className="w-5 h-5 text-indigo-500" /> {isAr ? "زياراتك السابقة وتقارير الخروج" : "Past Visits & Discharge Summaries"}
-                 </h3>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                 <div className="border border-slate-200 rounded-lg p-4 hover:border-slate-300 transition flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <div>
-                       <div className="flex items-center gap-2 mb-1">
-                          <Stethoscope className="w-4 h-4 text-slate-500" />
-                          <span className="font-bold text-slate-800 text-sm">Consultation - Cardiology</span>
-                       </div>
-                       <p className="text-xs text-slate-500">Dr. Sarah Ahmed • 15 Sep 2024</p>
-                    </div>
-                    <div className="flex gap-2">
-                       <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded transition">
-                          {isAr ? "تقرير الزيارة" : "Visit Note"}
-                       </button>
-                       <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded transition">
-                          {isAr ? "وصفة طبية" : "Prescription"}
-                       </button>
-                    </div>
+        {activeTab === "prescriptions" && (
+          <div className="space-y-6">
+             <h3 className="font-bold text-slate-800 text-lg mb-4">{isAr ? "الوصفات الطبية الفعالة" : "Active Prescriptions"}</h3>
+             <div className="border border-slate-200 rounded-xl overflow-hidden">
+               <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                 <div>
+                   <p className="font-bold text-slate-800">Prescription #RX-8842</p>
+                   <p className="text-xs text-slate-500 mt-1">Issued: Oct 20, 2023 by Dr. Laila</p>
                  </div>
+                 <button className="text-teal-600 hover:bg-teal-50 p-2 rounded-lg transition"><Download className="w-5 h-5"/></button>
+               </div>
+               <div className="p-4 bg-white">
+                 <div className="flex items-center gap-4 py-2 border-b border-slate-100 last:border-0">
+                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Pill className="w-5 h-5"/></div>
+                   <div className="flex-1">
+                     <p className="font-bold text-slate-800">Amoxicillin 500mg</p>
+                     <p className="text-sm text-slate-500">1 capsule every 8 hours for 7 days</p>
+                   </div>
+                 </div>
+                 <div className="flex items-center gap-4 py-2 border-b border-slate-100 last:border-0">
+                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Pill className="w-5 h-5"/></div>
+                   <div className="flex-1">
+                     <p className="font-bold text-slate-800">Panadol Advance</p>
+                     <p className="text-sm text-slate-500">2 tablets when needed (fever/pain)</p>
+                   </div>
+                 </div>
+               </div>
+             </div>
+          </div>
+        )}
 
-                 <div className="border border-slate-200 rounded-lg p-4 hover:border-slate-300 transition flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <div>
-                       <div className="flex items-center gap-2 mb-1">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                          <span className="font-bold text-slate-800 text-sm">Inpatient Admission - Internal Medicine</span>
-                       </div>
-                       <p className="text-xs text-slate-500">Discharged: 10 Aug 2024</p>
-                    </div>
-                    <div className="flex gap-2">
-                       <button className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold px-3 py-1.5 rounded transition">
-                          {isAr ? "ملخص الخروج (Discharge Summary)" : "Discharge Summary"}
-                       </button>
-                    </div>
-                 </div>
+        {activeTab === "reports" && (
+          <div className="space-y-6">
+             <div className="flex justify-between items-center mb-4">
+               <h3 className="font-bold text-slate-800 text-lg">{isAr ? "النتائج والتقارير" : "Results & Reports"}</h3>
+               <div className="relative w-64">
+                 <Search className={`absolute ${isAr ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400`} />
+                 <input type="text" placeholder={isAr ? "بحث..." : "Search..."} className={`w-full border border-slate-200 rounded-lg py-1.5 ${isAr ? 'pr-9 pl-3' : 'pl-9 pr-3'} text-sm`} />
+               </div>
+             </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-slate-200 rounded-xl p-4 flex items-start gap-4 hover:bg-slate-50 transition cursor-pointer">
+                  <div className="p-3 bg-rose-100 text-rose-600 rounded-lg"><Activity className="w-6 h-6"/></div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-slate-800">Complete Blood Count (CBC)</h4>
+                    <p className="text-sm text-slate-500 mt-1">Oct 20, 2023</p>
+                  </div>
+                  <Download className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="border border-slate-200 rounded-xl p-4 flex items-start gap-4 hover:bg-slate-50 transition cursor-pointer">
+                  <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><FileDigit className="w-6 h-6"/></div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-slate-800">Chest X-Ray Report</h4>
+                    <p className="text-sm text-slate-500 mt-1">Oct 15, 2023</p>
+                  </div>
+                  <Download className="w-5 h-5 text-slate-400" />
+                </div>
+             </div>
+          </div>
+        )}
+
+        {activeTab === "billing" && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-6 text-white flex justify-between items-center shadow-lg shadow-teal-600/20">
+              <div>
+                <p className="text-teal-100 text-sm font-bold mb-1">{isAr ? "الرصيد المستحق" : "Outstanding Balance"}</p>
+                <p className="text-4xl font-black">0.00 <span className="text-xl">SAR</span></p>
               </div>
-           </div>
+              <CreditCard className="w-12 h-12 text-white/30" />
+            </div>
+            
+            <h3 className="font-bold text-slate-800 text-lg mt-8 mb-4">{isAr ? "سجل الفواتير" : "Invoice History"}</h3>
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
+               <table className="w-full text-sm text-left">
+                 <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
+                   <tr>
+                     <th className="px-4 py-3">{isAr ? "الفاتورة" : "Invoice ID"}</th>
+                     <th className="px-4 py-3">{isAr ? "التاريخ" : "Date"}</th>
+                     <th className="px-4 py-3">{isAr ? "المبلغ" : "Amount"}</th>
+                     <th className="px-4 py-3">{isAr ? "الحالة" : "Status"}</th>
+                     <th className="px-4 py-3 text-center">{isAr ? "تحميل" : "Download"}</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-100">
+                   <tr className="bg-white">
+                     <td className="px-4 py-3 font-medium">INV-2023-089</td>
+                     <td className="px-4 py-3 text-slate-600">Oct 20, 2023</td>
+                     <td className="px-4 py-3 font-bold">150.00 SAR</td>
+                     <td className="px-4 py-3"><span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">Paid</span></td>
+                     <td className="px-4 py-3 text-center"><button className="text-teal-600"><Download className="w-4 h-4 mx-auto"/></button></td>
+                   </tr>
+                 </tbody>
+               </table>
+            </div>
+          </div>
         )}
       </div>
     </div>

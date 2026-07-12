@@ -4,8 +4,7 @@ import {
   Layers, Shuffle, Activity, ClipboardCheck, ArrowLeftRight, 
   Trash2, Plus, CheckCircle, Printer, Sparkles, BookOpen, UserCheck, ShieldAlert 
 } from "lucide-react";
-import { db } from "../lib/firebase";
-import { collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "../lib/firestoreService";
+import { subscribeToClinicalData, saveDataPermanently, deleteDataPermanently } from "../lib/realTimeService";
 
 interface MedicationLedgerProps {
   language: "ar" | "en";
@@ -121,26 +120,16 @@ export default function MedicationLedger({ language }: MedicationLedgerProps) {
 
   // Safe fetch approved medicines and IDC logs from real Firestore
   useEffect(() => {
-    const qApproved = query(collection(db, "hospital_approved_medications"));
-    const unsubApproved = onSnapshot(qApproved, (snapshot) => {
-      const list: any[] = [];
-      snapshot.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() });
-      });
+    const unsubApproved = subscribeToClinicalData<any>("hospital_approved_medications", (list) => {
       setApprovedList(list);
     }, (err) => {
       console.warn("Real-time approved drugs list offline fallback triggered:", err);
     });
 
-    const qIdc = query(collection(db, "hospital_idc_logs"));
-    const unsubIdc = onSnapshot(qIdc, (snapshot) => {
-      const list: any[] = [];
-      snapshot.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() });
-      });
+    const unsubIdc = subscribeToClinicalData<any>("hospital_idc_logs", (list) => {
       // Sort client-side by timestamp descending
-      list.sort((a,b) => b.timestamp - a.timestamp);
-      setIdcLogs(list);
+      const sorted = [...list].sort((a,b) => b.timestamp - a.timestamp);
+      setIdcLogs(sorted);
     }, (err) => {
       console.warn("Real-time IDC logs list offline fallback triggered:", err);
     });
@@ -293,7 +282,9 @@ export default function MedicationLedger({ language }: MedicationLedgerProps) {
     if (!medication) return;
     setSavingApproved(true);
     try {
-      await addDoc(collection(db, "hospital_approved_medications"), {
+      const medId = `med-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      await saveDataPermanently("hospital_approved_medications", {
+        id: medId,
         originalQuery: medication.search_result.original_query,
         correctedName: medication.search_result.corrected_name_trade,
         genericName: medication.search_result.generic_name,
@@ -320,7 +311,7 @@ export default function MedicationLedger({ language }: MedicationLedgerProps) {
   const deleteApprovedMedication = async (id: string) => {
     if (!confirm(isAr ? "هل أنت متأكد من حذف هذا الدواء المعتمد؟" : "Are you sure you want to delete this approved medication?")) return;
     try {
-      await deleteDoc(doc(db, "hospital_approved_medications", id));
+      await deleteDataPermanently("hospital_approved_medications", id);
     } catch (e) {
       alert("Error deleting record.");
     }
@@ -452,7 +443,9 @@ export default function MedicationLedger({ language }: MedicationLedgerProps) {
 
     setSavingIdc(true);
     try {
-      await addDoc(collection(db, "hospital_idc_logs"), {
+      const idcId = `idc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      await saveDataPermanently("hospital_idc_logs", {
+        id: idcId,
         patientName: idcPatientName,
         mrn: idcMRN,
         medication: idcMedName,
@@ -483,7 +476,7 @@ export default function MedicationLedger({ language }: MedicationLedgerProps) {
   const deleteIdcLog = async (id: string) => {
     if (!confirm(isAr ? "حذف هذا السجل التوثيقي للتحقق الثنائي؟" : "Delete this IDC verification trail?")) return;
     try {
-      await deleteDoc(doc(db, "hospital_idc_logs", id));
+      await deleteDataPermanently("hospital_idc_logs", id);
     } catch (e) {
       alert("Error.");
     }

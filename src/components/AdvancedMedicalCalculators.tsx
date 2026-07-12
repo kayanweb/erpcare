@@ -1382,7 +1382,19 @@ export default function AdvancedMedicalCalculators({
                 {isAr ? "فريق المعايرة الطبية" : "Medical Auditor Center"}
               </span>
               <div className="text-right text-[11px] leading-relaxed">
-                <span className="font-black text-slate-800 block">{isAr ? "معايرة دورية تابعة للائحة JCI بمستشفى الرعاية السريرية" : "Relational clinical compliance lock standard"}</span>
+                <span className="font-black text-slate-800 block">
+                  {(() => {
+                    let hNameAr = "مستشفى الرعاية السريرية";
+                    try {
+                      const saved = localStorage.getItem("baheya_hospital_settings");
+                      if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (parsed.nameAr) hNameAr = parsed.nameAr;
+                      }
+                    } catch (e) {}
+                    return isAr ? `معايرة دورية تابعة للائحة JCI بـ ${hNameAr}` : "Relational clinical compliance lock standard";
+                  })()}
+                </span>
                 <span className="text-slate-400 font-semibold block">{isAr ? "ختم الدخول الإلكتروني يدعم المساءلة القانونية والتسجيل بموجب بروتوكول سلامة المريض." : "Electronic audit log triggers security registry for patient legal accountability."}</span>
               </div>
             </div>

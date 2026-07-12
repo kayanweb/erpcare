@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { Stethoscope, User, AlertTriangle, FileText, Activity, Users, Building, LayoutList, ClipboardList, CheckCircle2, FlaskConical, AlertCircle } from "lucide-react";
+import { Stethoscope, User, AlertTriangle, FileText, Activity, Users, Building, LayoutList, ClipboardList, CheckCircle2, FlaskConical, AlertCircle, ListTodo } from "lucide-react";
 import { PatientChartModal } from "./PatientChartModal";
 import { useHIS } from "../context/HISContext";
+import { GlobalEntityLink } from "./GlobalEntityLink";
+import DepartmentTasks from "./DepartmentTasks";
 
 interface Props {
   language: "ar" | "en";
@@ -14,6 +16,7 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
   const [selectedDepartment, setSelectedDepartment] = useState<string>(forceDepartmentId || "dept-im");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [initialPatientTab, setInitialPatientTab] = useState<string>("summary");
+  const [activeTab, setActiveTab] = useState<"patients" | "tasks">("patients");
 
   const departments = [
     { id: "dept-im", name: "Internal Medicine", nameAr: "الباطنة العامة" },
@@ -73,92 +76,121 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
         </div>
       </div>
 
-      <div className="space-y-6">
-        {currentPatients.length === 0 ? (
-          <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
-            <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-bold">{isAr ? "لا يوجد مرضى منومين في هذا القسم حالياً" : "No admitted patients in this department"}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {currentPatients.map((patient: any) => {
-              const hasAlerts = patient.alerts.labs > 0 || patient.alerts.vitals > 0 || patient.alerts.consults > 0 || patient.alerts.unsigned > 0;
-              
-              return (
-                <div 
-                  key={patient.id} 
-                  className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-300 transition relative group"
-                >
-                  <div className="flex justify-between items-start mb-4 cursor-pointer" onClick={() => { setSelectedPatientId(patient.mrn); setInitialPatientTab("summary"); }}>
-                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center shrink-0">
-                           <User className="w-6 h-6 text-indigo-600 group-hover:scale-110 transition" />
-                        </div>
-                        <div>
-                           <h3 className="font-bold text-slate-800 text-lg group-hover:text-indigo-700 transition">{isAr ? patient.nameAr : patient.name}</h3>
-                           <div className="flex items-center gap-2 mt-0.5">
-                             <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">{patient.mrn}</span>
-                             <span className="text-xs font-medium text-slate-500">{patient.room} • {patient.bed}</span>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-sm font-bold text-slate-700 mb-4 truncate cursor-pointer" onClick={() => { setSelectedPatientId(patient.mrn); setInitialPatientTab("summary"); }}>
-                    <span className="text-slate-500">{isAr ? "التشخيص:" : "Dx:"}</span> {patient.dx}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
-                    <div 
-                      onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("labs"); }}
-                      className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.labs > 0 ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
-                    >
-                       <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
-                         <FlaskConical className="w-3.5 h-3.5" />
-                         {isAr ? "نتائج جديدة" : "New Labs"}
-                       </div>
-                       <div className="text-xl font-black">{patient.alerts.labs}</div>
-                    </div>
-                    
-                    <div 
-                      onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("vitals"); }}
-                      className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.vitals > 0 ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
-                    >
-                       <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
-                         <Activity className="w-3.5 h-3.5" />
-                         {isAr ? "حيوية حرجة" : "Abnormal Vitals"}
-                       </div>
-                       <div className="text-xl font-black">{patient.alerts.vitals}</div>
-                    </div>
-
-                    <div 
-                      onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("progress_notes"); }}
-                      className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.consults > 0 ? 'bg-sky-50 border-sky-200 text-sky-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
-                    >
-                       <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
-                         <Users className="w-3.5 h-3.5" />
-                         {isAr ? "استشارات" : "Consults"}
-                       </div>
-                       <div className="text-xl font-black">{patient.alerts.consults}</div>
-                    </div>
-
-                    <div 
-                      onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("orders"); }}
-                      className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.unsigned > 0 ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
-                    >
-                       <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
-                         <FileText className="w-3.5 h-3.5" />
-                         {isAr ? "غير موقعة" : "Unsigned"}
-                       </div>
-                       <div className="text-xl font-black">{patient.alerts.unsigned}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      <div className="flex gap-2 mb-6" dir={isAr ? "rtl" : "ltr"}>
+        <button
+          onClick={() => setActiveTab("patients")}
+          className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition ${
+            activeTab === "patients" ? "bg-indigo-600 text-white" : "bg-white text-slate-600 border border-slate-200"
+          }`}
+        >
+          <Users className="w-4 h-4" /> {isAr ? "قائمة المرضى" : "Patient List"}
+        </button>
+        <button
+          onClick={() => setActiveTab("tasks")}
+          className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition ${
+            activeTab === "tasks" ? "bg-indigo-600 text-white" : "bg-white text-slate-600 border border-slate-200"
+          }`}
+        >
+          <ListTodo className="w-4 h-4" /> {isAr ? "المهام الطبية" : "Physician Tasks"}
+        </button>
       </div>
+
+      {activeTab === "tasks" ? (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <DepartmentTasks language={language} departmentId={selectedDepartment} departmentName={isAr ? "قسم التنويم" : "Inpatient Department"} />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {currentPatients.length === 0 ? (
+            <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
+              <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-bold">{isAr ? "لا يوجد مرضى منومين في هذا القسم حالياً" : "No admitted patients in this department"}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {currentPatients.map((patient: any) => {
+                const hasAlerts = patient.alerts.labs > 0 || patient.alerts.vitals > 0 || patient.alerts.consults > 0 || patient.alerts.unsigned > 0;
+                
+                return (
+                  <div 
+                    key={patient.id} 
+                    className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-300 transition relative group"
+                  >
+                    <div className="flex justify-between items-start mb-4 cursor-pointer" onClick={() => { setSelectedPatientId(patient.mrn); setInitialPatientTab("summary"); }}>
+                       <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center shrink-0">
+                             <User className="w-6 h-6 text-indigo-600 group-hover:scale-110 transition" />
+                          </div>
+                          <div>
+                             <h3 className="font-bold text-slate-800 text-lg group-hover:text-indigo-700 transition">
+                               <GlobalEntityLink entityId={patient.mrn} entityName={isAr ? patient.nameAr : patient.name} entityType="patient" isAr={isAr}>
+                                 {isAr ? patient.nameAr : patient.name}
+                               </GlobalEntityLink>
+                             </h3>
+                             <div className="flex items-center gap-2 mt-0.5">
+                               <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">{patient.mrn}</span>
+                               <span className="text-xs font-medium text-slate-500">{patient.room} • {patient.bed}</span>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-sm font-bold text-slate-700 mb-4 truncate cursor-pointer" onClick={() => { setSelectedPatientId(patient.mrn); setInitialPatientTab("summary"); }}>
+                      <span className="text-slate-500">{isAr ? "التشخيص:" : "Dx:"}</span> {patient.dx}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("labs"); }}
+                        className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.labs > 0 ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
+                      >
+                         <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
+                           <FlaskConical className="w-3.5 h-3.5" />
+                           {isAr ? "نتائج جديدة" : "New Labs"}
+                         </div>
+                         <div className="text-xl font-black">{patient.alerts.labs}</div>
+                      </div>
+                      
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("vitals"); }}
+                        className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.vitals > 0 ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
+                      >
+                         <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
+                           <Activity className="w-3.5 h-3.5" />
+                           {isAr ? "حيوية حرجة" : "Abnormal Vitals"}
+                         </div>
+                         <div className="text-xl font-black">{patient.alerts.vitals}</div>
+                      </div>
+
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("progress_notes"); }}
+                        className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.consults > 0 ? 'bg-sky-50 border-sky-200 text-sky-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
+                      >
+                         <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
+                           <Users className="w-3.5 h-3.5" />
+                           {isAr ? "استشارات" : "Consults"}
+                         </div>
+                         <div className="text-xl font-black">{patient.alerts.consults}</div>
+                      </div>
+
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("orders"); }}
+                        className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.unsigned > 0 ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
+                      >
+                         <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
+                           <FileText className="w-3.5 h-3.5" />
+                           {isAr ? "غير موقعة" : "Unsigned"}
+                         </div>
+                         <div className="text-xl font-black">{patient.alerts.unsigned}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {selectedPatientId && (
         <PatientChartModal

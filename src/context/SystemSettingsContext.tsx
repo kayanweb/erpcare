@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { doc, onSnapshot, setDoc } from "../lib/firestoreService";
-import { db } from "../firebase";
+import { subscribeToClinicalData, saveDataPermanently } from "../lib/realTimeService";
 
 export interface OrganizationSettings {
+  id?: string;
   organizationNameAr: string;
   organizationNameEn: string;
   logoUrl?: string;
@@ -39,22 +39,20 @@ export const SystemSettingsProvider: React.FC<{ children: React.ReactNode }> = (
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const docRef = doc(db, "organizationSettings", "main");
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as OrganizationSettings;
-        setSettings({ ...defaultSettings, ...data });
+    const unsubscribe = subscribeToClinicalData<OrganizationSettings>("organizationSettings", (data) => {
+      const mainSettings = data.find((s: any) => s.id === "main");
+      if (mainSettings) {
+        setSettings({ ...defaultSettings, ...mainSettings });
       } else {
         // Document does not exist yet. Let's write the default setup
-        setDoc(docRef, defaultSettings).catch((err) => {
-          console.warn("Failed to write initial default settings to Firestore:", err);
+        saveDataPermanently("organizationSettings", { id: "main", ...defaultSettings }).catch((err) => {
+          console.warn("Failed to write initial default settings to PostgreSQL:", err);
         });
         setSettings(defaultSettings);
       }
       setLoading(false);
     }, (error) => {
-      console.error("Error watching organizationSettings document:", error);
-      // Fallback on error if Firestore is offline
+      console.error("Error watching organizationSettings in PostgreSQL:", error);
       setSettings(defaultSettings);
       setLoading(false);
     });
@@ -63,13 +61,12 @@ export const SystemSettingsProvider: React.FC<{ children: React.ReactNode }> = (
   }, []);
 
   const updateSettings = async (newSettings: Partial<OrganizationSettings>) => {
-    const docRef = doc(db, "organizationSettings", "main");
     try {
-      const updated = { ...settings, ...newSettings };
-      await setDoc(docRef, updated);
+      const updated = { id: "main", ...settings, ...newSettings };
+      await saveDataPermanently("organizationSettings", updated);
       setSettings(updated);
     } catch (err) {
-      console.error("Failed to update organization settings in Firestore:", err);
+      console.error("Failed to update organization settings in PostgreSQL:", err);
       throw err;
     }
   };

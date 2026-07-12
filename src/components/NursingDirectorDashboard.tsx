@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Activity, GraduationCap, TrendingUp, AlertTriangle, ShieldCheck, UserCheck, Stethoscope, Clock, ShieldAlert, FileBarChart, DollarSign, CalendarCheck, FileText, Archive } from "lucide-react";
+import { Users, Activity, GraduationCap, TrendingUp, AlertTriangle, ShieldCheck, UserCheck, Stethoscope, Clock, ShieldAlert, FileBarChart, DollarSign, CalendarCheck, FileText, Archive, CheckSquare } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SmartNotificationCenter from "./SmartNotificationCenter";
 
@@ -12,6 +12,26 @@ const OCCUPANCY_DATA = [
   { day: '25', icu: 90, er: 115, ward: 85 },
   { day: '30', icu: 95, er: 110, ward: 85 },
 ];
+
+const CHECKLIST_HEATMAP_DATA = [
+  { deptAr: 'الرعاية المركزة (ICU)', deptEn: 'ICU', crashCart: 1, inventory: 1, narcotic: 0.5, handover: 1, environmental: 1 },
+  { deptAr: 'الطوارئ (ER)', deptEn: 'ER', crashCart: 1, inventory: 0, narcotic: 0, handover: 0.5, environmental: 1 },
+  { deptAr: 'العمليات (OR)', deptEn: 'OR', crashCart: 1, inventory: 1, narcotic: 1, handover: 1, environmental: 0 },
+  { deptAr: 'الباطنة (Medical Ward)', deptEn: 'Medical Ward', crashCart: 0.5, inventory: 1, narcotic: 1, handover: 1, environmental: 0.5 },
+  { deptAr: 'حديثي الولادة (NICU)', deptEn: 'NICU', crashCart: 1, inventory: 1, narcotic: 1, handover: 1, environmental: 1 },
+];
+
+const getHeatmapColor = (value: number) => {
+  if (value === 1) return "bg-emerald-500 shadow-emerald-500/20"; // Submitted On-Time
+  if (value === 0.5) return "bg-amber-400 shadow-amber-400/20"; // Delayed
+  return "bg-rose-500 shadow-rose-500/20"; // Missing/Overdue
+};
+
+const getHeatmapStatus = (value: number, isAr: boolean) => {
+  if (value === 1) return isAr ? "مكتمل" : "Completed";
+  if (value === 0.5) return isAr ? "متأخر" : "Delayed";
+  return isAr ? "مفقود" : "Missing";
+};
 
 interface Props {
   language: "ar" | "en";
@@ -353,6 +373,65 @@ export default function NursingDirectorDashboard({ language, currentUser, onNavi
                        </div>
                     </div>
                   </div>
+               </div>
+
+               {/* Department Checklist Compliance Heatmap */}
+               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-6">
+                 <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
+                   <CheckSquare className="w-5 h-5 text-indigo-500" />
+                   {isAr ? "خريطة الامتثال: تسليمات قوائم التحقق اليومية للأقسام" : "Compliance Heatmap: Daily Checklist Submissions by Department"}
+                 </h3>
+                 <div className="overflow-x-auto">
+                   <table className="w-full text-sm">
+                     <thead>
+                       <tr className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                         <th className="py-3 px-4 font-bold text-start min-w-[150px]">{isAr ? "القسم" : "Department"}</th>
+                         <th className="py-3 px-4 font-bold text-center">{isAr ? "عربة الإنعاش" : "Crash Cart"}</th>
+                         <th className="py-3 px-4 font-bold text-center">{isAr ? "الجرد اليومي" : "Daily Inventory"}</th>
+                         <th className="py-3 px-4 font-bold text-center">{isAr ? "أدوية التخدير/المخدرة" : "Narcotics"}</th>
+                         <th className="py-3 px-4 font-bold text-center">{isAr ? "تسليم العهدة والشفت" : "Shift Handover"}</th>
+                         <th className="py-3 px-4 font-bold text-center">{isAr ? "البيئة والسلامة" : "Environmental"}</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-slate-100 font-semibold text-center text-slate-700">
+                       {CHECKLIST_HEATMAP_DATA.map((row, idx) => (
+                         <tr key={idx} className="hover:bg-slate-50 transition">
+                           <td className="py-4 px-4 text-start font-bold text-slate-800">{isAr ? row.deptAr : row.deptEn}</td>
+                           <td className="py-4 px-4">
+                             <div className={`mx-auto w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getHeatmapColor(row.crashCart)}`} title={getHeatmapStatus(row.crashCart, isAr)}>
+                               <span className="sr-only">{getHeatmapStatus(row.crashCart, isAr)}</span>
+                             </div>
+                           </td>
+                           <td className="py-4 px-4">
+                             <div className={`mx-auto w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getHeatmapColor(row.inventory)}`} title={getHeatmapStatus(row.inventory, isAr)}>
+                               <span className="sr-only">{getHeatmapStatus(row.inventory, isAr)}</span>
+                             </div>
+                           </td>
+                           <td className="py-4 px-4">
+                             <div className={`mx-auto w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getHeatmapColor(row.narcotic)}`} title={getHeatmapStatus(row.narcotic, isAr)}>
+                               <span className="sr-only">{getHeatmapStatus(row.narcotic, isAr)}</span>
+                             </div>
+                           </td>
+                           <td className="py-4 px-4">
+                             <div className={`mx-auto w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getHeatmapColor(row.handover)}`} title={getHeatmapStatus(row.handover, isAr)}>
+                               <span className="sr-only">{getHeatmapStatus(row.handover, isAr)}</span>
+                             </div>
+                           </td>
+                           <td className="py-4 px-4">
+                             <div className={`mx-auto w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getHeatmapColor(row.environmental)}`} title={getHeatmapStatus(row.environmental, isAr)}>
+                               <span className="sr-only">{getHeatmapStatus(row.environmental, isAr)}</span>
+                             </div>
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+                 <div className="flex flex-wrap gap-4 mt-6 text-xs font-bold justify-center border-t border-slate-100 pt-4">
+                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-emerald-500"></div> <span className="text-slate-600">{isAr ? "مكتمل وفي الوقت" : "Submitted On-Time"}</span></div>
+                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-amber-400"></div> <span className="text-slate-600">{isAr ? "تم التأخير" : "Delayed"}</span></div>
+                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-rose-500"></div> <span className="text-slate-600">{isAr ? "مفقود/غير مسلم" : "Missing/Overdue"}</span></div>
+                 </div>
                </div>
              </div>
           )}

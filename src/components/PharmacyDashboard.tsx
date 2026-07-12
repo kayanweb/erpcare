@@ -1,5 +1,6 @@
 import React from "react";
-import { Pill, Activity, Box, RotateCcw, AlertTriangle, Syringe, CheckCircle2 } from "lucide-react";
+import { Pill, Activity, Box, RotateCcw, AlertTriangle, Syringe, CheckCircle2, Shield, Trash2 } from "lucide-react";
+import { GlobalEntityLink } from "./GlobalEntityLink";
 import { useHIS } from "../context/HISContext";
 import { toast } from "sonner";
 
@@ -21,7 +22,7 @@ export default function PharmacyDashboard({ language }: Props) {
 
   const handleDispense = (id: string) => {
     updatePrescriptionStatus(id, "dispensed");
-    toast.success(isAr ? "تم صرف الدواء بنجاح" : "Medication dispensed successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Medication dispensed successfully", titleAr: "تم صرف الدواء بنجاح", type: "form" } }));
   };
 
   return (
@@ -75,39 +76,78 @@ export default function PharmacyDashboard({ language }: Props) {
                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "المريض" : "Patient"}</th>
                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "الدواء" : "Medication"}</th>
                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "الجرعة" : "Dose"}</th>
+                     <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "التفاعلات الدوائية" : "Drug Interactions"}</th>
                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "الحالة" : "Status"}</th>
                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "الإجراء" : "Action"}</th>
                   </tr>
                </thead>
                <tbody className="divide-y divide-slate-50">
                   {prescriptions.length > 0 ? (
-                    prescriptions.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-50/50">
-                         <td className="p-4 text-xs text-slate-500 font-mono">{p.date}</td>
-                         <td className="p-4 font-bold text-sm text-slate-800">{getPatientName(p.patientId)}</td>
-                         <td className="p-4 text-xs font-bold text-slate-700">{p.medication}</td>
-                         <td className="p-4 text-xs text-slate-600">{p.dose} x {p.qty}</td>
-                         <td className="p-4">
-                           {p.status === 'pending' ? (
-                             <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-1 rounded uppercase">{isAr ? "معلق" : "Pending"}</span>
-                           ) : (
-                             <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-1 rounded uppercase flex items-center gap-1 w-max">
-                               <CheckCircle2 className="w-3 h-3" /> {isAr ? "تم الصرف" : "Dispensed"}
-                             </span>
-                           )}
-                         </td>
-                         <td className="p-4">
-                           {p.status === 'pending' && (
-                             <button onClick={() => handleDispense(p.id)} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors">
-                               {isAr ? "صرف واعتماد" : "Verify & Dispense"}
-                             </button>
-                           )}
-                         </td>
-                      </tr>
-                    ))
+                    prescriptions.map((p) => {
+                      const isDc = p.status === "discontinued";
+                      return (
+                        <tr key={p.id} className={`hover:bg-slate-50/50 transition ${isDc ? "bg-rose-50/10 opacity-50 line-through text-slate-400" : ""}`}>
+                           <td className="p-4 text-xs text-slate-500 font-mono">{p.date}</td>
+                           <td className="p-4 font-bold text-sm text-slate-800">
+                             <GlobalEntityLink entityId={p.patientId} entityName={getPatientName(p.patientId)} entityType="patient" isAr={isAr}>
+                               {getPatientName(p.patientId)}
+                             </GlobalEntityLink>
+                           </td>
+                           <td className="p-4 text-xs font-bold text-slate-700">{p.medication}</td>
+                           <td className="p-4 text-xs text-slate-600">{p.dose} {p.qty && p.qty > 1 ? `x ${p.qty}` : ""}</td>
+                           <td className="p-4">
+                             {isDc ? (
+                               <div className="flex items-center gap-1 bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold w-max">
+                                 <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                 {isAr ? "أمر إيقاف طبي عاجل" : "Physician Cancel Order"}
+                               </div>
+                             ) : p.status === 'pending' ? (
+                               <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold w-max">
+                                 <Shield className="w-3 h-3 text-emerald-600" />
+                                 {isAr ? "آمن (مراجعة تفاعلات البنسلين)" : "Safe (Penicillin Allergy Checked)"}
+                               </div>
+                             ) : (
+                               <span className="text-slate-400 text-xs">-</span>
+                             )}
+                           </td>
+                           <td className="p-4">
+                             {isDc ? (
+                               <span className="bg-rose-100 text-rose-800 text-[10px] font-black px-2 py-1 rounded uppercase">
+                                 {isAr ? "موقوف / ملغى" : "Discontinued"}
+                               </span>
+                             ) : p.status === 'pending' ? (
+                               <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-1 rounded uppercase animate-pulse">
+                                 {isAr ? "معلق للمراجعة" : "Pending Verification"}
+                               </span>
+                             ) : p.status === 'not_given' ? (
+                               <span className="bg-orange-100 text-orange-800 text-[10px] font-black px-2 py-1 rounded uppercase">
+                                 {isAr ? "تأخير / معلق" : "Hold / Delayed"}
+                               </span>
+                             ) : (
+                               <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-1 rounded uppercase flex items-center gap-1 w-max">
+                                 <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {isAr ? "تم الصرف والمطابقة" : "Dispensed & Verified"}
+                               </span>
+                             )}
+                           </td>
+                           <td className="p-4">
+                             {isDc ? (
+                               <span className="text-[10px] text-rose-600 font-bold">
+                                 {isAr ? "إيقاف من الطبيب" : "Stopped by Doctor"}
+                               </span>
+                             ) : p.status === 'pending' ? (
+                               <button onClick={() => handleDispense(p.id)} className="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm cursor-pointer">
+                                 {isAr ? "صرف واعتماد" : "Verify & Dispense"}
+                               </button>
+                             ) : (
+                               <span className="text-slate-400 text-xs">-</span>
+                             )}
+                           </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-500 font-bold">
+                      <td colSpan={7} className="p-8 text-center text-slate-500 font-bold">
                         {isAr ? "لا توجد وصفات طبية" : "No prescriptions found"}
                       </td>
                     </tr>
@@ -117,11 +157,5 @@ export default function PharmacyDashboard({ language }: Props) {
          </div>
       </div>
     </div>
-  );
-}
-
-function Shield(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
   );
 }

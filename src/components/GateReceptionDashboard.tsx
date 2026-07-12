@@ -44,7 +44,7 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
     setVisitors([newVisitor, ...visitors]);
     setVisitorForm({ name: "", destination: "" });
     setIsVisitorModalOpen(false);
-    toast.success(isAr ? "تم تسجيل الزائر بنجاح" : "Visitor registered successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Visitor registered successfully", titleAr: "تم تسجيل الزائر بنجاح", type: "form" } }));
   };
 
   const handlePrintPass = (name: string) => {
@@ -52,9 +52,9 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
   };
 
   const handleThermalScan = () => {
-    toast.info(isAr ? "يتم فحص الحرارة..." : "Scanning temperature...");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Scanning temperature...", titleAr: "يتم فحص الحرارة...", type: "form" } }));
     setTimeout(() => {
-      toast.success(isAr ? "الحرارة طبيعية: 36.8°C" : "Temperature Normal: 36.8°C");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Temperature Normal: 36.8°C", titleAr: "الحرارة طبيعية: 36.8°C", type: "form" } }));
     }, 1500);
   };
 
@@ -185,9 +185,9 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {patients.filter(p => 
-                      p.name.toLowerCase().includes(patientSearch.toLowerCase()) ||
-                      p.id.toLowerCase().includes(patientSearch.toLowerCase()) ||
-                      p.clinic.toLowerCase().includes(patientSearch.toLowerCase())
+                      p.name?.toLowerCase()?.includes(patientSearch?.toLowerCase()) ||
+                      p.id?.toLowerCase()?.includes(patientSearch?.toLowerCase()) ||
+                      p.clinic?.toLowerCase()?.includes(patientSearch?.toLowerCase())
                     ).map(p => (
                       <tr key={p.id} className="hover:bg-slate-50 transition">
                         <td className="px-4 py-3 font-mono text-slate-600">{p.id}</td>
@@ -204,7 +204,7 @@ export default function GateReceptionDashboard({ language, departments = [] }: P
                              if (p.status !== "Arrived") {
                                const updated = patients.map(pt => pt.id === p.id ? { ...pt, status: "Arrived" } : pt);
                                setPatients(updated);
-                               toast.success(isAr ? "تم تسجيل الوصول" : "Checked In");
+                               window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Checked In", titleAr: "تم تسجيل الوصول", type: "form" } }));
                              }
                            }} className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded text-xs font-bold transition">
                              Check-in

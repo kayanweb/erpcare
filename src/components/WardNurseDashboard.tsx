@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { BedDouble, ShieldAlert, HeartPulse, User, AlertTriangle, AlertCircle, Hand, Pill, Droplet, Users, Bed, Building, LayoutList, ListTodo, FileText, CheckCircle2, Clock, X } from "lucide-react";
+import { BedDouble, ShieldAlert, HeartPulse, User, AlertTriangle, AlertCircle, Hand, Pill, Droplet, Users, Bed, Building, LayoutList, ListTodo, FileText, CheckCircle2, Clock, X, Check, FileEdit, Activity, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { PatientChartModal } from "./PatientChartModal";
 import { useHIS } from "../context/HISContext";
+import { GlobalEntityLink } from "./GlobalEntityLink";
+import { HOSPITAL_WARDS } from "../lib/constants";
+import DepartmentTasks from "./DepartmentTasks";
 
 interface Props {
   language: "ar" | "en";
@@ -11,52 +14,17 @@ interface Props {
 
 export default function WardNurseDashboard({ language, forceDepartmentId }: Props) {
   const isAr = language === "ar";
-  const { patients: contextPatients } = useHIS();
-  const [selectedDepartment, setSelectedDepartment] = useState<string>(forceDepartmentId || "dept-im");
+  const { patients: contextPatients, admissionRequests, setAdmissionRequests, bedMap, setBedMap, updatePatientStatus } = useHIS();
+  const admittedPatients = contextPatients.filter(p => p.status === "ward" || p.status === "admitted");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>(forceDepartmentId || "dept-im-m");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [initialPatientTab, setInitialPatientTab] = useState<string>("summary");
   const [taskCenterPatient, setTaskCenterPatient] = useState<any | null>(null);
   const [activeTaskCategory, setActiveTaskCategory] = useState<string>("mar");
+  const [selectedAdmission, setSelectedAdmission] = useState<any | null>(null);
+  const [activeTab, setActiveTab] = useState<"beds" | "tasks">("beds");
 
-  const departments = [
-    { id: "dept-im", name: "Internal Medicine (Male)", nameAr: "الباطنة (رجال)" },
-    { id: "dept-icu", name: "Intensive Care Unit", nameAr: "العناية المركزة" },
-    { id: "dept-surg", name: "General Surgery", nameAr: "الجراحة العامة" }
-  ];
-
-  const wardData = {
-    "dept-im": [
-      {
-        roomId: "Room 201",
-        beds: [
-          { bedId: "Bed A", status: "occupied", mrn: "MRN-101", patientName: "Omar Samir", diagnosis: "Pneumonia", tasks: { mar: 2, vitals: 1, io: 0, orders: 1 } },
-          { bedId: "Bed B", status: "occupied", mrn: "MRN-102", patientName: "Ahmed Hassan", diagnosis: "Heart Failure", tasks: { mar: 0, vitals: 0, io: 1, orders: 0 } },
-        ]
-      },
-      {
-        roomId: "Room 202 (Isolation)",
-        beds: [
-          { bedId: "Bed ISO", status: "occupied", mrn: "MRN-103", patientName: "Khalid Ali", diagnosis: "Tuberculosis", isolation: "Airborne", tasks: { mar: 3, vitals: 1, io: 0, orders: 2 } }
-        ]
-      },
-      {
-        roomId: "Room 203",
-        beds: [
-          { bedId: "Bed A", status: "available" },
-          { bedId: "Bed B", status: "available" }
-        ]
-      }
-    ],
-    "dept-icu": [
-      {
-        roomId: "ICU Bay 1",
-        beds: [
-          { bedId: "ICU-01", status: "occupied", mrn: "MRN-901", patientName: "Said Kamal", diagnosis: "Septic Shock", ventilator: true, tasks: { mar: 5, vitals: 4, io: 1, orders: 3 } },
-          { bedId: "ICU-02", status: "available" },
-        ]
-      }
-    ]
-  };
+  const departments = HOSPITAL_WARDS;
 
   const taskCategories = [
     { id: "mar", icon: Pill, label: "Medication Administration", labelAr: "إعطاء الأدوية (MAR)" },
@@ -66,35 +34,55 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
     { id: "assessments", icon: ShieldAlert, label: "Nursing Assessments", labelAr: "التقييمات التمريضية" },
   ];
 
-  const currentWardRooms = contextPatients.length > 0 ? [
+  // Initialize Bed Map if empty
+  useEffect(() => {
+    // Bed map is now synced from the backend, no local mock overwrite
+  }, []);
+
+  const currentWardRooms = [
     {
-      roomId: "Main Ward",
-      beds: contextPatients.map((p, index) => ({
-        bedId: `Bed ${index + 1}`,
-        status: "occupied",
-        mrn: p.mrn,
-        patientName: isAr ? p.nameAr : p.nameEn,
-        diagnosis: p.admissionDiagnosis || "Pending Assessment",
-        tasks: p.tasks || { mar: 1, vitals: 1, io: 0, orders: 1 }
-      }))
-    }
-  ] : ((wardData as any)[selectedDepartment]?.length > 0 ? (wardData as any)[selectedDepartment] : null) || [
+      roomId: "Room 201",
+      beds: ["Bed A", "Bed B"].map(id => ({ bedId: id, ...(bedMap[id] || { status: 'available' }) }))
+    },
     {
-      roomId: "Room Generic",
-      beds: [
-        { bedId: "Bed A", status: "occupied", mrn: "MRN-Generic", patientName: "Generic Patient", diagnosis: "Pending", tasks: { mar: 1, vitals: 1, io: 0, orders: 1 } },
-        { bedId: "Bed B", status: "available" }
-      ]
+      roomId: "Room 202 (Isolation)",
+      beds: ["Bed ISO", "Bed C"].map(id => ({ bedId: id, ...(bedMap[id] || { status: 'available' }) }))
+    },
+    {
+      roomId: "Room 203",
+      beds: ["Bed D"].map(id => ({ bedId: id, ...(bedMap[id] || { status: 'available' }) }))
     }
   ];
 
   const handleTaskComplete = (taskId: string) => {
-    toast.success(isAr ? "تم إنجاز المهمة بنجاح" : "Task completed successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Task completed successfully", titleAr: "تم إنجاز المهمة بنجاح", type: "form" } }));
+  };
+
+  const handleBedClick = (bed: any) => {
+    if (bed.status === 'available' && selectedAdmission) {
+      // Assign Bed
+      setBedMap(prev => ({
+        ...prev,
+        [bed.bedId]: {
+          status: 'occupied',
+          mrn: selectedAdmission.patientId,
+          patientName: selectedAdmission.patientName,
+          diagnosis: selectedAdmission.diagnosis,
+          tasks: { mar: 0, vitals: 1, io: 0, orders: 0 }
+        }
+      }));
+      setAdmissionRequests(prev => prev.filter(req => req.id !== selectedAdmission.id));
+      setSelectedAdmission(null);
+      toast.success(isAr ? `تم تعيين المريض للسرير ${bed.bedId}` : `Patient assigned to ${bed.bedId}`);
+    } else if (bed.status === 'occupied') {
+      window.dispatchEvent(new CustomEvent("setActivePatient", { detail: { patient: { id: bed.mrn, mrn: bed.mrn, nameEn: bed.patientName, nameAr: bed.patientName } } }));
+      window.dispatchEvent(new CustomEvent("openPatientChart", { detail: { patientId: bed.id || bed.mrn, patientName: bed.patientName } }));
+    }
   };
 
   return (
-    <div className="p-4 md:p-6 bg-slate-50 min-h-screen font-sans" dir={isAr ? "rtl" : "ltr"}>
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 border-l-4 border-l-sky-500 mb-6">
+    <div className="p-4 md:p-6 bg-slate-50 h-full font-sans" dir={isAr ? "rtl" : "ltr"}>
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 border-s-4 border-s-sky-500 mb-6">
         <div>
           <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
             <LayoutList className="h-7 w-7 text-sky-600" />
@@ -114,8 +102,8 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
                value={selectedDepartment}
                onChange={(e) => setSelectedDepartment(e.target.value)}
              >
-               {departments.map(d => (
-                 <option key={d.id} value={d.id}>{isAr ? d.nameAr : d.name}</option>
+               {(departments || []).map(d => (
+                 <option key={d.id} value={d.id}>{isAr ? d.nameAr : d.nameEn}</option>
                ))}
              </select>
            </div>
@@ -123,42 +111,123 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
         </div>
       </div>
 
-      <div className="space-y-6">
-        {currentWardRooms.length === 0 ? (
-          <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
-            <Bed className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-bold">{isAr ? "لا توجد أسرة في هذا القسم" : "No beds configured for this department"}</p>
+      <div className="flex gap-2 mb-6" dir={isAr ? "rtl" : "ltr"}>
+        <button
+          onClick={() => setActiveTab("beds")}
+          className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition ${
+            activeTab === "beds" ? "bg-sky-600 text-white" : "bg-white text-slate-600 border border-slate-200"
+          }`}
+        >
+          <BedDouble className="w-4 h-4" /> {isAr ? "لوحة الأسرة" : "Bed Board"}
+        </button>
+        <button
+          onClick={() => setActiveTab("tasks")}
+          className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition ${
+            activeTab === "tasks" ? "bg-sky-600 text-white" : "bg-white text-slate-600 border border-slate-200"
+          }`}
+        >
+          <ClipboardList className="w-4 h-4" /> {isAr ? "المهام السريرية" : "Clinical Tasks"}
+        </button>
+      </div>
+
+      {activeTab === "tasks" ? (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <DepartmentTasks language={language} departmentId={selectedDepartment} departmentName={isAr ? "جناح التنويم" : "Inpatient Ward"} />
+        </div>
+      ) : (
+        <div className="flex flex-col lg:flex-row gap-6">
+        {/* Pending Admissions Sidebar */}
+        <div className="w-full lg:w-80 shrink-0 space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            <h2 className="font-black text-slate-800 text-lg flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+              <Clock className="w-5 h-5 text-orange-500" />
+              {isAr ? "طلبات التنويم المعلقة" : "Pending Admissions"}
+            </h2>
+            <div className="space-y-3">
+              {(admissionRequests && Array.isArray(admissionRequests)) ? admissionRequests.map((req, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`p-3 rounded-xl border-2 transition cursor-pointer ${selectedAdmission?.id === req.id ? 'border-sky-500 bg-sky-50' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}
+                    onClick={() => setSelectedAdmission(req)}
+                  >
+                    <div className="font-bold text-slate-800 text-sm mb-1">{req.patientName}</div>
+                    <div className="flex justify-between items-center text-xs text-slate-500 mb-2">
+                      <span className="font-mono">{req.patientId}</span>
+                      <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-bold">{req.wardId}</span>
+                    </div>
+                    <div className="text-xs bg-white p-2 rounded border border-slate-100 shadow-sm">
+                      <span className="font-bold text-slate-700">{isAr ? "التشخيص:" : "Dx:"}</span> {req.diagnosis}
+                    </div>
+                  </div>
+                )) : (
+                <div className="text-center p-6 text-sm font-medium text-slate-400">
+                  {isAr ? "لا توجد طلبات معلقة" : "No pending admissions"}
+                </div>
+              )}
+            </div>
+            {selectedAdmission && (
+              <div className="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-700 font-medium text-center animate-pulse">
+                {isAr ? "اختر سريراً فارغاً لتعيين المريض" : "Select an empty bed to assign patient"}
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {currentWardRooms.map((room: any) => (
-              <div key={room.roomId} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Users className="w-5 h-5 text-indigo-500" /> {room.roomId}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {room.beds.map((bed: any) => (
-                    <div key={bed.bedId} className={`border-2 rounded-xl p-4 transition ${bed.status === 'occupied' ? 'border-sky-200 bg-sky-50' : 'border-dashed border-slate-200 bg-slate-50'}`}>
+        </div>
+
+        {/* Ward Bed Grid */}
+        <div className="flex-1 space-y-6">
+          {currentWardRooms.length === 0 ? (
+            <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
+              <Bed className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-bold">{isAr ? "لا توجد أسرة في هذا القسم" : "No beds configured for this department"}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {(currentWardRooms || []).map((room: any) => (
+                <div key={room.roomId} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                  <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+                    <Users className="w-5 h-5 text-indigo-500" /> {room.roomId}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(room.beds || []).map((bed: any) => (
+                      <div 
+                        key={bed.bedId} 
+                        className={`border-2 rounded-xl p-4 transition cursor-pointer 
+                        ${bed.status === 'occupied' ? 'border-sky-200 bg-sky-50 hover:shadow-md' : 
+                          bed.status === 'cleaning' ? 'border-amber-200 bg-amber-50' : 
+                          bed.status === 'reserved' ? 'border-purple-200 bg-purple-50' : 
+                          selectedAdmission ? 'border-indigo-300 bg-indigo-50 hover:bg-indigo-100 shadow-sm animate-pulse' : 
+                          'border-dashed border-slate-300 bg-slate-50'}`}
+                        onClick={() => handleBedClick(bed)}
+                      >
                       {bed.status === 'occupied' ? (
                         <>
-                          <div className="flex justify-between items-start mb-3 cursor-pointer group" onClick={() => { setSelectedPatientId(bed.mrn); setInitialPatientTab("summary"); }}>
+                          <div className="flex justify-between items-start mb-3 cursor-pointer group" onClick={() => { window.dispatchEvent(new CustomEvent("openPatientChart", { detail: { patientId: bed.id || bed.mrn, patientName: bed.patientName } })); }}>
                              <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-white shadow-sm border border-sky-100 rounded-full flex items-center justify-center shrink-0">
                                    <User className="w-5 h-5 text-sky-600 group-hover:scale-110 transition" />
                                 </div>
                                 <div>
-                                   <h4 className="font-bold text-slate-800 text-sm group-hover:text-sky-700 transition">{bed.patientName}</h4>
+                                   <h4 className="font-bold text-slate-800 text-sm group-hover:text-sky-700 transition">
+                                     <GlobalEntityLink entityId={bed.mrn} entityName={bed.patientName} entityType="patient" isAr={isAr}>
+                                       {bed.patientName}
+                                     </GlobalEntityLink>
+                                   </h4>
                                    <div className="flex items-center gap-1 mt-0.5">
                                      <span className="text-[10px] font-mono font-bold text-slate-500">{bed.bedId}</span>
                                      <span className="text-slate-300 text-[10px]">|</span>
-                                     <span className="text-[10px] font-mono text-slate-500">{bed.mrn}</span>
+                                     <span className="text-[10px] font-mono text-slate-500">
+                                       <GlobalEntityLink entityId={bed.mrn} entityName={bed.patientName} entityType="patient" isAr={isAr}>
+                                         {bed.mrn}
+                                       </GlobalEntityLink>
+                                     </span>
                                    </div>
                                 </div>
                              </div>
                           </div>
 
-                          <div className="bg-white rounded-lg p-2.5 border border-sky-100 text-xs font-bold text-slate-700 mb-4 truncate shadow-sm">
-                            <span className="text-sky-600">{isAr ? "التشخيص:" : "Dx:"}</span> {bed.diagnosis}
+                          <div className="bg-white rounded-lg p-2.5 border border-sky-100 text-[11px] font-bold text-slate-700 mb-3 shadow-sm min-h-[40px]">
+                            <span className="text-sky-600 block mb-0.5">{isAr ? "التشخيص الرئيسي:" : "Chief Diagnosis:"}</span>
+                            <div className="line-clamp-2 leading-relaxed">{bed.diagnosis}</div>
                           </div>
 
                           <button 
@@ -176,6 +245,18 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
                             )}
                           </button>
                         </>
+                      ) : bed.status === 'cleaning' ? (
+                        <div className="h-full flex flex-col items-center justify-center text-amber-500 min-h-[140px]">
+                          <Bed className="w-8 h-8 mb-2 opacity-60" />
+                          <span className="font-bold text-sm text-amber-600">{bed.bedId}</span>
+                          <span className="text-xs mt-1 font-bold">{isAr ? "قيد التنظيف والتعقيم" : "Cleaning in Progress"}</span>
+                        </div>
+                      ) : bed.status === 'reserved' ? (
+                        <div className="h-full flex flex-col items-center justify-center text-purple-500 min-h-[140px]">
+                          <Bed className="w-8 h-8 mb-2 opacity-60" />
+                          <span className="font-bold text-sm text-purple-600">{bed.bedId}</span>
+                          <span className="text-xs mt-1 font-bold">{isAr ? "محجوز لمريض قادم" : "Reserved"}</span>
+                        </div>
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center text-slate-400 min-h-[140px]">
                           <Bed className="w-8 h-8 mb-2 opacity-30" />
@@ -189,8 +270,10 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
               </div>
             ))}
           </div>
-        )}
+          )}
+        </div>
       </div>
+      )}
 
       {/* Task Center Modal */}
       {taskCenterPatient && (
@@ -214,7 +297,7 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
             <div className="flex flex-1 overflow-hidden">
               {/* Task Categories Sidebar */}
               <div className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col overflow-y-auto">
-                {taskCategories.map(cat => {
+                {(taskCategories || []).map(cat => {
                   const Icon = cat.icon;
                   const taskCount = taskCenterPatient.tasks[cat.id] || 0;
                   const isActive = activeTaskCategory === cat.id;
@@ -223,7 +306,7 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
                     <button 
                       key={cat.id}
                       onClick={() => setActiveTaskCategory(cat.id)}
-                      className={`flex items-center justify-between p-4 border-b border-slate-100 transition text-left ${isActive ? 'bg-white border-l-4 border-l-sky-500' : 'hover:bg-slate-100'}`}
+                      className={`flex items-center justify-between p-4 border-b border-slate-100 transition text-left ${isActive ? 'bg-white border-s-4 border-s-sky-500 shadow-sm relative z-10' : 'hover:bg-slate-100'}`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon className={`w-5 h-5 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
@@ -249,37 +332,57 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
                 
                 {activeTaskCategory === "mar" && (
                   <div className="space-y-4">
-                    <div className="p-4 border border-rose-200 bg-rose-50 rounded-xl flex items-start gap-4">
+                    <div className="p-4 border border-rose-200 bg-rose-50 rounded-xl flex items-start gap-4 hover:shadow-md transition">
                       <div className="bg-white p-2 rounded-lg border border-rose-100 shrink-0">
                         <Clock className="w-6 h-6 text-rose-600" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-bold text-rose-900 text-lg">Ceftriaxone 1g IV</h4>
+                          <div>
+                            <h4 className="font-bold text-rose-900 text-lg">Ceftriaxone 1g IV</h4>
+                            <p className="text-sm font-bold text-rose-700 mt-1">Due: 08:00 AM • Q12H</p>
+                          </div>
                           <span className="bg-rose-600 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest">Overdue</span>
                         </div>
-                        <p className="text-sm font-bold text-rose-700 mt-1">Due: 08:00 AM • Q12H</p>
-                        <div className="mt-4 flex justify-end">
-                          <button onClick={() => handleTaskComplete("med-1")} className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-rose-700 transition">
-                            {isAr ? "إعطاء الدواء وتوثيق" : "Administer & Sign"}
+                        <div className="mt-4 flex justify-end gap-2">
+                          <button 
+                            onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Medication Order", titleAr: "تعديل طلب الدواء", type: "form" } }))}
+                            className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-slate-50 transition text-xs flex items-center gap-2"
+                          >
+                            <FileEdit className="w-3.5 h-3.5" />
+                            {isAr ? "تعديل" : "Edit"}
+                          </button>
+                          <button onClick={() => handleTaskComplete("med-1")} className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-rose-700 transition text-xs flex items-center gap-2">
+                            <Check className="w-3.5 h-3.5" />
+                            {isAr ? "إعطاء وتوقيع" : "Administer & Sign"}
                           </button>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="p-4 border border-slate-200 bg-white rounded-xl flex items-start gap-4 shadow-sm">
+                    <div className="p-4 border border-slate-200 bg-white rounded-xl flex items-start gap-4 shadow-sm hover:shadow-md transition">
                       <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 shrink-0">
                         <Pill className="w-6 h-6 text-slate-500" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-bold text-slate-800 text-lg">Pantoprazole 40mg PO</h4>
+                          <div>
+                            <h4 className="font-bold text-slate-800 text-lg">Pantoprazole 40mg PO</h4>
+                            <p className="text-sm font-bold text-slate-500 mt-1">Due: 14:00 PM • OD</p>
+                          </div>
                           <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest">Routine</span>
                         </div>
-                        <p className="text-sm font-bold text-slate-500 mt-1">Due: 14:00 PM • OD</p>
-                        <div className="mt-4 flex justify-end">
-                          <button onClick={() => handleTaskComplete("med-2")} className="bg-slate-900 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-slate-800 transition">
-                            {isAr ? "إعطاء الدواء وتوثيق" : "Administer & Sign"}
+                        <div className="mt-4 flex justify-end gap-2">
+                          <button 
+                            onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Edit Medication Order", titleAr: "تعديل طلب الدواء", type: "form" } }))}
+                            className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-slate-50 transition text-xs flex items-center gap-2"
+                          >
+                            <FileEdit className="w-3.5 h-3.5" />
+                            {isAr ? "تعديل" : "Edit"}
+                          </button>
+                          <button onClick={() => handleTaskComplete("med-2")} className="bg-slate-800 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-slate-900 transition text-xs flex items-center gap-2">
+                            <Check className="w-3.5 h-3.5" />
+                            {isAr ? "إعطاء وتوقيع" : "Administer & Sign"}
                           </button>
                         </div>
                       </div>
@@ -288,15 +391,21 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
                 )}
                 
                 {activeTaskCategory === "vitals" && (
-                  <div className="p-10 border-2 border-dashed border-slate-200 rounded-2xl text-center">
-                     <HeartPulse className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                     <p className="text-slate-500 font-bold">{isAr ? "إدخال العلامات الحيوية مجدول الساعة 14:00" : "Vital signs scheduled for 14:00"}</p>
-                     <button className="mt-4 bg-sky-600 text-white px-6 py-2 rounded-lg font-bold shadow-sm">{isAr ? "إدخال الآن" : "Record Now"}</button>
+                  <div className="p-8 border-2 border-dashed border-sky-200 bg-sky-50/50 rounded-2xl text-center group hover:bg-sky-50 transition">
+                     <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center shadow-sm group-hover:scale-110 transition mb-6">
+                       <HeartPulse className="w-10 h-10 text-sky-500" />
+                     </div>
+                     <p className="text-slate-700 font-bold text-lg mb-2">{isAr ? "إدخال العلامات الحيوية مجدول الساعة 14:00" : "Vital signs scheduled for 14:00"}</p>
+                     <p className="text-sm text-slate-500 mb-6 max-w-sm mx-auto">{isAr ? "يرجى تسجيل العلامات الحيوية بشكل دقيق لتحديث ملف المريض وحالته" : "Please record vital signs accurately to update the patient's chart and status"}</p>
+                     <button className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-3 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2 mx-auto">
+                       <Activity className="w-5 h-5" />
+                       {isAr ? "إدخال وتوثيق الآن" : "Record & Sign Now"}
+                     </button>
                   </div>
                 )}
                 
                 {/* Other categories would follow similar patterns */}
-                {["io", "orders", "assessments"].includes(activeTaskCategory) && (
+                {["io", "orders", "assessments"]?.includes(activeTaskCategory) && (
                    <div className="text-slate-500 text-center py-10 font-medium">
                      {isAr ? "المهام الخاصة بهذا القسم ستظهر هنا." : "Tasks for this category will appear here."}
                    </div>
@@ -306,16 +415,6 @@ export default function WardNurseDashboard({ language, forceDepartmentId }: Prop
             </div>
           </div>
         </div>
-      )}
-
-      {selectedPatientId && (
-        <PatientChartModal
-          patientId={selectedPatientId}
-          patientName={selectedPatientId}
-          onClose={() => setSelectedPatientId(null)}
-          isAr={isAr}
-          initialTab={initialPatientTab}
-        />
       )}
     </div>
   );

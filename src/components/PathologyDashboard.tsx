@@ -38,7 +38,7 @@ export default function PathologyDashboard({
           {
             id: "PATH-102",
             patientName: "Amina Saleh",
-            mrn: "MRN-3341",
+            mrn: "MRN-2026-3341",
             sampleType: "Biopsy (Skin)",
             testName: "Histopathology Routine",
             status: "Processing",
@@ -48,7 +48,7 @@ export default function PathologyDashboard({
           {
             id: "PATH-103",
             patientName: "Said Kamal",
-            mrn: "MRN-1002",
+            mrn: "MRN-2026-1002",
             sampleType: "Blood",
             testName: "Flow Cytometry",
             status: "Received",

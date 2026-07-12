@@ -7,6 +7,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useHIS } from "../context/HISContext";
+import { EXTENDED_LAB_TESTS } from "../data/labTests";
 
 // Simulated high-fidelity medical drugs for clinical search
 const DRUG_MASTER_LIST = [
@@ -50,6 +51,7 @@ export default function GenericActionModal() {
   const [vitals, setVitals] = useState({ bpSystolic: "120", bpDiastolic: "80", hr: "72", temp: "37.0", spo2: "98" });
   const [orderType, setOrderType] = useState<"LAB" | "RAD">("LAB");
   const [orderName, setOrderName] = useState("");
+  const [orderNameFocus, setOrderNameFocus] = useState(false);
 
   // Tab 3: SAP ERP state
   const [sapCostCenter, setSapCostCenter] = useState("CC-MED-OPD-01");
@@ -92,14 +94,14 @@ export default function GenericActionModal() {
       }
 
       // Auto detect and set appropriate tab based on title keywords
-      const titleLower = (titleEn + " " + titleAr).toLowerCase();
-      if (titleLower.includes("prescribe") || titleLower.includes("medication") || titleLower.includes("drug") || titleLower.includes("clinical") || titleLower.includes("vitals") || titleLower.includes("triage")) {
+      const titleLower = (titleEn + " " + titleAr)?.toLowerCase();
+      if (titleLower?.includes("prescribe") || titleLower?.includes("medication") || titleLower?.includes("drug") || titleLower?.includes("clinical") || titleLower?.includes("vitals") || titleLower?.includes("triage")) {
         setActiveTab("clinical");
-      } else if (titleLower.includes("sap") || titleLower.includes("po") || titleLower.includes("procurement") || titleLower.includes("asset") || titleLower.includes("finance") || titleLower.includes("cost") || titleLower.includes("ledger")) {
+      } else if (titleLower?.includes("sap") || titleLower?.includes("po") || titleLower?.includes("procurement") || titleLower?.includes("asset") || titleLower?.includes("finance") || titleLower?.includes("cost") || titleLower?.includes("ledger")) {
         setActiveTab("sap");
-      } else if (titleLower.includes("integration") || titleLower.includes("pacs") || titleLower.includes("fhir") || titleLower.includes("hl7") || titleLower.includes("endpoint")) {
+      } else if (titleLower?.includes("integration") || titleLower?.includes("pacs") || titleLower?.includes("fhir") || titleLower?.includes("hl7") || titleLower?.includes("endpoint")) {
         setActiveTab("integration");
-      } else if (titleLower.includes("predict") || titleLower.includes("ai") || titleLower.includes("brain") || titleLower.includes("risk") || titleLower.includes("sepsis")) {
+      } else if (titleLower?.includes("predict") || titleLower?.includes("ai") || titleLower?.includes("brain") || titleLower?.includes("risk") || titleLower?.includes("sepsis")) {
         setActiveTab("ai");
       } else {
         setActiveTab("form");
@@ -159,7 +161,7 @@ export default function GenericActionModal() {
   if (!isOpen) return null;
 
   // Intelligent Form Engine
-  const titleStr = (config.titleEn + " " + config.titleAr).toLowerCase();
+  const titleStr = (config.titleEn + " " + config.titleAr)?.toLowerCase();
   type FieldDef = { 
     name: string; 
     labelEn: string; 
@@ -177,7 +179,7 @@ export default function GenericActionModal() {
 
   let detectedActionType = "generic";
 
-  if (titleStr.includes("patient") || titleStr.includes("مريض")) {
+  if (titleStr?.includes("patient") || titleStr?.includes("مريض")) {
     fields = [
       { name: "name", labelEn: "Patient Name (Full)", labelAr: "اسم المريض الثنائي أو الثلاثي", type: "text" },
       { name: "phone", labelEn: "Mobile Phone Number", labelAr: "رقم جوال المريض", type: "text" },
@@ -186,14 +188,14 @@ export default function GenericActionModal() {
       { name: "insurance", labelEn: "Insurance Class (Cash, Bupa, Tawuniya)", labelAr: "فئة التأمين (كاش، بوبا، التعاونية)", type: "text" }
     ];
     detectedActionType = "patient";
-  } else if (titleStr.includes("invoice") || titleStr.includes("bill") || titleStr.includes("فاتورة") || titleStr.includes("دفع") || titleStr.includes("rcm")) {
+  } else if (titleStr?.includes("invoice") || titleStr?.includes("bill") || titleStr?.includes("فاتورة") || titleStr?.includes("دفع") || titleStr?.includes("rcm")) {
     fields = [
       { name: "patientId", labelEn: "Patient MRN", labelAr: "ملف المريض (MRN)", type: "text" },
       { name: "amount", labelEn: "Gross Charge Amount (SAR)", labelAr: "إجمالي قيمة الخدمة (ر.س)", type: "number" },
       { name: "description", labelEn: "RCM Diagnosis/Procedure Description", labelAr: "شرح الخدمة لشركة التأمين", type: "text" }
     ];
     detectedActionType = "invoice";
-  } else if (titleStr.includes("prescribe") || titleStr.includes("medication") || titleStr.includes("وصفة") || titleStr.includes("دواء")) {
+  } else if (titleStr?.includes("prescribe") || titleStr?.includes("medication") || titleStr?.includes("وصفة") || titleStr?.includes("دواء")) {
     fields = [
       { name: "patientId", labelEn: "Patient MRN", labelAr: "رقم ملف المريض", type: "text" },
       { name: "medication", labelEn: "Medication Name", labelAr: "اسم المستحضر الطبي", type: "text" },
@@ -201,7 +203,7 @@ export default function GenericActionModal() {
       { name: "qty", labelEn: "Total Quantity", labelAr: "الكمية الكلية", type: "number" }
     ];
     detectedActionType = "prescription";
-  } else if (titleStr.includes("schedule") || titleStr.includes("appointment") || titleStr.includes("موعد") || titleStr.includes("حجز")) {
+  } else if (titleStr?.includes("schedule") || titleStr?.includes("appointment") || titleStr?.includes("موعد") || titleStr?.includes("حجز")) {
     fields = [
       { name: "patientName", labelEn: "Patient Name", labelAr: "اسم المريض", type: "text" },
       { name: "date", labelEn: "Preferred Appointment Date", labelAr: "تاريخ الموعد", type: "date" },
@@ -209,7 +211,7 @@ export default function GenericActionModal() {
       { name: "doctor", labelEn: "Target Physician / Clinic Room", labelAr: "الطبيب المعالج / رقم العيادة", type: "text" }
     ];
     detectedActionType = "appointment";
-  } else if (titleStr.includes("transfer") || titleStr.includes("نقل") || titleStr.includes("تحويل")) {
+  } else if (titleStr?.includes("transfer") || titleStr?.includes("نقل") || titleStr?.includes("تحويل")) {
     fields = [
       { name: "patientId", labelEn: "Patient MRN", labelAr: "رقم ملف المريض", type: "text" },
       { name: "fromUnit", labelEn: "Current Unit", labelAr: "القسم الحالي", type: "text" },
@@ -227,7 +229,7 @@ export default function GenericActionModal() {
       { name: "escort", labelEn: "Requires Escort / Equipment", labelAr: "يحتاج مرافق تمريض أو أجهزة تنفس؟", type: "checkbox" }
     ];
     detectedActionType = "transfer";
-  } else if (titleStr.includes("admit") || titleStr.includes("admission") || titleStr.includes("دخول") || titleStr.includes("تنويم")) {
+  } else if (titleStr?.includes("admit") || titleStr?.includes("admission") || titleStr?.includes("دخول") || titleStr?.includes("تنويم")) {
     fields = [
       { name: "patientId", labelEn: "Patient MRN", labelAr: "رقم ملف المريض", type: "text" },
       { name: "admissionDiagnosis", labelEn: "Admission Diagnosis", labelAr: "تشخيص الدخول المبدئي", type: "textarea" },
@@ -240,7 +242,7 @@ export default function GenericActionModal() {
       { name: "consentSigned", labelEn: "Admission Consent Signed?", labelAr: "هل تم توقيع إقرار الدخول والتنويم؟", type: "checkbox" }
     ];
     detectedActionType = "admission";
-  } else if (titleStr.includes("discharge") || titleStr.includes("خروج") || titleStr.includes("إخلاء")) {
+  } else if (titleStr?.includes("discharge") || titleStr?.includes("خروج") || titleStr?.includes("إخلاء")) {
     fields = [
       { name: "patientId", labelEn: "Patient MRN", labelAr: "رقم ملف المريض", type: "text" },
       { name: "dischargeType", labelEn: "Discharge Type", labelAr: "نوع الخروج", type: "select", options: [
@@ -254,7 +256,7 @@ export default function GenericActionModal() {
       { name: "followUp", labelEn: "Follow-up Appointment Scheduled?", labelAr: "هل تم تحديد موعد متابعة؟", type: "checkbox" }
     ];
     detectedActionType = "discharge";
-  } else if (titleStr.includes("surgery") || titleStr.includes("pacu") || titleStr.includes("إفاقة") || titleStr.includes("عملية") || titleStr.includes("تخدير")) {
+  } else if (titleStr?.includes("surgery") || titleStr?.includes("pacu") || titleStr?.includes("إفاقة") || titleStr?.includes("عملية") || titleStr?.includes("تخدير")) {
     fields = [
       { name: "patientId", labelEn: "Patient MRN", labelAr: "رقم ملف المريض", type: "text" },
       { name: "procedureName", labelEn: "Surgical Procedure", labelAr: "اسم العملية الجراحية", type: "text" },
@@ -281,18 +283,30 @@ export default function GenericActionModal() {
     }
 
     if (detectedActionType === "patient") {
-      addPatient({
-        id: "p-" + Date.now(),
-        mrn: "MRN-" + Math.floor(10000 + Math.random() * 90000),
-        nameEn: formData.name,
-        nameAr: formData.name,
-        age: Number(formData.age) || 35,
-        gender: (formData.gender || "male").toLowerCase() as any,
-        phone: formData.phone || "",
-        status: "registered",
-        insurance: formData.insurance || "Cash"
-      });
-      toast.success(isAr ? "تم تسجيل المريض بنجاح، ومزامنة بياناته مع كافة الأقسام الطبية" : "Patient registered successfully, and details synchronized across all departments");
+      if (clinicalPatientId) {
+        updatePatient(clinicalPatientId, {
+          nameEn: formData.name || currentPatientObj?.nameEn,
+          nameAr: formData.name || currentPatientObj?.nameAr,
+          age: Number(formData.age) || currentPatientObj?.age || 35,
+          gender: (formData.gender || currentPatientObj?.gender || "male")?.toLowerCase() as any,
+          phone: formData.phone || currentPatientObj?.phone || "",
+          insurance: formData.insurance || currentPatientObj?.insurance || "Cash"
+        });
+        toast.success(isAr ? "تم تحديث بيانات المريض بنجاح" : "Patient details updated successfully");
+      } else {
+        addPatient({
+          id: "p-" + Date.now(),
+          mrn: "MRN-" + Math.floor(10000 + Math.random() * 90000),
+          nameEn: formData.name,
+          nameAr: formData.name,
+          age: Number(formData.age) || 35,
+          gender: (formData.gender || "male")?.toLowerCase() as any,
+          phone: formData.phone || "",
+          status: "registered",
+          insurance: formData.insurance || "Cash"
+        });
+        window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient registered successfully, and details synchronized across all departments", titleAr: "تم تسجيل المريض بنجاح، ومزامنة بياناته مع كافة الأقسام الطبية", type: "form" } }));
+      }
     } else if (detectedActionType === "invoice") {
       addInvoice({
         id: "INV-" + Math.floor(1000 + Math.random() * 9000),
@@ -301,7 +315,7 @@ export default function GenericActionModal() {
         status: "unpaid",
         date: new Date().toISOString()
       });
-      toast.success(isAr ? "تم ترحيل الفاتورة وتوليد طلب التحصيل المالي في الصندوق" : "Invoice posted successfully and integrated with the Cashier queue");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Invoice posted successfully and integrated with the Cashier queue", titleAr: "تم ترحيل الفاتورة وتوليد طلب التحصيل المالي في الصندوق", type: "form" } }));
     } else if (detectedActionType === "prescription") {
       addPrescription({
         id: "rx-" + Date.now(),
@@ -312,17 +326,17 @@ export default function GenericActionModal() {
         status: "pending",
         date: new Date().toLocaleDateString()
       });
-      toast.success(isAr ? "تم إرسال الوصفة الطبية إلى الصيدلية وصيدلي السريرية للصرف والمراجعة" : "Prescription dispatched to Clinical Pharmacy & Dispensing System");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Prescription dispatched to Clinical Pharmacy & Dispensing System", titleAr: "تم إرسال الوصفة الطبية إلى الصيدلية وصيدلي السريرية للصرف والمراجعة", type: "form" } }));
     } else if (detectedActionType === "transfer") {
       toast.success(isAr ? `تم تقديم طلب نقل المريض إلى ${formData.toUnit || 'القسم المختص'} بنجاح` : `Patient transfer request to ${formData.toUnit || 'designated unit'} submitted successfully`);
     } else if (detectedActionType === "admission") {
-      toast.success(isAr ? "تم إكمال إجراءات دخول وتنويم المريض بنجاح، وتوجيهه للقسم الداخلي" : "Patient admission processed successfully, assigned to Inpatient Flow");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient admission processed successfully, assigned to Inpatient Flow", titleAr: "تم إكمال إجراءات دخول وتنويم المريض بنجاح، وتوجيهه للقسم الداخلي", type: "form" } }));
     } else if (detectedActionType === "discharge") {
-      toast.success(isAr ? "تم معالجة أمر خروج المريض وإرسال ملخص الخروج للسجلات" : "Patient discharge order processed and summary sent to Medical Records");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Patient discharge order processed and summary sent to Medical Records", titleAr: "تم معالجة أمر خروج المريض وإرسال ملخص الخروج للسجلات", type: "form" } }));
     } else if (detectedActionType === "surgery") {
-      toast.success(isAr ? "تم توثيق بيانات ما بعد العملية وتحديث حالة المريض" : "Post-op details documented and patient status updated");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Post-op details documented and patient status updated", titleAr: "تم توثيق بيانات ما بعد العملية وتحديث حالة المريض", type: "form" } }));
     } else {
-      toast.success(isAr ? "تم حفظ التغييرات ومزامنتها بنجاح مع قاعدة بيانات المستشفى" : "Action completed, changes saved to secure hospital cluster");
+      window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Action completed, changes saved to secure hospital cluster", titleAr: "تم حفظ التغييرات ومزامنتها بنجاح مع قاعدة بيانات المستشفى", type: "form" } }));
     }
 
     setIsOpen(false);
@@ -370,7 +384,7 @@ export default function GenericActionModal() {
         lastUpdated: new Date().toLocaleTimeString()
       }
     });
-    toast.success(isAr ? "تم تحديث وتوثيق العلامات الحيوية في الملف الإلكتروني الموحد" : "Vitals updated and logged directly into unified EHR");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Vitals updated and logged directly into unified EHR", titleAr: "تم تحديث وتوثيق العلامات الحيوية في الملف الإلكتروني الموحد", type: "form" } }));
   };
 
   const handleAddDiagnosticOrder = () => {
@@ -432,7 +446,7 @@ export default function GenericActionModal() {
 
   // Filter Formulary Drugs
   const filteredDrugs = searchDrug 
-    ? DRUG_MASTER_LIST.filter(d => d.name.toLowerCase().includes(searchDrug.toLowerCase()) || d.category.toLowerCase().includes(searchDrug.toLowerCase()))
+    ? DRUG_MASTER_LIST.filter(d => d.name?.toLowerCase()?.includes(searchDrug?.toLowerCase()) || d.category?.toLowerCase()?.includes(searchDrug?.toLowerCase()))
     : [];
 
   // Check interactive warning
@@ -610,7 +624,7 @@ export default function GenericActionModal() {
                       onChange={(e) => setClinicalPatientId(e.target.value)}
                       className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl p-2 text-xs font-bold outline-none"
                     >
-                      {patients.map(p => (
+                      {(patients || []).map(p => (
                         <option key={p.id} value={p.id}>{isAr ? p.nameAr : p.nameEn} ({p.mrn})</option>
                       ))}
                     </select>
@@ -727,7 +741,7 @@ export default function GenericActionModal() {
                         </div>
 
                         {/* Smart AI Warnings Panel inside prescription */}
-                        {selectedDrug.name.includes("Metformin") && (
+                        {selectedDrug.name?.includes("Metformin") && (
                           <div className="bg-rose-50 border border-rose-100 p-2.5 rounded-lg text-[10px] text-rose-800 flex items-center gap-1.5 font-bold">
                             <AlertTriangle className="w-4 h-4 text-rose-600 animate-pulse shrink-0" />
                             <span>
@@ -774,16 +788,42 @@ export default function GenericActionModal() {
                         </button>
                       </div>
                     </div>
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-2 relative">
                       <label className="block text-slate-500 text-xs font-bold mb-1">{isAr ? "اسم الفحص / العينة" : "Test or Procedure Name"}</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="text" 
-                          value={orderName}
-                          onChange={(e) => setOrderName(e.target.value)}
-                          placeholder={orderType === "LAB" ? (isAr ? "مثال: CBC, Lipid Panel..." : "e.g. CBC, Troponin, Thyroid...") : (isAr ? "مثال: Chest X-ray, MRI..." : "e.g. MRI Lumbar Spine, CT Brain...")}
-                          className="flex-1 border border-slate-300 rounded-xl p-2 text-xs font-bold"
-                        />
+                      <div className="flex gap-2 relative">
+                        <div className="flex-1 relative">
+                          <input 
+                            type="text" 
+                            value={orderName}
+                            onChange={(e) => {
+                              setOrderName(e.target.value);
+                              setOrderNameFocus(true);
+                            }}
+                            onFocus={() => setOrderNameFocus(true)}
+                            onBlur={() => setTimeout(() => setOrderNameFocus(false), 200)}
+                            placeholder={orderType === "LAB" ? (isAr ? "مثال: CBC, Lipid Panel..." : "e.g. CBC, Troponin, Thyroid...") : (isAr ? "مثال: Chest X-ray, MRI..." : "e.g. MRI Lumbar Spine, CT Brain...")}
+                            className="w-full border border-slate-300 rounded-xl p-2 text-xs font-bold focus:border-purple-500 outline-none"
+                          />
+                          {orderType === "LAB" && orderNameFocus && orderName.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                              {EXTENDED_LAB_TESTS.filter(t => t?.toLowerCase()?.includes(orderName?.toLowerCase())).slice(0, 50).map((test, idx) => (
+                                <div 
+                                  key={idx} 
+                                  className="px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer"
+                                  onMouseDown={() => {
+                                    setOrderName(test);
+                                    setOrderNameFocus(false);
+                                  }}
+                                >
+                                  {test}
+                                </div>
+                              ))}
+                              {EXTENDED_LAB_TESTS.filter(t => t?.toLowerCase()?.includes(orderName?.toLowerCase())).length === 0 && (
+                                <div className="px-3 py-2 text-sm text-slate-500 italic">No tests found.</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         <button 
                           onClick={handleAddDiagnosticOrder}
                           className="bg-slate-800 hover:bg-slate-900 text-white font-black px-4 rounded-xl text-xs flex items-center gap-1 transition"
@@ -1110,7 +1150,7 @@ export default function GenericActionModal() {
                     </div>
 
                     <button 
-                      onClick={() => toast.success(isAr ? "تم حجز وتخصيص السرير عبر الذكاء الاصطناعي" : "Bed locked and assigned via CDSS Protocol")}
+                      onClick={() => window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Bed locked and assigned via CDSS Protocol", titleAr: "تم حجز وتخصيص السرير عبر الذكاء الاصطناعي", type: "form" } }))}
                       className="w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-2 rounded-xl text-xs uppercase tracking-widest transition"
                     >
                       {isAr ? "اعتماد اقتراح التسكين الذكي" : "Approve Allocation"}

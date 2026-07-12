@@ -1,15 +1,4 @@
-import { 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  query, 
-  where, 
-  orderBy,
-  updateDoc,
-  doc,
-  limit
-} from "firebase/firestore";
-import { db } from "../firebase";
+import { subscribeToClinicalData, saveDataPermanently } from "./realTimeService";
 
 export interface SystemNotification {
   id: string;
@@ -32,44 +21,50 @@ const NOTIFICATION_COLLECTION = "hospital_system_notifications";
  * Creates a new system notification
  */
 export async function createNotification(notification: Omit<SystemNotification, "id" | "timestamp" | "read">) {
-  const newNotif = {
+  const notifId = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const newNotif: SystemNotification = {
     ...notification,
+    id: notifId,
     timestamp: new Date().toISOString(),
     read: false
   };
-  await addDoc(collection(db, NOTIFICATION_COLLECTION), newNotif);
+  await saveDataPermanently(NOTIFICATION_COLLECTION, newNotif);
 }
 
 /**
  * Sync notifications for a specific user or role
  */
 export function syncNotifications(userId: string, role: string, onData: (notifications: SystemNotification[]) => void) {
-  // Query for user-specific, role-specific, or "all" notifications
-  const q = query(
-    collection(db, NOTIFICATION_COLLECTION),
-    where("timestamp", ">", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()), // Last 24 hours
-    orderBy("timestamp", "desc"),
-    limit(50)
+  return subscribeToClinicalData<SystemNotification>(
+    NOTIFICATION_COLLECTION,
+    (allNotifs) => {
+      // Sort desc by timestamp
+      const sorted = [...allNotifs].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+      const filtered = sorted.filter(n => 
+        n.userId === userId || 
+        n.userId === "all" || 
+        n.role === role || 
+        n.role === "all"
+      );
+      onData(filtered.slice(0, 50));
+    },
+    (err) => console.error("Notification sync error:", err)
   );
-
-  return onSnapshot(q, (snapshot) => {
-    const allNotifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SystemNotification));
-    const filtered = allNotifs.filter(n => 
-      n.userId === userId || 
-      n.userId === "all" || 
-      n.role === role || 
-      n.role === "all"
-    );
-    onData(filtered);
-  });
 }
 
 /**
  * Mark a notification as read
  */
+export async function deleteNotification(notificationId: string) {
+  const { deleteDataPermanently } = require("./realTimeService");
+  await deleteDataPermanently(NOTIFICATION_COLLECTION, notificationId);
+}
+
 export async function markAsRead(notificationId: string) {
-  const notifRef = doc(db, NOTIFICATION_COLLECTION, notificationId);
-  await updateDoc(notifRef, { read: true });
+  await saveDataPermanently(NOTIFICATION_COLLECTION, {
+    id: notificationId,
+    read: true
+  } as any);
 }
 
 /**

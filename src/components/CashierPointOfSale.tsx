@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { GlobalEntityLink } from "./GlobalEntityLink";
 import { Banknote, Receipt, CreditCard, ShieldCheck, Printer, CheckCircle2, X } from "lucide-react";
 import { syncSetting, saveSetting } from "../lib/firestoreService";
 import { toast } from "sonner";
@@ -75,7 +76,7 @@ export default function CashierPointOfSale({ language }: { language: "ar" | "en"
     setPayments(next);
     await saveSetting("his_cashier", next);
     setShowPaymentModal(false);
-    toast.success(isAr ? "تم تأكيد الدفع بنجاح" : "Payment confirmed successfully");
+    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "Payment confirmed successfully", titleAr: "تم تأكيد الدفع بنجاح", type: "form" } }));
   };
 
   return (
@@ -179,7 +180,11 @@ export default function CashierPointOfSale({ language }: { language: "ar" | "en"
                 {payments.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-mono font-bold text-slate-600">{p.id}</td>
-                    <td className="px-4 py-3 font-bold text-slate-800">{p.patient}</td>
+                    <td className="px-4 py-3 font-bold text-slate-800">
+                      <GlobalEntityLink entityName={p.patient} entityType="patient" isAr={false}>
+                        {p.patient}
+                      </GlobalEntityLink>
+                    </td>
                     <td className="px-4 py-3 text-end font-black text-emerald-700">{p.amount.toLocaleString()} SR</td>
                     <td className="px-4 py-3 text-center">
                       <span className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold border border-slate-200 inline-block w-fit">
