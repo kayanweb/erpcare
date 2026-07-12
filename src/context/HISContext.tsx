@@ -24,7 +24,7 @@ export type Patient = {
   age: number;
   gender: string;
   phone: string;
-  status: "registered" | "triage" | "doctor" | "ward" | "discharged";
+  status: "registered" | "triage" | "doctor" | "ward" | "discharged" | "nicu" | "pacu" | "opd";
   insurance: string;
   departmentId?: string;
   wardId?: string;
@@ -264,14 +264,16 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
   }, [safePatients.length, hasSeeded, inventory.length]);
 
   const addPatient = (p: Patient) => {
+    setPatients(prev => [...prev, p]);
     savePatient(p).catch(err => console.error("Cloud patient save error:", err));
   };
   
   const updatePatient = (id: string, updates: Partial<Patient>) => {
+    setPatients(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     const patient = safePatients.find(p => p.id === id);
     if (patient) {
       // Check if something actually changed
-      const hasChanged = Object.keys(updates).some(key => patient[key] !== updates[key]);
+      const hasChanged = Object.keys(updates).some(key => patient[key as keyof Patient] !== updates[key as keyof Partial<Patient>]);
       if (hasChanged) {
         savePatient({ ...patient, ...updates }).catch(err => console.error("Cloud patient save error:", err));
       }
@@ -279,13 +281,16 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
   };
 
   const deletePatient = (id: string) => {
+    setPatients(prev => prev.filter(p => p.id !== id));
     apiDeletePatient(id).catch(err => console.error("Cloud patient delete error:", err));
   };
 
   const updatePatientStatus = (id: string, status: Patient["status"]) => {
+    setPatients(prev => prev.map(p => p.id === id ? { ...p, status } : p));
     const patient = safePatients.find(p => p.id === id);
     if (patient && patient.status !== status) {
       savePatient({ ...patient, status }).catch(err => console.error("Cloud patient save error:", err));
+
       
       // Dispatch real-time Firestore notification
       if (status === "ward") {

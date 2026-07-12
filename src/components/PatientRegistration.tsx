@@ -9,6 +9,7 @@ interface Props {
 }
 
 import { GlobalEntityLink } from "./GlobalEntityLink";
+import { FindPatientForm } from "./FindPatientForm";
 
 export default function PatientRegistration({ language, departments = [] }: Props) {
   const isAr = language === "ar";
@@ -26,6 +27,7 @@ export default function PatientRegistration({ language, departments = [] }: Prop
   const [isSaving, setIsSaving] = useState(false);
   const [editingPatientId, setEditingPatientId] = useState<string | null>(null);
   const [directorySearchQuery, setDirectorySearchQuery] = useState("");
+  const [advancedSearchCriteria, setAdvancedSearchCriteria] = useState<any>(null);
   const [showDischarged, setShowDischarged] = useState(false);
   const [aptSearchQuery, setAptSearchQuery] = useState("");
 
@@ -139,6 +141,15 @@ export default function PatientRegistration({ language, departments = [] }: Prop
 
       <div className="space-y-6">
         {activeSubTab === "directory" && (
+          <>
+           <FindPatientForm 
+              isAr={isAr}
+              onSearch={setAdvancedSearchCriteria}
+              onClear={() => {
+                 setAdvancedSearchCriteria(null);
+                 setDirectorySearchQuery("");
+              }}
+           />
            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
              <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                <h3 className="font-black text-slate-800 flex items-center gap-2">
@@ -157,11 +168,11 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                   <div className="relative w-full sm:w-64">
                     <Search className={`w-4 h-4 text-slate-400 absolute top-2.5 ${isAr ? "right-3" : "left-3"}`} />
                     <input 
-                      type="text" 
-                      value={directorySearchQuery} 
-                      onChange={(e) => setDirectorySearchQuery(e.target.value)} 
-                      placeholder={isAr ? "بحث بالاسم، الهوية، الهاتف، الملف..." : "Search by name, ID, phone, MRN..."} 
-                      className={`w-full bg-white border border-slate-250 rounded-xl py-1.5 text-xs outline-none focus:border-indigo-500 font-bold ${isAr ? "pr-9 pl-3 text-right" : "pl-9 pr-3 text-left"}`} 
+                      type="text"
+                      value={directorySearchQuery}
+                      onChange={(e) => setDirectorySearchQuery(e.target.value)}
+                      placeholder={isAr ? "بحث سريع..." : "Quick Search..."}
+                      className={`w-full bg-white border border-slate-250 rounded-xl py-1.5 text-xs outline-none focus:border-indigo-500 font-bold ${isAr ? "pr-9 pl-3 text-right" : "pl-9 pr-3 text-left"}`}
                     />
                   </div>
                 </div>
@@ -179,15 +190,28 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {patients.filter(p => {
-                    const q = directorySearchQuery?.toLowerCase().trim();
                     const matchesStatus = showDischarged ? true : p.status !== "discharged";
-                    if (!q) return matchesStatus;
-                    return matchesStatus && (
-                      (p.mrn && p.mrn?.toLowerCase()?.includes(q)) ||
-                      (p.nameAr && p.nameAr?.toLowerCase()?.includes(q)) ||
-                      (p.nameEn && p.nameEn?.toLowerCase()?.includes(q)) ||
-                      (p.phone && p.phone?.toLowerCase()?.includes(q)) ||
-                      (p.nationalId && p.nationalId?.toLowerCase()?.includes(q))
+                    if (!matchesStatus) return false;
+                    
+                    if (advancedSearchCriteria) {
+                       let match = true;
+                       const criteria = advancedSearchCriteria;
+                       if (criteria.mrn && !p.mrn?.toLowerCase().includes(criteria.mrn.toLowerCase())) match = false;
+                       if (criteria.enName1 && !p.nameEn?.toLowerCase().includes(criteria.enName1.toLowerCase())) match = false;
+                       if (criteria.arName1 && !p.nameAr?.includes(criteria.arName1)) match = false;
+                       if (criteria.phone && !p.phone?.includes(criteria.phone)) match = false;
+                       if (criteria.sex && p.gender?.toLowerCase() !== criteria.sex.toLowerCase()) match = false;
+                       return match;
+                    }
+
+                    const q = directorySearchQuery?.toLowerCase().trim();
+                    if (!q) return true;
+                    return (
+                      (p.mrn && p.mrn.toLowerCase().includes(q)) ||
+                      (p.nameAr && p.nameAr.toLowerCase().includes(q)) ||
+                      (p.nameEn && p.nameEn.toLowerCase().includes(q)) ||
+                      (p.phone && p.phone.toLowerCase().includes(q)) ||
+                      (p.nationalId && p.nationalId.toLowerCase().includes(q))
                     );
                   }).map(p => (
                     <tr key={p.id} className={`hover:bg-slate-50 ${p.status === 'discharged' ? 'opacity-60 bg-slate-50/30' : ''}`}>
@@ -242,6 +266,7 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                 </tbody>
              </table>
            </div>
+          </>
         )}
 
         {activeSubTab === "register" && (

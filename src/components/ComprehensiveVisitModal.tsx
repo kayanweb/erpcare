@@ -12,7 +12,7 @@ interface ComprehensiveVisitModalProps {
 }
 
 export function ComprehensiveVisitModal({ isAr, onClose, onRegister, existingVisits }: ComprehensiveVisitModalProps) {
-  const { patients } = useHIS();
+  const { patients, addPatient } = useHIS();
   const [step, setStep] = useState(1);
   
   // Form states
@@ -82,6 +82,29 @@ export function ComprehensiveVisitModal({ isAr, onClose, onRegister, existingVis
       finalPatientId = "p-" + Date.now();
       finalMrn = "MRN-" + Math.floor(10000 + Math.random() * 90000);
       finalPatientName = isAr ? newPatientDetails.nameAr : newPatientDetails.nameEn;
+      
+      const newPat = {
+        id: finalPatientId,
+        mrn: finalMrn,
+        nameEn: newPatientDetails.nameEn,
+        nameAr: newPatientDetails.nameAr,
+        phone: newPatientDetails.phone,
+        gender: newPatientDetails.gender as any,
+        age: parseInt(newPatientDetails.age) || 30,
+        status: "registered" as any,
+        insurance: "Cash" as any, // default
+        clinicalData: {
+          currentWorkflowStage: "registration",
+          workflowId: `WF-${Date.now()}`
+        }
+      };
+      
+      // Attempt to save to cloud and local state
+      try {
+        await addPatient(newPat);
+      } catch (err) {
+        console.error("Failed to add new patient during visit creation:", err);
+      }
     } else {
       const p = patients.find(pat => pat.id === selectedPatientId);
       if (p) {
@@ -259,19 +282,36 @@ export function ComprehensiveVisitModal({ isAr, onClose, onRegister, existingVis
                 </div>
               ) : (
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">{isAr ? "اختر المريض المسجل" : "Select Registered Patient"} <span className="text-rose-500">*</span></label>
-                  <select
-                    value={selectedPatientId}
-                    onChange={e => setSelectedPatientId(e.target.value)}
-                    className="w-full bg-white border border-slate-300 focus:border-blue-400 outline-none rounded p-2.5 text-xs font-bold"
-                  >
-                    <option value="">{isAr ? "-- اختر مريضاً من القائمة --" : "-- Select a patient from directory --"}</option>
-                    {patients.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.mrn} - {isAr ? p.nameAr : p.nameEn} ({p.gender}, {p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : 'N/A'} {isAr ? "عام" : "yrs"})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex flex-col gap-2">
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">{isAr ? "اختر المريض المسجل" : "Select Registered Patient"} <span className="text-rose-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder={isAr ? "بحث برقم الملف (MRN) أو الاسم..." : "Search by MRN or Name..."}
+                      className="w-full bg-white border border-slate-300 focus:border-blue-400 outline-none rounded p-2.5 text-xs font-bold mb-2"
+                      onChange={(e) => {
+                        const search = e.target.value.toLowerCase();
+                        // Instead of a separate state, we can just use the DOM elements or filter the patients list below
+                        const options = document.querySelectorAll('.patient-option');
+                        options.forEach((opt: any) => {
+                          const text = opt.innerText.toLowerCase();
+                          opt.style.display = text.includes(search) ? 'block' : 'none';
+                        });
+                      }}
+                    />
+                    <select
+                      value={selectedPatientId}
+                      onChange={e => setSelectedPatientId(e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-blue-400 outline-none rounded p-2.5 text-xs font-bold"
+                      size={4}
+                    >
+                      <option value="" className="patient-option">{isAr ? "-- اختر مريضاً من القائمة --" : "-- Select a patient from directory --"}</option>
+                      {patients.map(p => (
+                        <option key={p.id} value={p.id} className="patient-option py-1">
+                          {p.mrn} - {isAr ? p.nameAr : p.nameEn} ({p.gender}, {p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : 'N/A'} {isAr ? "عام" : "yrs"})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
 

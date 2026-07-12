@@ -654,7 +654,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     status: "Pending",
                     timestamp: new Date().toISOString()
                   },
-                  ...(prev || [])
+                  ...(Array.isArray(prev) ? prev : [])
                 ]);
                 setShowOrderLabForm(false);
                 setActiveTab("orders");
@@ -704,7 +704,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
               status: "Pending",
               timestamp: ord.timestamp
             })),
-            ...(prev || [])
+            ...(Array.isArray(prev) ? prev : [])
           ]);
           
           setShowOrderRadForm(false);

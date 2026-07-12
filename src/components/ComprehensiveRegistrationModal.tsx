@@ -92,6 +92,13 @@ export function ComprehensiveRegistrationModal({ isAr, onClose, onRegister }: Pr
 
     // Generate simulated MRN if disabled or empty
     const mrn = formData.mrn || `MRN-${Math.floor(100000 + Math.random() * 90000).toString()}`;
+    // Override "OTHER" fields with their custom text
+    const finalData = { ...formData };
+    Object.keys(finalData).forEach(key => {
+      if ((finalData[key] === "OTHER" || finalData[key] === "Other") && finalData[`${key}Other`]) {
+        finalData[key] = finalData[`${key}Other`];
+      }
+    });
     const newId = "p" + Date.now();
 
     onRegister({
@@ -104,7 +111,7 @@ export function ComprehensiveRegistrationModal({ isAr, onClose, onRegister }: Pr
       phone: formData.phone || formData.mobile || "0123456789",
       insurance: formData.category || "Cash",
       status: "registered",
-      ...formData // Include all custom and other attributes in raw patient object
+      ...finalData // Include all custom and other attributes in raw patient object
     });
 
     toast.success(
@@ -230,13 +237,14 @@ export function ComprehensiveRegistrationModal({ isAr, onClose, onRegister }: Pr
                         className="w-full bg-slate-100 border border-slate-200 text-slate-500 font-mono font-bold rounded-lg px-3 py-1.5 text-xs text-center" 
                       />
                     ) : field.type === "select" ? (
+                      <div className="space-y-1">
                       <select
                         value={formData[field.key] || ""}
                         onChange={(e) => handleChange(field.key, e.target.value)}
                         className={`w-full border rounded-lg px-3 py-1.5 text-xs outline-none transition focus:ring-1 focus:ring-pink-500 ${
                           isRequired 
-                            ? "bg-pink-50/20 border-pink-100 font-bold" 
-                            : "bg-white border-slate-200"
+                             ? "bg-pink-50/20 border-pink-100 font-bold" 
+                             : "bg-white border-slate-200"
                         }`}
                       >
                         <option value="">{isAr ? "اختر..." : "Choose..."}</option>
@@ -246,6 +254,17 @@ export function ComprehensiveRegistrationModal({ isAr, onClose, onRegister }: Pr
                           </option>
                         ))}
                       </select>
+                      {(formData[field.key] === "OTHER" || formData[field.key] === "Other") && (
+                        <input
+                          type="text"
+                          required
+                          placeholder={isAr ? "يرجى التحديد..." : "Please specify..."}
+                          value={formData[`${field.key}Other`] || ""}
+                          onChange={(e) => handleChange(`${field.key}Other`, e.target.value)}
+                          className="w-full border rounded-lg px-3 py-1.5 text-xs outline-none transition focus:ring-1 focus:ring-pink-500 bg-pink-50/20 border-pink-100 font-bold"
+                        />
+                      )}
+                      </div>
                     ) : field.type === "date" ? (
                       <input
                         type="date"

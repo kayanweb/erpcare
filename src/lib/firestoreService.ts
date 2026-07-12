@@ -182,8 +182,8 @@ export const syncSetting = (key: string, callback: (data: any) => void) => {
   return subscribeToClinicalData<any>('settings', (allSettings) => {
     const docSnap = allSettings.find((s: any) => s.id === key);
     if (docSnap) {
-      // PostgresAdapter might inject 'key' along with 'id'
-      const { id, key: dbKey, ...pureData } = docSnap;
+      // PostgresAdapter might inject 'key' along with 'id', plus updatedAt and savedBy from saveDataPermanently
+      const { id, key: dbKey, updatedAt, savedBy, ...pureData } = docSnap;
       
       // If pureData only contains a 'value' property, it means it was wrapped (e.g. an array or primitive)
       if (pureData.value !== undefined && Object.keys(pureData).length === 1) {
