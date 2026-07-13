@@ -6,7 +6,6 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     build: {
-      sourcemap: false,
       rollupOptions: {
         output: {
           manualChunks(id) {
