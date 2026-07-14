@@ -24,7 +24,7 @@ export type Patient = {
   age: number;
   gender: string;
   phone: string;
-  status: "registered" | "triage" | "doctor" | "ward" | "discharged" | "nicu" | "pacu" | "opd";
+  status: "registered" | "triage" | "doctor" | "ward" | "discharged";
   insurance: string;
   departmentId?: string;
   wardId?: string;

@@ -36,7 +36,7 @@ interface CustomTask {
   category: "meds" | "vitals" | "nursing" | "discharge";
 }
 
-export default function DepartmentTasks({ language, departmentId, departmentName, hideHeader = true }: Props & { hideHeader?: boolean }) {
+export default function DepartmentTasks({ language, departmentId, departmentName }: Props) {
   const isAr = language === "ar";
   const { patients: contextPatients, updatePatient, cpoeOrders, setCpoeOrders } = useHIS();
   const [activeTab, setActiveTab] = useState<"active_patients" | "tasks" | "discharge">("active_patients");
@@ -80,13 +80,6 @@ export default function DepartmentTasks({ language, departmentId, departmentName
           { id: "P-IM-01", mrn: "MRN-2026-701", nameEn: "Mohamed El-Sayed", nameAr: "محمد السيد", age: 59, gender: "male", phone: "0122938474", status: "ward", insurance: "Bupa", admissionDiagnosis: "Diabetic Ketoacidosis (DKA)", room: "Room 304", bed: "Bed A", isReadyForDischarge: false, departmentId: "dept-im" },
           { id: "P-IM-02", mrn: "MRN-2026-702", nameEn: "Fatma Nour-Eldin", nameAr: "فاطمة نور الدين", age: 34, gender: "female", phone: "0112938475", status: "ward", insurance: "Tawuniya", admissionDiagnosis: "Severe Pyelonephritis", room: "Room 306", bed: "Bed B", isReadyForDischarge: true, departmentId: "dept-im" },
           { id: "P-IM-03", mrn: "MRN-2026-703", nameEn: "Abdel-Rahman Khaled", nameAr: "عبد الرحمن خالد", age: 63, gender: "male", phone: "0102938476", status: "ward", insurance: "Medgulf", admissionDiagnosis: "Exacerbation of COPD", room: "Room 304", bed: "Bed B", isReadyForDischarge: false, departmentId: "dept-im" }
-        ],
-        "nicu": [
-          { id: "P-NICU-01", mrn: "MRN-2026-601", nameEn: "Baby Boy Ahmed", nameAr: "مولود أحمد", age: 0, gender: "male", phone: "-", status: "nicu", insurance: "Cash", admissionDiagnosis: "Prematurity", room: "NICU Bay 1", bed: "Incubator 1", isReadyForDischarge: false, departmentId: "nicu" },
-          { id: "P-NICU-02", mrn: "MRN-2026-602", nameEn: "Baby Girl Sara", nameAr: "مولودة سارة", age: 0, gender: "female", phone: "-", status: "nicu", insurance: "Tawuniya", admissionDiagnosis: "Jaundice", room: "NICU Bay 1", bed: "Incubator 2", isReadyForDischarge: true, departmentId: "nicu" }
-        ],
-        "pacu": [
-          { id: "P-PACU-01", mrn: "MRN-2026-501", nameEn: "Hassan Ali", nameAr: "حسن علي", age: 45, gender: "male", phone: "-", status: "pacu", insurance: "Bupa", admissionDiagnosis: "Post-op Recovery", room: "PACU Ward", bed: "PACU-01", isReadyForDischarge: false, departmentId: "pacu" }
         ]
       };
 
@@ -223,10 +216,8 @@ export default function DepartmentTasks({ language, departmentId, departmentName
 
   return (
     <div className="p-6 space-y-6" dir={isAr ? "rtl" : "ltr"}>
-      {!hideHeader && (
-        <>
-          {/* Header Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-lg border border-indigo-950/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-lg border border-indigo-950/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="bg-indigo-500/20 text-indigo-300 text-xs px-2.5 py-1 rounded-full font-bold border border-indigo-500/30">
@@ -292,8 +283,7 @@ export default function DepartmentTasks({ language, departmentId, departmentName
           </div>
         </div>
       </div>
-      </>
-      )}
+
       {/* Tabs and Filtering Control */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Tab Buttons */}

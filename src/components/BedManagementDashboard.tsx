@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function BedManagementDashboard({ language: propLanguage, forceDepartmentId }: Props = {}) {
-  const { language: contextLanguage, admissionRequests, setAdmissionRequests, patients, updatePatient, updatePatientStatus, bedMap, setBedMap } = useHIS();
+  const { language: contextLanguage, admissionRequests, setAdmissionRequests, patients, updatePatientStatus, bedMap, setBedMap } = useHIS();
   const language = propLanguage || contextLanguage;
   const isAr = language === 'ar';
 
@@ -55,42 +55,6 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
           { id: "ICU-04", status: "occupied", patient: "Samir Nour", features: ["ventilator", "continuous_monitoring"] }
         ]}
       ]
-    },
-    {
-      id: "nicu",
-      name: "Neonatal Intensive Care Unit (NICU)",
-      nameAr: "العناية المركزة لحديثي الولادة",
-      rooms: [
-        { id: "room-nicu-1", name: "NICU Bay 1", type: "critical", gender: "Any", beds: [
-          { id: "NICU-01", status: "occupied", patient: "Baby Boy A", features: ["incubator"] },
-          { id: "NICU-02", status: "available", patient: null, features: ["incubator"] }
-        ]},
-        { id: "room-nicu-2", name: "NICU Bay 2", type: "critical", gender: "Any", beds: [
-          { id: "NICU-03", status: "available", patient: null, features: ["incubator"] },
-          { id: "NICU-04", status: "occupied", patient: "Baby Girl B", features: ["incubator"] }
-        ]}
-      ]
-    },
-    {
-      id: "er",
-      name: "Emergency Room (ER)",
-      nameAr: "الطوارئ",
-      rooms: [
-        { id: "room-er-1", name: "ER Triage", type: "ward", gender: "Any", beds: [
-          { id: "ER-01", status: "available", patient: null, features: [] },
-          { id: "ER-02", status: "available", patient: null, features: [] }
-        ]}
-      ]
-    },
-    {
-      id: "pacu",
-      name: "Post Anesthesia Care Unit (PACU)",
-      nameAr: "الإفاقة",
-      rooms: [
-        { id: "room-pacu-1", name: "PACU Ward", type: "ward", gender: "Any", beds: [
-          { id: "PACU-01", status: "available", patient: null, features: [] }
-        ]}
-      ]
     }
   ];
 
@@ -115,60 +79,11 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
   };
 
   const handleAssignBed = () => {
-    if (selectedRequest && selectedBedToAssign) {
-      const patientId = selectedRequest.patientId || selectedRequest.id;
-      
-      // Update the bedMap
-      setBedMap(prev => ({
-        ...prev,
-        [selectedBedToAssign]: {
-          status: 'occupied',
-          mrn: patientId,
-          patientName: selectedRequest.patientName || selectedRequest.patient,
-          diagnosis: selectedRequest.diagnosis || selectedRequest.reason,
-          bedId: selectedBedToAssign,
-          tasks: { mar: 1, vitals: 1, io: 0, orders: 1 }
-        }
-      }));
-
-      // Update patient state in HISContext
-      updatePatient(patientId, {
-        status: "ward",
-        bedId: selectedBedToAssign,
-        wardId: selectedRequest.wardId || "dept-im-m",
-      });
-
-      // Filter out this admission request
-      setAdmissionRequests(prev => prev.filter(req => req.id !== selectedRequest.id));
-
-      toast.success(isAr 
-        ? `تم تخصيص السرير ${selectedBedToAssign} بنجاح للمريض ${selectedRequest.patientName || selectedRequest.patient}.` 
-        : `Bed ${selectedBedToAssign} assigned successfully to ${selectedRequest.patientName || selectedRequest.patient}.`
-      );
-    }
-
+    toast.success(isAr ? `تم تخصيص السرير ${selectedBedToAssign} بنجاح. تم إشعار القسم المعني.` : `Bed ${selectedBedToAssign} assigned successfully. Ward notified.`);
     setSelectedRequest(null);
     setWizardStep(1);
     setSelectedBedToAssign(null);
   };
-
-  const dynamicHospitalStructure = hospitalStructure.map(dept => ({
-    ...dept,
-    rooms: dept.rooms.map(room => ({
-      ...room,
-      beds: room.beds.map(bed => {
-        const dynamicBed = bedMap[bed.id];
-        if (dynamicBed) {
-          return {
-            ...bed,
-            status: dynamicBed.status || bed.status,
-            patient: dynamicBed.patientName || dynamicBed.patient || bed.patient,
-          };
-        }
-        return bed;
-      })
-    }))
-  }));
 
   return (
     <div className="p-4 md:p-6 space-y-6 bg-slate-50 h-full" dir={isAr ? "rtl" : "ltr"}>
@@ -301,92 +216,52 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
                     </div>
                   )}
 
-                  {wizardStep === 2 && (() => {
-                    const getStructureDeptId = (req: any) => {
-                      if (!req) return 'dept-im';
-                      const loc = (req.requestedLocation || req.wardId || '').toLowerCase();
-                      if (loc.includes('icu') || loc.includes('intensive')) {
-                        if (loc.includes('neonatal') || loc.includes('nicu')) return 'nicu';
-                        return 'dept-icu';
-                      }
-                      if (loc.includes('er') || loc.includes('emergency')) return 'er';
-                      if (loc.includes('pacu') || loc.includes('recovery')) return 'pacu';
-                      return 'dept-im';
-                    };
+                  {wizardStep === 2 && (
+                    <div className="space-y-6 animate-fade-in">
+                      <h4 className="font-black text-slate-800 border-b border-slate-200 pb-2">{isAr ? "الأسرة المطابقة (System Suggestions)" : "2. System Suggested Beds"}</h4>
+                      
+                      <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-start gap-3">
+                        <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+                        <p className="text-sm text-indigo-900 font-medium">
+                          {isAr ? "قام النظام بفلترة الأسرة بناءً على: القسم المطلوب، توفر السرير، الجنس (لغرف المرضى المتعددين)، والاشتراطات السريرية (عزل/أجهزة)." : "The system has filtered beds based on: Requested Department, Availability, Gender (for multi-bed rooms), and Clinical Requirements (Isolation/Equipment)."}
+                        </p>
+                      </div>
 
-                    const deptId = selectedRequest ? getStructureDeptId(selectedRequest) : 'dept-im';
-                    const matchedDept = hospitalStructure.find(d => d.id === deptId);
-                    const matchingBeds = matchedDept 
-                      ? matchedDept.rooms.flatMap(r => r.beds.map(b => ({ ...b, roomName: r.name })))
-                      : [];
-                    
-                    const suggestedBedsList = matchingBeds.map(b => {
-                      const dBed = bedMap[b.id] || b;
-                      return { ...b, status: dBed.status, patient: dBed.patientName || dBed.patient };
-                    }).filter(b => b.status === 'available');
-
-                    return (
-                      <div className="space-y-6 animate-fade-in">
-                        <h4 className="font-black text-slate-800 border-b border-slate-200 pb-2">
-                          {isAr ? "الأسرة المطابقة المتاحة" : "2. System Suggested Beds"}
-                        </h4>
-                        
-                        <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-start gap-3">
-                          <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-                          <p className="text-sm text-indigo-900 font-medium">
-                            {isAr 
-                              ? `قام النظام بفلترة الأسرة المتاحة في قسم: ${selectedRequest.requestedLocation || "الباطنة"}`
-                              : `The system has filtered available beds in department: ${selectedRequest.requestedLocation || "Internal Medicine"}`}
-                          </p>
-                        </div>
-
-                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                          {suggestedBedsList.map(b => (
-                            <div 
-                              key={b.id}
-                              onClick={() => setSelectedBedToAssign(b.id)}
-                              className={`p-4 rounded-xl border-2 cursor-pointer transition ${selectedBedToAssign === b.id ? "border-emerald-500 bg-emerald-50 shadow-md" : "border-slate-200 bg-white hover:border-emerald-300"}`}
-                            >
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                    <BedDouble className="w-5 h-5 text-emerald-700" />
-                                  </div>
-                                  <div>
-                                    <h5 className="font-black text-slate-800">{b.id}</h5>
-                                    <p className="text-xs text-slate-500 font-bold">{b.roomName} • {isAr ? "متاح وجاهز" : "Available & Ready"}</p>
-                                  </div>
-                                </div>
-                                {b.features && b.features.length > 0 && (
-                                  <div className="flex gap-1">
-                                    {b.features.map((f: string) => (
-                                      <span key={f} className="bg-slate-100 text-[10px] text-slate-600 px-2 py-1 rounded font-bold uppercase">{f.replace('_', ' ')}</span>
-                                    ))}
-                                  </div>
-                                )}
+                      <div className="space-y-3">
+                        {/* Mock algorithmic suggestion */}
+                        <div 
+                          onClick={() => setSelectedBedToAssign("BED-SUGGESTED")}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition ${selectedBedToAssign === "BED-SUGGESTED" ? "border-emerald-500 bg-emerald-50 shadow-md" : "border-slate-200 bg-white hover:border-emerald-300"}`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                <BedDouble className="w-5 h-5 text-emerald-700" />
+                              </div>
+                              <div>
+                                <h5 className="font-black text-slate-800">{isAr ? "سرير مقترح" : "Suggested Bed"}</h5>
+                                <p className="text-xs text-slate-500 font-bold">{selectedRequest.requestedLocation} • {isAr ? "متاح وجاهز" : "Available & Ready"}</p>
                               </div>
                             </div>
-                          ))}
-                          {suggestedBedsList.length === 0 && (
-                            <div className="text-center py-6 text-slate-400 font-bold italic bg-white border border-slate-200 rounded-xl">
-                              {isAr ? "لا توجد أسرة فارغة متاحة في هذا القسم حالياً." : "No empty beds available in this department currently."}
+                            <div className="flex gap-1">
+                              <span className="bg-slate-100 text-slate-600 p-1.5 rounded" title="Continuous Monitoring"><HeartPulse className="w-4 h-4" /></span>
                             </div>
-                          )}
-                        </div>
-
-                        <div className="flex justify-between pt-4">
-                          <button onClick={() => setWizardStep(1)} className="text-slate-600 font-bold px-4 py-2 hover:bg-slate-200 rounded-lg transition">{isAr ? "رجوع" : "Back"}</button>
-                          <button 
-                            disabled={!selectedBedToAssign}
-                            onClick={() => setWizardStep(3)} 
-                            className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50"
-                          >
-                            {isAr ? "متابعة" : "Proceed"}
-                          </button>
+                          </div>
                         </div>
                       </div>
-                    );
-                  })()}
+
+                      <div className="flex justify-between pt-4">
+                        <button onClick={() => setWizardStep(1)} className="text-slate-600 font-bold px-4 py-2 hover:bg-slate-200 rounded-lg transition">{isAr ? "رجوع" : "Back"}</button>
+                        <button 
+                          disabled={!selectedBedToAssign}
+                          onClick={() => setWizardStep(3)} 
+                          className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50"
+                        >
+                          {isAr ? "متابعة" : "Proceed"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {wizardStep === 3 && (
                     <div className="space-y-6 animate-fade-in text-center py-8">
@@ -431,7 +306,7 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
                    onChange={(e) => setSelectedDepartment(e.target.value)}
                  >
                    <option value="all">{isAr ? "عرض كل الأقسام" : "All Departments"}</option>
-                   {dynamicHospitalStructure.map(dept => (
+                   {hospitalStructure.map(dept => (
                      <option key={dept.id} value={dept.id}>{isAr ? dept.nameAr : dept.name}</option>
                    ))}
                  </select>
@@ -445,7 +320,7 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
           )}
           
           <div className="space-y-8 mt-6">
-            {dynamicHospitalStructure.filter(d => selectedDepartment === 'all' || d.id === selectedDepartment).map(dept => (
+            {hospitalStructure.filter(d => selectedDepartment === 'all' || d.id === selectedDepartment).map(dept => (
               <div key={dept.id} className="animate-fade-in">
                 <h3 className="font-black text-xl text-slate-800 mb-4 flex items-center gap-2 border-l-4 border-indigo-500 pl-3">
                   {isAr ? dept.nameAr : dept.name}

@@ -554,8 +554,8 @@ export default function HospitalInformationSystem({
       icon: Stethoscope,
       hasChildren: true,
       subItems: [
-
-
+        { id: "opd_dashboard", labelAr: "لوحة تحكم العيادات الخارجية (OPD)", labelEn: "OPD Control Dashboard" },
+        { id: "er", labelAr: "الطوارئ (ER)", labelEn: "Emergency (ER)" },
         {
           id: "dept_opd_im",
           labelAr: "عيادة الباطنة",
@@ -630,7 +630,7 @@ export default function HospitalInformationSystem({
       icon: BedDouble,
       hasChildren: true,
       subItems: [
-
+        { id: "ipd_dashboard", labelAr: "لوحة تحكم الأقسام الداخلية (IPD)", labelEn: "IPD Control Dashboard" },
         {
           id: "dept_ward_im",
           labelAr: "التنويم - الباطنة",
@@ -661,15 +661,15 @@ export default function HospitalInformationSystem({
           labelAr: "التنويم - المخ والأعصاب",
           labelEn: "Ward - Neurology",
         },
-
-
+        { id: "icu", labelAr: "العناية المركزة (ICU)", labelEn: "ICU" },
+        { id: "dept_ccu", labelAr: "العناية القلبية (CCU)", labelEn: "CCU" },
         {
           id: "nicu",
           labelAr: "العناية بحديثي الولادة (NICU)",
           labelEn: "NICU",
         },
-
-
+        { id: "ot", labelAr: "العمليات الكبرى (OR)", labelEn: "Main OR" },
+        { id: "pacu", labelAr: "الإفاقة (PACU)", labelEn: "PACU" },
       ],
     },
     {
@@ -679,7 +679,7 @@ export default function HospitalInformationSystem({
       icon: FlaskConical,
       hasChildren: true,
       subItems: [
-
+        { id: "pharmacy", labelAr: "الصيدلية", labelEn: "Pharmacy" },
         {
           id: "laboratory",
           labelAr: "المختبر (LIS)",
@@ -690,7 +690,7 @@ export default function HospitalInformationSystem({
           labelAr: "الأشعة (RIS / PACS)",
           labelEn: "Radiology (RIS/PACS)",
         },
-
+        { id: "blood_bank", labelAr: "بنك الدم", labelEn: "Blood Bank" },
         {
           id: "pathology",
           labelAr: "علم الأمراض والأنسجة",
@@ -711,7 +711,7 @@ export default function HospitalInformationSystem({
           labelAr: "سجل الأدوية الذكي",
           labelEn: "Smart Medication Ledger",
         },
-
+        { id: "dialysis", labelAr: "الغسيل الكلوي", labelEn: "Dialysis Unit" },
         {
           id: "pt",
           labelAr: "العلاج الطبيعي والتأهيل",
@@ -726,9 +726,9 @@ export default function HospitalInformationSystem({
       icon: Users,
       hasChildren: true,
       subItems: [
-
-
-
+        { id: "psychiatry", labelAr: "الطب النفسي", labelEn: "Psychiatry" },
+        { id: "oncology", labelAr: "طب الأورام", labelEn: "Oncology" },
+        { id: "rehab", labelAr: "إعادة التأهيل", labelEn: "Rehabilitation" },
         {
           id: "mortuary",
           labelAr: "شؤون الموتى (المشرحة)",
@@ -743,11 +743,35 @@ export default function HospitalInformationSystem({
       icon: LayoutGrid,
       hasChildren: true,
       subItems: [
-
-
+        { id: "front_office", labelAr: "المكتب الأمامي", labelEn: "Front Office" },
+        { id: "hr", labelAr: "الموارد البشرية", labelEn: "Human Resources" },
+        { id: "finance_income_expense", labelAr: "المالية والمصروفات", labelEn: "Finance (Income & Expense)" },
+        { id: "tpa_management", labelAr: "إدارة التأمين (TPA)", labelEn: "TPA Management" },
+        { id: "ambulance", labelAr: "الإسعاف", labelEn: "Ambulance" },
+        { id: "birth_death", labelAr: "سجل المواليد والوفيات", labelEn: "Birth & Death Record" },
+        { id: "messaging", labelAr: "المراسلات والدردشة الداخلية", labelEn: "Messaging & Internal Chat" },
+        { id: "inventory", labelAr: "إدارة المخزون الشامل", labelEn: "Enterprise Inventory" },
+        { id: "calendar_todo", labelAr: "التقويم والمهام", labelEn: "Calendar & ToDo" },
+        { id: "download_center", labelAr: "مركز التحميل", labelEn: "Download Center" },
+        { id: "front_cms", labelAr: "إدارة الموقع (CMS)", labelEn: "Front CMS" },
+        { id: "patient_portal", labelAr: "بوابة المريض", labelEn: "Patient Portal" },
       ],
     },
+    {
+      id: "system_admin",
+      labelAr: "لوحات القيادة والنظام",
+      labelEn: "Dashboards & System Settings",
+      icon: Activity,
+      hasChildren: true,
+      subItems: [
+        { id: "reports", labelAr: "التقارير والتحليلات الذكية BI", labelEn: "Reports & Smart BI Analytics" },
+        { id: "analytics", labelAr: "الجودة والتحليلات", labelEn: "Quality Analytics" },
+        { id: "manage_templates", labelAr: "منشئ النماذج الديناميكي", labelEn: "Dynamic Form Engine" },
+        { id: "global_settings", labelAr: "إعدادات النظام العامة", labelEn: "Global System Settings" }
+      ]
+    },
   ];
+
   const [expandedModules, setExpandedModules] = useState<string[]>(["clinical_front", "operations_admin"]);
 
   const [dayFocus, setDayFocus] = useState<any>("all");
@@ -1190,7 +1214,7 @@ export default function HospitalInformationSystem({
               label: isAr ? "فحوصات المولود" : "Newborn Tests (PKU)",
               variant: "primary",
             },
-
+            { label: isAr ? "تطعيمات" : "Vaccinations", variant: "success" },
           ],
         },
       ],
@@ -1251,17 +1275,17 @@ export default function HospitalInformationSystem({
         {
           title: isAr ? "طلبات الأشعة (Radiology Orders)" : "Radiology Orders",
           actions: [
-
+            { label: isAr ? "طلبات جديدة" : "New Orders", variant: "primary" },
             {
               label: isAr ? "تصنيف الفحوصات" : "Categorize Modalities",
               variant: "outline",
             },
-
+            { label: isAr ? "قبول الطلب" : "Accept Order", variant: "success" },
             {
               label: isAr ? "جدولة الموعد" : "Schedule Exam",
               variant: "secondary",
             },
-
+            { label: isAr ? "إلغاء الطلب" : "Cancel Order", variant: "danger" },
             {
               label: isAr ? "إجراء الفحص" : "Perform Exam",
               variant: "primary",
@@ -1281,7 +1305,7 @@ export default function HospitalInformationSystem({
             ? "أخصائي الأشعة (Radiologist Screen)"
             : "Radiologist Screen",
           actions: [
-
+            { label: isAr ? "قراءة الصور" : "Read Images", variant: "primary" },
             {
               label: isAr ? "كتابة التقرير" : "Write Report",
               variant: "secondary",
@@ -1356,7 +1380,7 @@ export default function HospitalInformationSystem({
         {
           title: isAr ? "جلسات العلاج الطبيعي" : "PT Sessions",
           actions: [
-
+            { label: isAr ? "جلسة جديدة" : "New Session", variant: "success" },
             {
               label: isAr ? "تحديد موعد" : "Schedule Session",
               variant: "primary",
@@ -1365,7 +1389,7 @@ export default function HospitalInformationSystem({
               label: isAr ? "تحديد أخصائي" : "Assign Therapist",
               variant: "secondary",
             },
-
+            { label: isAr ? "نوع العلاج" : "Therapy Type", variant: "outline" },
             {
               label: isAr ? "تقييم أولي" : "Initial Assessment",
               variant: "warning",
@@ -1397,7 +1421,7 @@ export default function HospitalInformationSystem({
               label: isAr ? "تقييم وظيفي" : "Functional Assessment",
               variant: "primary",
             },
-
+            { label: isAr ? "خطة التأهيل" : "Rehab Plan", variant: "success" },
             {
               label: isAr ? "جلسة تأهيل" : "Rehab Session",
               variant: "secondary",
@@ -1458,7 +1482,7 @@ export default function HospitalInformationSystem({
         {
           title: isAr ? "جلسات الغسيل الكلوي" : "Dialysis Sessions",
           actions: [
-
+            { label: isAr ? "جلسة جديدة" : "New Session", variant: "success" },
             {
               label: isAr ? "تحديد موعد" : "Schedule Session",
               variant: "primary",
@@ -1496,8 +1520,8 @@ export default function HospitalInformationSystem({
         {
           title: isAr ? "العلاج الكيماوي" : "Chemotherapy Screen",
           actions: [
-
-
+            { label: isAr ? "خطة علاجية" : "Chemo Plan", variant: "primary" },
+            { label: isAr ? "جرعة جديدة" : "New Dose", variant: "success" },
             {
               label: isAr ? "تحديد الدواء" : "Select Drug",
               variant: "outline",
@@ -1519,13 +1543,13 @@ export default function HospitalInformationSystem({
         {
           title: isAr ? "العلاج الإشعاعي" : "Radiotherapy Screen",
           actions: [
-
-
+            { label: isAr ? "خطة إشعاعية" : "Radio Plan", variant: "primary" },
+            { label: isAr ? "جلسة جديدة" : "New Session", variant: "success" },
             {
               label: isAr ? "تحديد المنطقة" : "Target Area",
               variant: "outline",
             },
-
+            { label: isAr ? "الجرعة" : "Radiation Dose", variant: "warning" },
             {
               label: isAr ? "مراقبة الآثار" : "Monitor Side Effects",
               variant: "danger",
@@ -1654,7 +1678,7 @@ export default function HospitalInformationSystem({
         {
           title: isAr ? "إدارة الموظفين" : "Employee Management",
           actions: [
-
+            { label: isAr ? "إضافة موظف" : "Add Employee", variant: "success" },
             {
               label: isAr ? "تعديل بيانات موظف" : "Edit Employee",
               variant: "outline",
@@ -1671,7 +1695,7 @@ export default function HospitalInformationSystem({
               label: isAr ? "الإجازات" : "Leave Management",
               variant: "secondary",
             },
-
+            { label: isAr ? "الرواتب" : "Payroll", variant: "danger" },
             {
               label: isAr ? "تقييم الأداء" : "Performance Appraisal",
               variant: "outline",
@@ -1729,7 +1753,7 @@ export default function HospitalInformationSystem({
               label: isAr ? "استعادة البيانات" : "Restore Data",
               variant: "danger",
             },
-
+            { label: isAr ? "سجل النشاط" : "Audit Logs", variant: "primary" },
             {
               label: isAr ? "الإعدادات العامة" : "Global Settings",
               variant: "secondary",
@@ -2020,15 +2044,15 @@ export default function HospitalInformationSystem({
       className="flex h-screen overflow-hidden bg-slate-50 font-sans"
       dir={isAr ? "rtl" : "ltr"}
     >
-
-              {isSidebarOpen && (
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-              {/* restored */}
+      {/* Sidebar */}
       <div
         className={`fixed md:static inset-y-0 ${isAr ? "right-0" : "left-0"} z-50 w-[280px] md:w-72 text-white flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out border-${isAr ? "l" : "r"} border-slate-800 shadow-2xl md:shadow-[4px_0_24px_rgba(0,0,0,0.05)] ${isSidebarOpen ? "translate-x-0" : isAr ? "translate-x-full md:translate-x-0" : "-translate-x-full md:translate-x-0"} ${!isSidebarOpen && "md:w-[88px]"}`}
         style={{
@@ -2036,7 +2060,7 @@ export default function HospitalInformationSystem({
           backgroundImage: "linear-gradient(to bottom, #0f172a, #1e293b)"
         }}
       >
-              {/* restored */}
+        {/* Logo area */}
         <div className="h-16 flex items-center px-3 border-b border-white/10 shrink-0 overflow-hidden">
           <DynamicProfessionalLogo
             nameAr={hospitalSettings?.nameAr || "مستشفى الرعاية السريرية الموحدة"}
@@ -2054,7 +2078,7 @@ export default function HospitalInformationSystem({
           />
         </div>
 
-              {/* restored */}
+        {/* Sidebar Menu */}
         <div className="flex-1 overflow-y-auto custom-scrollbar py-4 space-y-1 px-2">
           {systemModules.map((module) => {
             const MIcon = module.icon;
@@ -2084,18 +2108,18 @@ export default function HospitalInformationSystem({
                     <span
                       className={`whitespace-nowrap ${!isSidebarOpen && "md:hidden"}`}
                     >
-              {/* restored */}
+                      {isAr ? module.labelAr : module.labelEn}
                     </span>
                   </div>
-              {activeSubTab === "chevrondown" && (
+                  {module.hasChildren && (
                     <ChevronDown
                       className={`w-4 h-4 shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""} ${!isSidebarOpen && "md:hidden"} ${isModuleActive ? "text-white" : "text-slate-400"}`}
                     />
                   )}
                 </button>
 
-
-                {isExpanded && module.hasChildren && module.subItems && (
+                {/* Sub Menu */}
+                {module.subItems && isExpanded && isSidebarOpen && (
                   <div className={`mt-1 flex flex-col space-y-1 pb-1 ${isAr ? "pr-11 pl-2" : "pl-11 pr-2"}`}>
                     {module.subItems.map((sub) => {
                       const isSubActive = activeSubTab === sub.id;
@@ -2119,7 +2143,7 @@ export default function HospitalInformationSystem({
           })}
         </div>
 
-              {/* restored */}
+        {/* Footer info (version) */}
         <div
           className={`p-4 text-xs text-white/50 border-t border-white/10 shrink-0 whitespace-nowrap ${!isSidebarOpen && "md:hidden"}`}
         >
@@ -2129,11 +2153,11 @@ export default function HospitalInformationSystem({
         </div>
       </div>
 
-              {/* restored */}
+      {/* Main Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-              {/* restored */}
+        {/* Top Header */}
         <div className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0 z-20 gap-4 shadow-[0_4px_20px_-15px_rgba(0,0,0,0.05)] sticky top-0">
-              {/* removed */}
+          {/* Left: toggle & search */}
           <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -2204,15 +2228,16 @@ export default function HospitalInformationSystem({
               </div>
             </div>
 
-            {globalSearchQuery.trim().length > 2 && (
+            {/* Search Dropdown */}
+            {isGlobalSearchFocus && globalSearchQuery.trim().length > 0 && (
               <div
                 className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-[9999] max-h-96 overflow-y-auto overflow-x-hidden"
                 dir={isAr ? "rtl" : "ltr"}
               >
                 <div className="p-2 border-b border-slate-100 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  {isAr ? "نتائج البحث" : "Search Results"}
+                  {isAr ? "نتائج البحث للمرضى" : "Patient Search Results"}
                 </div>
-                {patients
+                {(Array.isArray(patients) ? patients : [])
                   .filter(
                     (p: any) =>
                       p.nameEn?.toLowerCase()
@@ -2240,7 +2265,7 @@ export default function HospitalInformationSystem({
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-[#0a4275]/10 text-[#0a4275] rounded-full flex items-center justify-center font-bold">
-                          {p.nameEn ? p.nameEn.substring(0, 2).toUpperCase() : "PT"}
+                          {p.nameEn.charAt(0)}
                         </div>
                         <div>
                           <div className="font-bold text-slate-800 text-sm">
@@ -2252,11 +2277,11 @@ export default function HospitalInformationSystem({
                         </div>
                       </div>
                       <div className="text-xs font-bold text-[#0a4275] bg-[#0a4275]/10 px-2 py-1 rounded">
-                        {"View"}
+                        {isAr ? "فتح الملف" : "Open File"}
                       </div>
                     </div>
                   ))}
-                {patients.filter(
+                {(Array.isArray(patients) ? patients : []).filter(
                   (p: any) =>
                     p.nameEn?.toLowerCase()
                       ?.includes(globalSearchQuery?.toLowerCase()) ||
@@ -2264,7 +2289,7 @@ export default function HospitalInformationSystem({
                     p.mrn?.includes(globalSearchQuery),
                 ).length === 0 && (
                   <div className="p-4 text-center text-sm text-slate-500">
-                    {language === "ar"
+                    {isAr
                       ? "لا توجد نتائج مطابقة"
                       : "No matching results found"}
                   </div>
@@ -2273,9 +2298,9 @@ export default function HospitalInformationSystem({
             )}
           </div>
 
-              {/* restored */}
+          {/* Right: Icons & Profile */}
           <div className="flex items-center gap-2 sm:gap-6 shrink-0">
-              {/* removed */}
+            {/* Global MRN Search Input (Persistent) */}
             <form onSubmit={handleMrnSearch} className="hidden lg:flex items-center bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white transition-all w-56 xl:w-72">
               <div className={`bg-indigo-600 text-white p-1 rounded-md shrink-0 ${isAr ? "ml-2" : "mr-2"}`}>
                 <Search className="w-3 h-3" />
@@ -2293,12 +2318,13 @@ export default function HospitalInformationSystem({
             </form>
 
             <div className="flex items-center gap-4 sm:gap-5 text-slate-500">
+              {/* Quick Actions */}
               <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('openPatientRegistration'))}
                 className="hidden md:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors font-bold text-sm border border-emerald-100 shadow-sm"
               >
                 <UserPlus className="w-4 h-4" />
-                {isAr ? "تسجيل مريض" : "Register Patient"}
+                {isAr ? "تسجيل مريض" : "New Patient"}
               </button>
 
               <button 
@@ -2306,15 +2332,16 @@ export default function HospitalInformationSystem({
                 className="hidden md:flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors font-bold text-sm border border-indigo-100 shadow-sm"
               >
                 <FileText className="w-4 h-4" />
-                <span>{isAr ? "تسجيل زيارة" : "Register Visit"}</span>
+                {isAr ? "تسجيل زيارة" : "New Visit"}
               </button>
 
+              {/* AI Copilot Toggle */}
               <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('toggleAICopilot'))}
                 className="hidden md:flex items-center gap-2 bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors font-bold text-sm border border-slate-200"
               >
                 <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                <span>{isAr ? "مساعد الذكاء" : "AI Copilot"}</span>
+                {isAr ? "الذكاء الاصطناعي" : "AI Copilot"}
               </button>
 
               <div className="relative">
@@ -2336,7 +2363,7 @@ export default function HospitalInformationSystem({
                   <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
                     <div className="p-3 border-b border-slate-100 bg-slate-50 font-bold text-xs text-slate-800 flex justify-between items-center">
                       <span>
-                        {language === "ar"
+                        {isAr
                           ? "إشعارات النظام الطبي"
                           : "Clinical Notifications"}
                       </span>
@@ -2345,14 +2372,14 @@ export default function HospitalInformationSystem({
                           onClick={handleClearHISNotifications}
                           className="text-[10px] text-rose-500 hover:underline font-semibold"
                         >
-                          {language === "ar" ? "مسح الكل" : "Clear All"}
+                          {isAr ? "مسح الكل" : "Clear All"}
                         </button>
                       )}
                     </div>
                     <div className="max-h-64 overflow-y-auto">
                       {hisNotifications.length === 0 ? (
                         <div className="p-4 text-center text-xs text-slate-400">
-                          {language === "ar"
+                          {isAr
                             ? "لا توجد إشعارات جديدة"
                             : "No new notifications"}
                         </div>
@@ -2381,7 +2408,7 @@ export default function HospitalInformationSystem({
                               <span className="text-[9px] text-slate-400 font-mono">
                                 {new Date(n.timestamp).toLocaleTimeString(
                                   isAr ? "ar-EG" : "en-US",
-                                  { hour: "numeric", minute: "numeric" }
+                                  { hour: "2-digit", minute: "2-digit" },
                                 )}
                               </span>
                               <button
@@ -2392,7 +2419,7 @@ export default function HospitalInformationSystem({
                                 }}
                                 className="text-[9px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 font-bold px-2 py-0.5 rounded transition-all shadow-xs"
                               >
-                                {isAr ? "انتقال" : "Go"}
+                                {isAr ? "انتقال سريع ↗" : "Quick Route ↗"}
                               </button>
                             </div>
                           </div>
@@ -2403,6 +2430,7 @@ export default function HospitalInformationSystem({
                 )}
               </div>
 
+              {/* Dynamic Pop-up Modal for HIS Notifications */}
               {selectedHISNotification && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999999] animate-fade">
                   <div
@@ -2424,13 +2452,13 @@ export default function HospitalInformationSystem({
                       </div>
 
                       <h2 className="text-xl font-bold text-slate-800 mb-2">
-                        {language === "ar"
+                        {isAr
                           ? selectedHISNotification.titleAr
                           : selectedHISNotification.titleEn}
                       </h2>
 
                       <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                        {language === "ar"
+                        {isAr
                           ? selectedHISNotification.messageAr
                           : selectedHISNotification.messageEn}
                       </p>
@@ -2441,7 +2469,7 @@ export default function HospitalInformationSystem({
                           dir={isAr ? "rtl" : "ltr"}
                         >
                           <p className="text-[#0a4275] border-b border-slate-200 pb-1 mb-2 font-black text-right text-xs">
-                            {language === "ar"
+                            {isAr
                               ? "📋 البيانات الطبية والسريرية المسجلة"
                               : "📋 Recorded Medical & Clinical Data"}
                           </p>
@@ -2463,10 +2491,10 @@ export default function HospitalInformationSystem({
                                   className="flex justify-between items-center gap-2 border-b border-dashed border-slate-200 pb-1 text-right"
                                 >
                                   <span className="text-slate-500 font-bold">
-                                    {displayKey as string}
+                                    {displayKey}:
                                   </span>
                                   <span className="text-slate-800 font-black">
-                                    {displayVal as string}
+                                    {String(displayVal)}
                                   </span>
                                 </div>
                               );
@@ -2502,7 +2530,7 @@ export default function HospitalInformationSystem({
                           }}
                           className="mt-2 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition"
                         >
-                          {isAr ? "إرسال الرد السريع" : "Send Quick Reply"}
+                          {isAr ? "إرسال الرد" : "Send Reply"}
                         </button>
                       </div>
 
@@ -2515,13 +2543,14 @@ export default function HospitalInformationSystem({
                         }}
                         className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl shadow-lg active:translate-y-0.5 transition"
                       >
-                        {isAr ? "الانتقال المباشر للقسم" : "Navigate to Department"}
+                        {isAr ? "إغلاق والتوجيه" : "Close and Route"}
                       </button>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Clinical Bed Assignment & Ward Admission Approval Dialog */}
               {isApprovalModalOpen && (
                 <div
                   className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999999] animate-fade"
@@ -2535,12 +2564,12 @@ export default function HospitalInformationSystem({
                         </div>
                         <div className="text-right">
                           <h3 className="font-bold text-slate-800 text-sm">
-                            {language === "ar"
+                            {isAr
                               ? "اعتماد طلب التنويم وتخصيص السرير"
                               : "Inpatient Ward Bed Allocation & Admission"}
                           </h3>
                           <p className="text-[10px] text-slate-400">
-                            {language === "ar"
+                            {isAr
                               ? "إجراءات الدخول المباشر والتخصيص"
                               : "Direct clinical ward admission & board assignment"}
                           </p>
@@ -2558,10 +2587,11 @@ export default function HospitalInformationSystem({
                     </div>
 
                     <div className="p-6 overflow-y-auto space-y-5 text-sm text-slate-600">
+                      {/* Patient selector if no default approvalPatient */}
                       {!approvalPatient ? (
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-700 block text-right">
-                            {language === "ar"
+                            {isAr
                               ? "اختر المريض المطلوب تنويمه"
                               : "Select Patient for Inpatient Ward"}
                           </label>
@@ -2575,11 +2605,11 @@ export default function HospitalInformationSystem({
                             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                           >
                             <option value="">
-                              {language === "ar"
+                              {isAr
                                 ? "-- اختر من قائمة الانتظار --"
                                 : "-- Select from Ward queue --"}
                             </option>
-                {patients
+                            {patients
                               .filter(
                                 (p) =>
                                   p.status === "ward" ||
@@ -2587,7 +2617,7 @@ export default function HospitalInformationSystem({
                               )
                               .map((p) => (
                                 <option key={p.id} value={p.id}>
-                                  {language === "ar"
+                                  {isAr
                                     ? `${p.nameAr} (${p.id})`
                                     : `${p.nameEn} (${p.id})`}
                                 </option>
@@ -2598,7 +2628,7 @@ export default function HospitalInformationSystem({
                         <div className="bg-emerald-50/50 border border-emerald-100/80 rounded-2xl p-4 flex items-center justify-between">
                           <div className="text-right">
                             <div className="text-xs text-emerald-800 font-bold">
-                              {language === "ar"
+                              {isAr
                                 ? approvalPatient.nameAr
                                 : approvalPatient.nameEn}
                             </div>
@@ -2606,13 +2636,12 @@ export default function HospitalInformationSystem({
                               <span>ID: {approvalPatient.id}</span>
                               <span>•</span>
                               <span>
-                                {language === "ar"
-                                  ? `${approvalPatient.age} سنة`
-                                  : `${approvalPatient.age} Years`}
+                                {isAr ? "العمر:" : "Age:"}{" "}
+                                {approvalPatient.age || "42"}
                               </span>
                               <span>•</span>
                               <span>
-                                {language === "ar"
+                                {isAr
                                   ? approvalPatient.gender === "male"
                                     ? "ذكر"
                                     : "أنثى"
@@ -2620,18 +2649,18 @@ export default function HospitalInformationSystem({
                               </span>
                             </div>
                             <div className="text-[10px] text-emerald-700/80 mt-1.5 font-medium">
-                              {language === "ar"
+                              {isAr
                                 ? `التشخيص المبدئي: ${approvalPatient.diagnosis || "التهاب حاد"}`
                                 : `Admitting Diagnosis: ${approvalPatient.diagnosis || "Acute Appendicitis"}`}
                             </div>
                           </div>
                           <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2 py-1 rounded-full uppercase">
-                            {language === "ar" ? "قيد تخصيص سرير" : "Awaiting Bed"}
+                            {approvalPatient.status}
                           </span>
                         </div>
                       )}
 
-              {/* restored */}
+                      {/* Bed assignment Form fields */}
                       <form
                         onSubmit={async (e) => {
                           e.preventDefault();
@@ -2721,7 +2750,7 @@ export default function HospitalInformationSystem({
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1 text-right">
-                              {language === "ar"
+                              {isAr
                                 ? "نوع الجناح الطبي *"
                                 : "Medical Ward Type *"}
                             </label>
@@ -2731,22 +2760,22 @@ export default function HospitalInformationSystem({
                               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                             >
                               <option value="General Ward">
-                                {language === "ar"
+                                {isAr
                                   ? "الجناح العام (General Ward)"
                                   : "General Ward"}
                               </option>
                               <option value="ICU">
-                                {language === "ar"
+                                {isAr
                                   ? "العناية المركزة (ICU)"
                                   : "Intensive Care (ICU)"}
                               </option>
                               <option value="CCU">
-                                {language === "ar"
+                                {isAr
                                   ? "عناية القلب (CCU)"
                                   : "Coronary Care (CCU)"}
                               </option>
                               <option value="Pediatrics Ward">
-                                {language === "ar"
+                                {isAr
                                   ? "جناح الأطفال (Pediatrics)"
                                   : "Pediatrics Ward"}
                               </option>
@@ -2755,7 +2784,7 @@ export default function HospitalInformationSystem({
 
                           <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1 text-right">
-              {/* restored */}
+                              {isAr ? "رقم الغرفة *" : "Room Number *"}
                             </label>
                             <input
                               type="text"
@@ -2771,7 +2800,7 @@ export default function HospitalInformationSystem({
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1 text-right">
-                              {language === "ar"
+                              {isAr
                                 ? "رقم السرير الكاردكس *"
                                 : "Kardex Bed Number *"}
                             </label>
@@ -2781,26 +2810,26 @@ export default function HospitalInformationSystem({
                               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                             >
                               <option value="Bed 1">
-              {/* restored */}
+                                {isAr ? "سرير 1 (Bed 1)" : "Bed 1"}
                               </option>
                               <option value="Bed 2">
-              {/* restored */}
+                                {isAr ? "سرير 2 (Bed 2)" : "Bed 2"}
                               </option>
                               <option value="Bed 3">
-              {/* restored */}
+                                {isAr ? "سرير 3 (Bed 3)" : "Bed 3"}
                               </option>
                               <option value="Bed 4">
-              {/* restored */}
+                                {isAr ? "سرير 4 (Bed 4)" : "Bed 4"}
                               </option>
                               <option value="Bed A-ICU">
-              {/* restored */}
+                                {isAr ? "سرير طوارئ أ" : "Bed A-ICU"}
                               </option>
                             </select>
                           </div>
 
                           <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1 text-right">
-                              {language === "ar"
+                              {isAr
                                 ? "الطبيب الاستشاري المسؤول"
                                 : "Responsible Admitting Consultant"}
                             </label>
@@ -2816,11 +2845,11 @@ export default function HospitalInformationSystem({
                                 )
                                 .map((u) => (
                                   <option key={u.id} value={u.id}>
-                                    {language === "ar" ? u.nameAr : u.nameEn}
+                                    {isAr ? u.nameAr : u.nameEn}
                                   </option>
                                 )) || (
                                 <option value="doc-101">
-                                  {language === "ar"
+                                  {isAr
                                     ? "د. أحمد مصطفى (باطنة)"
                                     : "Dr. Ahmed Mostafa (Medicine)"}
                                 </option>
@@ -2831,7 +2860,7 @@ export default function HospitalInformationSystem({
 
                         <div className="border-t border-slate-100 pt-4">
                           <label className="text-xs font-bold text-slate-700 block mb-1 text-right">
-                            {language === "ar"
+                            {isAr
                               ? "رمز التحقق الثنائي للممرض (PIN) *"
                               : "Nurse E-Signature PIN Validation *"}
                           </label>
@@ -2846,7 +2875,7 @@ export default function HospitalInformationSystem({
                             />
                           </div>
                           <span className="text-[9px] text-slate-400 mt-1 block text-right">
-                            {language === "ar"
+                            {isAr
                               ? "الرمز الافتراضي للتجربة هو 1234"
                               : "The default validation PIN is 1234"}
                           </span>
@@ -2858,7 +2887,7 @@ export default function HospitalInformationSystem({
                         >
                           <Check className="w-4 h-4" />
                           <span>
-                            {language === "ar"
+                            {isAr
                               ? "تأكيد التنويم وتسكين الغرفة فوراً"
                               : "Finalize Inpatient Ward Bed Allocation"}
                           </span>
@@ -2888,21 +2917,21 @@ export default function HospitalInformationSystem({
                   <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col">
                     <div className="p-3 border-b border-slate-100 bg-slate-50 font-bold text-xs text-slate-800 flex justify-between items-center">
                       <span>
-                        {language === "ar" ? "الرسائل السريرية النشطة" : "Clinical Messages Feed"}
+                        {isAr ? "محادثات الطاقم الطبي" : "Clinical Team Chats"}
                       </span>
                       {hisMessages.length > 0 && (
                         <button
                           onClick={handleClearHISMessages}
                           className="text-[10px] text-rose-500 hover:underline font-semibold"
                         >
-                          {language === "ar" ? "مسح الكل" : "Clear All"}
+                          {isAr ? "مسح الكل" : "Clear All"}
                         </button>
                       )}
                     </div>
                     <div className="max-h-56 overflow-y-auto p-2 space-y-2 bg-slate-50 flex flex-col">
                       {hisMessages.length === 0 ? (
                         <div className="p-4 text-center text-xs text-slate-400">
-                          {language === "ar"
+                          {isAr
                             ? "لا توجد رسائل سابقة"
                             : "No previous messages"}
                         </div>
@@ -2915,17 +2944,17 @@ export default function HospitalInformationSystem({
                           >
                             <div className="flex justify-between items-center text-[10px] font-semibold text-[#0a4275] mb-0.5">
                               <span>
-                                {msg.senderName}
+                                {isAr ? msg.senderNameAr : msg.senderNameEn}
                               </span>
                               <span className="text-[8px] text-slate-400">
                                 {new Date(msg.timestamp).toLocaleTimeString(
                                   isAr ? "ar-EG" : "en-US",
-                                  { hour: "numeric", minute: "numeric" }
+                                  { hour: "2-digit", minute: "2-digit" },
                                 )}
                               </span>
                             </div>
                             <div className="text-xs text-slate-700 leading-relaxed font-medium">
-                              {msg.text}
+                              {msg.content}
                             </div>
                           </div>
                         ))
@@ -2974,14 +3003,14 @@ export default function HospitalInformationSystem({
                 className="w-6 sm:w-5 rounded-sm object-cover"
               />
               <span className="text-sm font-semibold text-slate-700 hidden sm:block">
-                {language === "ar" ? "العربية" : "English"}
+                {isAr ? "العربية" : "English"}
               </span>
               <ChevronDown className="w-4 h-4 text-slate-500 hidden sm:block" />
             </div>
 
             <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
-              {/* removed */}
+            {/* Interactive User Profile Dropdown */}
             <div className="relative">
               <div
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -2989,12 +3018,12 @@ export default function HospitalInformationSystem({
               >
                 <div className="text-right hidden md:block">
                   <div className="text-sm font-bold text-slate-800 leading-tight">
-                    {language === "ar"
+                    {isAr
                       ? currentUser?.nameAr || "مستخدم غير مسجل"
                       : currentUser?.nameEn || "Guest User"}
                   </div>
                   <div className="text-[10px] text-slate-500 font-semibold">
-                    {language === "ar"
+                    {currentUser?.role === "admin"
                       ? isAr
                         ? "مسؤول النظام الكامل"
                         : "System Administrator"
@@ -3018,7 +3047,7 @@ export default function HospitalInformationSystem({
                 <ChevronDown className="w-4 h-4 text-slate-500 hidden sm:block" />
               </div>
 
-
+              {/* Profile Dropdown Menu Card */}
               {isProfileDropdownOpen && (
                 <>
                   <div
@@ -3032,12 +3061,12 @@ export default function HospitalInformationSystem({
                   >
                     <div className="p-3 border-b border-slate-100 text-right">
                       <span className="block text-xs font-black text-slate-800">
-                        {language === "ar"
+                        {isAr
                           ? currentUser?.nameAr || "مستخدم غير مسجل"
                           : currentUser?.nameEn || "Guest User"}
                       </span>
                       <span className="block text-[9.5px] text-slate-400 font-mono mt-0.5 uppercase tracking-wide">
-                        {language === "ar"
+                        {isAr
                           ? `كود الكادر: ${currentUser?.staffId || "GUEST"}`
                           : `Staff ID: ${currentUser?.staffId || "GUEST"}`}
                       </span>
@@ -3052,7 +3081,7 @@ export default function HospitalInformationSystem({
                     >
                       <UserCircle size={15} className="text-pink-500" />
                       <span>
-                        {language === "ar"
+                        {isAr
                           ? "الملف التعريفي والروستر الشخصي"
                           : "Personal Profile & Roster"}
                       </span>
@@ -3067,7 +3096,7 @@ export default function HospitalInformationSystem({
                     >
                       <LogOut size={15} className="text-rose-500" />
                       <span>
-                        {language === "ar" ? "تسجيل الخروج" : "Logout"}
+                        {isAr ? "تسجيل الخروج الآمن" : "Secure Sign Out"}
                       </span>
                     </button>
                   </div>
@@ -3087,7 +3116,7 @@ export default function HospitalInformationSystem({
           </div>
         </div>
 
-              {/* restored */}
+        {/* Dynamic Working Area */}
         <div
           className={`flex-1 relative ${["opd", "physician_desk"]?.includes(activeSubTab) ? "overflow-hidden flex flex-col" : "overflow-y-auto custom-scrollbar"} bg-slate-50`}
         >
@@ -3104,7 +3133,7 @@ export default function HospitalInformationSystem({
                   : "min-h-full"
               }
             >
-              {activeSubTab === "patientchartmodal" ? (
+              {activePatientChart ? (
                 <PatientChartModal
                   patientId={activePatientChart.patientId}
                   patientName={activePatientChart.patientName}
@@ -3115,19 +3144,20 @@ export default function HospitalInformationSystem({
                 />
               ) : (
                 <>
-                  {[
-                    "er",
-                    "icu",
-                    "nicu",
-                    "pacu",
-                    "ot",
-                    "obs_gyn",
-                    "pt",
-                    "rehab",
-                    "psychiatry",
-                    "dialysis",
-                    "oncology",
-                  ].includes(activeSubTab) && (
+                  {(activeSubTab.startsWith("dept_") ||
+                    [
+                      "er",
+                      "icu",
+                      "nicu",
+                      "pacu",
+                      "ot",
+                      "obs_gyn",
+                      "pt",
+                      "rehab",
+                      "psychiatry",
+                      "dialysis",
+                      "oncology",
+                    ]?.includes(activeSubTab)) && (
                     <DepartmentWorkspace
                       language={language}
                       departmentId={activeSubTab}
@@ -3140,7 +3170,7 @@ export default function HospitalInformationSystem({
                       }
                     />
                   )}
-              {activeSubTab === "gatereception" && (
+              {activeSubTab === "gate_reception" && (
                 <GateReceptionDashboard
                   language={language}
                   departments={departments}
@@ -3149,13 +3179,19 @@ export default function HospitalInformationSystem({
               {activeSubTab === "front_office" && (
                 <FrontOfficeDashboard language={language} />
               )}
-              {activeSubTab === "opd" && (
+              {activeSubTab.startsWith("dept_opd_") && (
+                <OutpatientClinicsDashboard 
+                  language={language} 
+                  forceDepartmentId={activeSubTab} 
+                />
+              )}
+              {activeSubTab === "opd_dashboard" && (
                 <OPDDashboard language={language} />
               )}
-              {activeSubTab === "ipd" && (
+              {activeSubTab === "ipd_dashboard" && (
                 <IPDDashboard language={language} />
               )}
-              {activeSubTab === "clinicslist" && (
+              {activeSubTab === "clinics_list" && (
                 <ClinicsListDashboard
                   language={language}
                   systemUsers={systemUsers || []}
@@ -3163,7 +3199,7 @@ export default function HospitalInformationSystem({
                   onNavigate={handleSubTabClick}
                 />
               )}
-              {activeSubTab === "doctorconsultationdesk" && (
+              {["physician_desk", "opd", "emr_core", "nurse_station"].includes(activeSubTab) && (
                 <DoctorConsultationDesk
                   language={language}
                   currentUser={currentUser}
@@ -3172,7 +3208,7 @@ export default function HospitalInformationSystem({
                   onNavigate={(subTab) => handleSubTabClick("ipd", subTab)}
                 />
               )}
-              {activeSubTab === "doctorconsultationdesk" && (
+              {activeSubTab === "emr_core" && (
                 <DoctorConsultationDesk
                   language={language}
                   currentUser={currentUser}
@@ -3181,10 +3217,10 @@ export default function HospitalInformationSystem({
                   onNavigate={(subTab) => handleSubTabClick("ipd", subTab)}
                 />
               )}
-              {activeSubTab === "wardnurse" && (
+              {activeSubTab === "ipd" && (
                 <WardNurseDashboard language={language} />
               )}
-              {activeSubTab === "physicianward" && (
+              {activeSubTab === "physician_ward" && (
                 <PhysicianWardDashboard language={language} />
               )}
               {activeSubTab === "pathology" && (
@@ -3199,25 +3235,25 @@ export default function HospitalInformationSystem({
               {activeSubTab === "radiology" && (
                 <RadiologyDashboard language={language} />
               )}
-              {activeSubTab === "operatingtheater" && (
+              {activeSubTab === "ot" && (
                 <OperatingTheaterBoard language={language} />
               )}
-              {activeSubTab === "bloodbank" && (
+              {activeSubTab === "blood_bank" && (
                 <BloodBankDashboard language={language} />
               )}
-              {activeSubTab === "liveconsultation" && (
+              {activeSubTab === "live_consultation" && (
                 <LiveConsultationDashboard language={language} />
               )}
               {activeSubTab === "tpa_management" && (
                 <TPAManagementDashboard language={language} />
               )}
-              {activeSubTab === "financeincomeexpense" && (
+              {activeSubTab === "finance_income_expense" && (
                 <FinanceIncomeExpenseDashboard language={language} />
               )}
               {activeSubTab === "ambulance" && (
                 <AmbulanceDashboard language={language} />
               )}
-              {activeSubTab === "birthdeathrecord" && (
+              {activeSubTab === "birth_death" && (
                 <BirthDeathRecordDashboard language={language} />
               )}
               {activeSubTab === "hr" && (
@@ -3238,13 +3274,13 @@ export default function HospitalInformationSystem({
               {activeSubTab === "laboratory" && (
                 <LaboratoryDashboard language={language} />
               )}
-              {activeSubTab === "billinginsurance" && (
+              {activeSubTab === "billing" && (
                 <BillingInsurance language={language} />
               )}
-              {activeSubTab === "lisris" && (
+              {activeSubTab === "lis_ris" && (
                 <LISRISDashboard language={language} />
               )}
-              {activeSubTab === "infectioncontrolhub" && (
+              {activeSubTab === "infection_control" && (
                 <InfectionControlHub
                   language={language}
                   currentUser={currentUser}
@@ -3252,14 +3288,14 @@ export default function HospitalInformationSystem({
                   hospitalSettings={hospitalSettings || {}}
                 />
               )}
-              {activeSubTab === "nursingdirector" && (
+              {activeSubTab === "cno" && (
                 <NursingDirectorDashboard
                   language={language}
                   currentUser={currentUser}
                   onNavigate={handleSmartNavigate}
                 />
               )}
-              {activeSubTab === "nursingdirector" && (
+              {activeSubTab === "nursing" && (
                 <NursingDirectorDashboard
                   language={language}
                   currentUser={currentUser}
@@ -3269,105 +3305,105 @@ export default function HospitalInformationSystem({
               {activeSubTab === "vitals" && (
                 <VitalsDashboard language={language} />
               )}
-              {activeSubTab === "nursingsupervisor" && (
+              {activeSubTab === "supervisor" && (
                 <NursingSupervisorDashboard
                   language={language}
                   currentUser={currentUser}
                   onNavigate={handleSmartNavigate}
                 />
               )}
-              {activeSubTab === "specializedmodules" && (
+              {activeSubTab === "specialized_overview" && (
                 <SpecializedModulesDashboard language={language} />
               )}
-              {activeSubTab === "nursingflowkardex" && (
+              {activeSubTab === "nursing_flow" && (
                 <NursingFlowKardex language={language} />
               )}
-              {activeSubTab === "enterpriseinventoryengine" && (
+              {activeSubTab === "inventory" && (
                 <EnterpriseInventoryEngine language={language} mode="supplies" currentUser={currentUser} />
               )}
-              {activeSubTab === "purchasingpo" && (
+              {activeSubTab === "purchasing" && (
                 <PurchasingPO language={language} />
               )}
-              {activeSubTab === "cashierpointofsale" && (
+              {activeSubTab === "cashier" && (
                 <CashierPointOfSale language={language} />
               )}
-              {activeSubTab === "insurancemaster" && (
+              {activeSubTab === "insurance_master" && (
                 <InsuranceMaster language={language} />
               )}
-              {activeSubTab === "insurancemaster" && (
+              {activeSubTab === "insurance" && (
                 <InsuranceMaster language={language} />
               )}
-
-              {activeSubTab === "analyticskpi" && (
+              {activeSubTab === "rcm" && <RCMClaims language={language} />}
+              {activeSubTab === "kpi" && (
                 <AnalyticsKPIDashboard language={language} />
               )}
-              {activeSubTab === "iam" && (
+              {activeSubTab === "iam_dashboard" && (
                 <IAMDashboard language={language} />
               )}
-              {activeSubTab === "organization" && (
+              {activeSubTab === "org_dashboard" && (
                 <OrganizationDashboard language={language} />
               )}
-              {activeSubTab === "quality" && (
+              {activeSubTab === "quality_dashboard" && (
                 <QualityDashboard language={language} />
               )}
               {activeSubTab === "hospital_ops" && (
                 <HospitalOperationsDashboard language={language} />
               )}
-              {activeSubTab === "pharmacy" && (
+              {(activeSubTab === "pharmacy_dash" || activeSubTab === "pharmacy") && (
                 <PharmacyDashboard language={language} />
               )}
-
-              {activeSubTab === "revenuecycle" && (
+              {activeSubTab === "erp" && <ERPDashboard language={language} />}
+              {activeSubTab === "rcm_dashboard" && (
                 <RevenueCycleDashboard language={language} />
               )}
-              {activeSubTab === "integration" && (
+              {activeSubTab === "integration_hub" && (
                 <IntegrationDashboard language={language} />
               )}
-              {activeSubTab === "platformengines" && (
+              {activeSubTab === "platform_engines_dash" && (
                 <PlatformEnginesDashboard language={language} />
               )}
 
-
-              {activeSubTab === "licensemanager" && (
+              {/* NEW CORE MODULES */}
+              {activeSubTab === "license_manager" && (
                 <LicenseManagerDashboard language={language} />
               )}
-              {activeSubTab === "licenseadmin" && (
+              {activeSubTab === "license_admin" && (
                 <LicenseAdminDashboard language={language} />
               )}
-              {activeSubTab === "aihospitalbrain" && (
+              {activeSubTab === "ai_brain" && (
                 <AiHospitalBrain language={language} />
               )}
-
-
-              {activeSubTab === "documentmanager" && (
+              {activeSubTab === "bed_management" && <BedManagementDashboard />}
+              {activeSubTab === "housekeeping" && <HousekeepingDashboard />}
+              {activeSubTab === "doc_manager" && (
                 <DocumentManager patientId="TEST-001" language={language} />
               )}
-              {activeSubTab === "queuemanagement" && (
+              {activeSubTab === "queue_mgmt" && (
                 <QueueManagement department="General OPD" language={language} />
               )}
-              {activeSubTab === "patienttrackingkardex" && (
+              {activeSubTab === "patient_tracking" && (
                 <PatientTrackingKardex language={language} />
               )}
-              {activeSubTab === "tasks" && (
+              {activeSubTab === "tasks_dashboard" && (
                 <TasksDashboard language={language} />
               )}
-              {activeSubTab === "smartformbuilder" && (
+              {activeSubTab === "form_builder" && (
                 <SmartFormBuilder language={language} />
               )}
-              {activeSubTab === "workflow" && (
+              {activeSubTab === "workflow_engine" && (
                 <WorkflowDashboard language={language} />
               )}
-              {activeSubTab === "mealsdeliverylog" && (
+              {activeSubTab === "meals" && (
                 <MealsDeliveryLog
                   language={language}
                   rosterList={rosterList}
                   departments={departments}
                 />
               )}
-              {activeSubTab === "medicationledger" && (
+              {activeSubTab === "medication_ledger" && (
                 <MedicationLedger language={language} />
               )}
-              {activeSubTab === "nursingadmintoolbox" && (
+              {activeSubTab === "nursing_toolbox" && (
                 <NursingAdminToolbox
                   language={language}
                   currentUser={currentUser}
@@ -3393,7 +3429,7 @@ export default function HospitalInformationSystem({
                   addSystemLog={addSystemLog}
                 />
               )}
-              {activeSubTab === "rosterplanningpanel" && (
+              {activeSubTab === "roster" && (
                 <RosterPlanningPanel
                   language={language}
                   hospitalSettings={hospitalSettings}
@@ -3409,7 +3445,7 @@ export default function HospitalInformationSystem({
                   checkPermission={checkPermission}
                 />
               )}
-              {activeSubTab === "rosterplanningpanel" && (
+              {activeSubTab === "roster_config" && (
                 <RosterPlanningPanel
                   language={language}
                   hospitalSettings={hospitalSettings}
@@ -3425,7 +3461,7 @@ export default function HospitalInformationSystem({
                   checkPermission={checkPermission}
                 />
               )}
-              {activeSubTab === "employeeevaluationsystem" && (
+              {activeSubTab === "evaluations" && (
                 <EmployeeEvaluationSystem
                   language={language}
                   currentUser={currentUser}
@@ -3433,24 +3469,24 @@ export default function HospitalInformationSystem({
                   hospitalSettings={hospitalSettings}
                 />
               )}
-              {activeSubTab === "enterprisecommandcenter" && (
+              {activeSubTab === "enterprise_command" && (
                 <EnterpriseCommandCenter language={language} />
               )}
-              {activeSubTab === "aiclinicaldecisionsupport" && (
+              {activeSubTab === "ai_cdss" && (
                 <AIClinicalDecisionSupport language={language} />
               )}
-              {activeSubTab === "cybersecurityhub" && (
+              {activeSubTab === "cybersecurity" && (
                 <CyberSecurityHub language={language} />
               )}
-              {activeSubTab === "nationalintegrationhub" && (
+              {activeSubTab === "national_integration" && (
                 <NationalIntegrationHub language={language} />
               )}
-              {activeSubTab === "clinicalrecords" && (
+              {activeSubTab === "history" && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
                   <div className="flex justify-between items-center mb-6">
                     <div>
                       <h2 className="text-xl font-bold text-slate-900">
-                        {language === "ar" ? "دفتر السجلات السريرية المعتمدة" : "Approved Clinical Records Ledger"}
+                        {language === "ar" ? "سجلات الأرشيف والتقارير المحفوظة" : "Saved & Archived Clinical Records"}
                       </h2>
                       <p className="text-sm text-slate-500 mt-1">
                         {language === "ar"
@@ -3485,12 +3521,12 @@ export default function HospitalInformationSystem({
                                 <td className="py-3 px-4 font-mono text-xs text-indigo-600 font-semibold">{r.id}</td>
                                 <td className="py-3 px-4">
                                   <div className="font-semibold text-slate-800">
-                                    {language === "ar" ? template?.titleAr : template?.titleEn || r.templateId}
+                                    {language === "ar" ? (template?.titleAr || template?.titleEn || r.templateId) : (template?.titleEn || r.templateId)}
                                   </div>
                                 </td>
                                 <td className="py-3 px-4">
                                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                                    {r.department || (language === "ar" ? "عام" : "General")}
+                                    {r.department}
                                   </span>
                                 </td>
                                 <td className="py-3 px-4 text-xs text-slate-500">
@@ -3499,7 +3535,7 @@ export default function HospitalInformationSystem({
                                 <td className="py-3 px-4">
                                   <div className="text-xs">
                                     <span className="font-medium text-slate-900">{r.savedBy}</span>
-                                    <span className="block text-slate-400 font-mono text-[9px]">{r.role || "AUDITOR"}</span>
+                                    {r.signature && <span className="text-emerald-600 block text-[10px]">✓ {language === "ar" ? "توقيع إلكتروني معتمد" : "Digitally Signed"}</span>}
                                   </div>
                                 </td>
                                 <td className="py-3 px-4">
@@ -3522,7 +3558,7 @@ export default function HospitalInformationSystem({
                   )}
                 </div>
               )}
-              {activeSubTab === "formeditor" && (
+              {activeSubTab === "editor" && (
   <FormEditor
     language={language}
     currentUser={currentUser}
@@ -3545,7 +3581,7 @@ export default function HospitalInformationSystem({
               className="space-y-6 animate-fade font-sans text-right"
               dir="rtl"
             >
-              {/* restored */}
+              {/* Header section with Stats */}
               <div className="bg-gradient-to-l from-slate-900 via-slate-850 to-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl text-white relative overflow-hidden">
                 <div className="absolute left-0 bottom-0 top-0 w-1/3 bg-radial-gradient from-pink-500/10 to-transparent pointer-events-none" />
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -3570,7 +3606,7 @@ export default function HospitalInformationSystem({
                     </p>
                   </div>
 
-              {/* restored */}
+                  {/* Aggregates Dashboard */}
                   <div className="flex gap-4 shrink-0 bg-slate-800/60 p-4 rounded-xl border border-slate-700 justify-end md:justify-start">
                     <div className="text-center px-2">
                       <span className="block text-[10px] text-slate-500 uppercase font-bold">
@@ -3579,16 +3615,16 @@ export default function HospitalInformationSystem({
                           : "Active Sheets"}
                       </span>
                       <span className="text-2xl font-black text-pink-400">
-              {/* restored */}
+                        {allAvailableTemplates.length}
                       </span>
                     </div>
                     <div className="w-px bg-slate-700 self-stretch" />
                     <div className="text-center px-2">
                       <span className="block text-[10px] text-slate-500 uppercase font-bold">
-              {/* restored */}
+                        {language === "ar" ? "الأقسام والوحدات" : "Departments"}
                       </span>
                       <span className="text-2xl font-black text-amber-400">
-              {/* restored */}
+                        {departments.length}
                       </span>
                     </div>
                     <div className="w-px bg-slate-700 self-stretch" />
@@ -3599,16 +3635,16 @@ export default function HospitalInformationSystem({
                           : "Logged Records"}
                       </span>
                       <span className="text-2xl font-black text-emerald-600">
-              {/* restored */}
+                        {records.length}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* restored */}
+              {/* Grid of Bento-style Department Cards & Distribution Controller */}
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* restored */}
+                {/* 1. Quick Re-allocation & Distribution Form Card (Admins / Supervisors) */}
                 <div className="xl:col-span-1 space-y-6 text-right">
                   <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
                     <div className="border-b border-slate-100 pb-2">
@@ -3627,7 +3663,7 @@ export default function HospitalInformationSystem({
                       </p>
                     </div>
 
-              {/* restored */}
+                    {/* Form Controls */}
                     <div className="space-y-3">
                       <div>
                         <label className="block text-[11px] text-right font-extrabold text-slate-600 mb-1">
@@ -3637,7 +3673,7 @@ export default function HospitalInformationSystem({
                         </label>
                         <select
                           id="dist-template-select"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold outline-none focus:ring-1 focus:ring-pink-500 text-slate-700 text-right"
+                          className="w-full bg-slate-55 bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold outline-none focus:ring-1 focus:ring-pink-500 text-slate-700 text-right"
                         >
                           {allAvailableTemplates.map((tpl) => (
                             <option
@@ -3645,7 +3681,8 @@ export default function HospitalInformationSystem({
                               value={tpl.id}
                               className="text-right"
                             >
-                              ({tpl.code}) {language === "ar" ? tpl.titleAr : tpl.titleEn}
+                              ({tpl.code}){" "}
+                              {language === "ar" ? tpl.titleAr : tpl.titleEn}
                             </option>
                           ))}
                         </select>
@@ -3659,7 +3696,7 @@ export default function HospitalInformationSystem({
                         </label>
                         <select
                           id="dist-dept-select"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold outline-none focus:ring-1 focus:ring-pink-500 text-slate-700 text-right"
+                          className="w-full bg-slate-55 bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold outline-none focus:ring-1 focus:ring-pink-500 text-slate-700 text-right"
                         >
                           {departments.map((dept, index) => (
                             <option
@@ -3752,7 +3789,7 @@ export default function HospitalInformationSystem({
                     </div>
                   </div>
 
-              {/* restored */}
+                  {/* Notice transmitter (اريال تنبيه مشرف الجودة والعموم) */}
                   <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 text-right">
                     <div className="border-b border-slate-100 pb-2">
                       <h3 className="text-xs font-black text-rose-600 uppercase tracking-widest flex items-center justify-end gap-1.5 font-sans">
@@ -3879,7 +3916,7 @@ export default function HospitalInformationSystem({
                     </div>
                   </div>
 
-              {/* restored */}
+                  {/* Visual Instructions Alert */}
                   <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-600 leading-relaxed space-y-3 text-right">
                     <h4 className="font-bold text-slate-800 flex items-center justify-end gap-1 font-sans">
                       <span>
@@ -3897,7 +3934,7 @@ export default function HospitalInformationSystem({
                   </div>
                 </div>
 
-              {/* restored */}
+                {/* 2. Departments Bento Grid Grid displaying clinical details and listing sheets */}
                 <div className="xl:col-span-2 space-y-6 text-right">
                   <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-right">
                     <div className="border-b border-slate-100 pb-3 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -3925,131 +3962,137 @@ export default function HospitalInformationSystem({
                       </div>
                     </div>
 
-
-                    {(() => {
-                      const filteredDepts = departments.filter((d) =>
-                        d.toLowerCase().includes(distributionDeptSearch.toLowerCase())
-                      );
-                      if (filteredDepts.length === 0) {
-                        return (
-                          <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                            <p className="text-sm font-bold">
-                              {language === "ar" ? "لا توجد أقسام مطابقة للبحث" : "No matching departments found"}
-                            </p>
-                          </div>
+                    {/* Bento Grid */}
+                    {departments.filter(dept => dept?.toLowerCase()?.includes(distributionDeptSearch?.toLowerCase())).length === 0 ? (
+                      <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                        <p className="text-sm font-bold">
+                          {language === "ar" ? "لم يتم العثور على أي قسم يطابق بحثك." : "No departments match your search."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {departments.filter(dept => dept?.toLowerCase()?.includes(distributionDeptSearch?.toLowerCase())).map((dept, idx) => {
+                          // Find how many templates map to this department in allAvailableTemplates
+                        const deptTemplates = allAvailableTemplates.filter(
+                          (t) => doesTemplateMatchDepartment(t, dept),
                         );
-                      }
-                      return (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {filteredDepts.map((dept, idx) => {
-                            // Find how many templates map to this department in allAvailableTemplates
-                            const deptTemplates = allAvailableTemplates.filter(
-                              (t) => doesTemplateMatchDepartment(t, dept)
-                            );
-                            // Find matching saved records count for stats
-                            const deptRecordsCount = records.filter(
-                              (rec) => rec.department === dept
-                            ).length;
+                        // Find matching saved records count for stats
+                        const deptRecordsCount = records.filter(
+                          (rec) => rec.department === dept,
+                        ).length;
 
-                            return (
-                              <div
-                                key={`${dept}-${idx}`}
-                                className="bg-slate-50/60 p-4 rounded-xl border border-slate-150 shadow-xs hover:border-pink-300 hover:bg-slate-50 hover:shadow-sm transition flex flex-col justify-between"
-                              >
-                                <div className="text-right">
-                                  <div className="flex items-center justify-between mb-2 flex-row-reverse">
-                                    <span className="bg-slate-200 text-slate-800 text-[9px] font-sans font-black px-1.5 py-0.5 rounded">
-                                      #{idx + 1}
-                                    </span>
-                                    <span className="bg-pink-100 text-pink-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full inline-flex items-center gap-1 flex-row-reverse">
-                                      <span>{deptTemplates.length}</span>
-                                      <span>
-                                        {language === "ar" ? "نموذج نشط" : "Templates"}
-                                      </span>
-                                    </span>
-                                  </div>
-
-                                  <div className="flex items-center justify-between mt-1 mb-1 flex-row-reverse">
-                                    <h4 className="text-xs font-bold text-slate-900 leading-tight tracking-tight text-right uppercase line-clamp-1 flex-1 ml-2">
-                                      {dept}
-                                    </h4>
-                                    <span className={`flex items-center gap-1.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${deptTemplates.length > 0 || deptRecordsCount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                                      <span className={`w-1.5 h-1.5 rounded-full ${deptTemplates.length > 0 || deptRecordsCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
-                                      {deptTemplates.length > 0 || deptRecordsCount > 0
-                                        ? (language === "ar" ? "نشط سريراً" : "Active")
-                                        : (language === "ar" ? "غير نشط" : "Inactive")}
-                                    </span>
-                                  </div>
-
-                                  <p className="text-[10px] text-slate-500 leading-none mt-1 text-right font-mono font-medium block">
+                        return (
+                          <div
+                            key={`${dept}-${idx}`}
+                            className="bg-slate-50/60 p-4 rounded-xl border border-slate-150 shadow-xs hover:border-pink-300 hover:bg-slate-50 hover:shadow-sm transition flex flex-col justify-between"
+                          >
+                            <div className="text-right">
+                              {/* Department Badge and Index */}
+                              <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                                <span className="bg-slate-200 text-slate-800 text-[9px] font-sans font-black px-1.5 py-0.5 rounded">
+                                  #{idx + 1}
+                                </span>
+                                <span className="bg-pink-100 text-pink-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full inline-flex items-center gap-1 flex-row-reverse">
+                                  <span>{deptTemplates.length}</span>
+                                  <span>
                                     {language === "ar"
-                                      ? `قسم ${hospitalSettings.nameAr || "المؤسسة"} المتكامل الفرعي`
-                                      : `Integrated Wing`}
-                                  </p>
+                                      ? "نموذج نشط"
+                                      : "Templates"}
+                                  </span>
+                                </span>
+                              </div>
 
-                                  <div className="mt-3 grid grid-cols-2 gap-1 border-t border-slate-200/60 pt-2.5 flex-row-reverse">
-                                    <div className="text-right">
-                                      <span className="block text-[8px] text-slate-500 leading-none font-bold">
-                                        {language === "ar" ? "السجلات المرفوعة" : "Logged Files"}
-                                      </span>
-                                      <span className="text-xs font-black text-emerald-600 text-right block">
-                                        {deptRecordsCount} {language === "ar" ? "سجل" : "Records"}
-                                      </span>
-                                    </div>
-                                    <div className="text-right">
-                                      <span className="block text-[8px] text-slate-500 leading-none font-bold">
-                                        {language === "ar" ? "معدل الرصد" : "Reporting Cycle"}
-                                      </span>
-                                      <span className="text-xs font-black text-pink-600 block text-right">
-                                        {deptTemplates.length > 0 ? "100%" : "0%"}
-                                      </span>
-                                    </div>
-                                  </div>
+                              {/* Title and Status */}
+                              <div className="flex items-center justify-between mt-1 mb-1 flex-row-reverse">
+                                <h4 className="text-xs font-bold text-slate-900 leading-tight tracking-tight text-right uppercase line-clamp-1 flex-1 ml-2">
+                                  {dept}
+                                </h4>
+                                <span className={`flex items-center gap-1.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${deptTemplates.length > 0 || deptRecordsCount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${deptTemplates.length > 0 || deptRecordsCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                                  {deptTemplates.length > 0 || deptRecordsCount > 0 ? (language === "ar" ? "نشط" : "Active") : (language === "ar" ? "خامل" : "Inactive")}
+                                </span>
+                              </div>
+
+                              <p className="text-[10px] text-slate-500 leading-none mt-1 text-right font-mono font-medium block">
+                                {language === "ar"
+                                  ? `قسم ${hospitalSettings.nameAr || "المؤسسة"} المتكامل الفرعي`
+                                  : `Integrated Wing`}
+                              </p>
+
+                              {/* Mini statistics */}
+                              <div className="mt-3 grid grid-cols-2 gap-1 border-t border-slate-200/60 pt-2.5 flex-row-reverse">
+                                <div className="text-right">
+                                  <span className="block text-[8px] text-slate-500 leading-none font-bold">
+                                    {language === "ar"
+                                      ? "السجلات المرفوعة"
+                                      : "Logged Files"}
+                                  </span>
+                                  <span className="text-xs font-black text-emerald-600 text-right block">
+                                    {deptRecordsCount}{" "}
+                                    {language === "ar" ? "جرد ملء" : "Saved"}
+                                  </span>
                                 </div>
-
-                                <div className="mt-4 pt-2 border-t border-slate-100 flex flex-col gap-1.5 text-right">
-                                  <label className="text-[10px] text-slate-500 font-bold block mb-1">
-                                    {language === "ar" ? "📝 فتح سريع لنموذج الشيت:" : "📝 Quick Open Sheet Template:"}
-                                  </label>
-                                  <select
-                                    id={`quick-select-dept-${idx}`}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (!val) return;
-                                      const matchingTpl = deptTemplates.find(
-                                        (t) => t.id === val
-                                      );
-                                      if (matchingTpl) {
-                                        setSelectedTemplate(matchingTpl);
-                                        setActiveTab("editor");
-                                        handleCreateNew(matchingTpl.id);
-                                      }
-                                    }}
-                                    className="w-full bg-white border border-slate-200 rounded-lg p-1 text-[11px] font-semibold text-slate-700 cursor-pointer text-right outline-none"
-                                  >
-                                    <option value="">
-                                      ⚠️ {language === "ar" ? "اختر شيت للتعبئة فوراً..." : "Open checklist..."}
-                                    </option>
-                                    {deptTemplates.map((t) => (
-                                      <option key={t.id} value={t.id}>
-                                        ({t.code}) {language === "ar" ? t.titleAr.slice(0, 30) : t.titleEn.slice(0, 30)}...
-                                      </option>
-                                    ))}
-                                  </select>
+                                <div className="text-right">
+                                  <span className="block text-[8px] text-slate-500 leading-none font-bold">
+                                    {language === "ar"
+                                      ? "معدل الرصد"
+                                      : "Reporting Cycle"}
+                                  </span>
+                                  <span className="text-xs font-black text-pink-600 block text-right">
+                                    {deptRecordsCount > 0 ? "100%" : "0%"}
+                                  </span>
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
+                            </div>
+
+                            {/* View / Select Folder Action */}
+                            <div className="mt-4 pt-2 border-t border-slate-100 flex flex-col gap-1.5 text-right">
+                              {/* Quick selection dropdown to search their checklists */}
+                              <select
+                                id={`quick-select-dept-${idx}`}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (!val) return;
+                                  const matchingTpl = deptTemplates.find(
+                                    (t) => t.id === val,
+                                  );
+                                  if (matchingTpl) {
+                                    setSelectedTemplate(matchingTpl);
+                                    setActiveTab("editor");
+                                    handleCreateNew(matchingTpl.id);
+                                  }
+                                }}
+                                className="w-full bg-white border border-slate-200 rounded-lg p-1 text-[11px] font-semibold text-slate-700 cursor-pointer text-right outline-none"
+                              >
+                                <option value="">
+                                  ⚠️{" "}
+                                  {language === "ar"
+                                    ? "اختر شيت للتعبئة فوراً..."
+                                    : "Open checklist..."}
+                                </option>
+                                {deptTemplates.map((t) => (
+                                  <option key={t.id} value={t.id}>
+                                    ({t.code}){" "}
+                                    {language === "ar"
+                                      ? t.titleAr.slice(0, 30)
+                                      : t.titleEn.slice(0, 30)}
+                                    ...
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           )}
-              {activeSubTab === "hisprofileworkspace" && (
+              {activeSubTab === "his_profile" && (
                 <HISProfileWorkspace currentUser={currentUser} language={language} />
               )}
               </>)}
@@ -4058,6 +4101,7 @@ export default function HospitalInformationSystem({
         </div>
       </div>
 
+      {/* Message Details Modal */}
       <AnimatePresence>
         {selectedHISMessage && (
           <motion.div
@@ -4076,13 +4120,14 @@ export default function HospitalInformationSystem({
               <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-start">
                 <div>
                   <h3 className="font-bold text-indigo-900">
-                    {language === "ar"
-                      ? selectedHISMessage.senderNameAr || selectedHISMessage.senderName
-                      : selectedHISMessage.senderNameEn || selectedHISMessage.senderName}
+                    {isAr ? "رسالة من:" : "Message from:"}{" "}
+                    {isAr
+                      ? selectedHISMessage.senderNameAr
+                      : selectedHISMessage.senderNameEn}
                   </h3>
                   <div className="text-xs text-indigo-700/70 mt-1">
                     {new Date(selectedHISMessage.timestamp).toLocaleString(
-                      language === "ar" ? "ar-EG" : "en-US"
+                      isAr ? "ar-EG" : "en-US",
                     )}
                   </div>
                 </div>
@@ -4097,14 +4142,14 @@ export default function HospitalInformationSystem({
               <div className="p-5">
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
                   <p className="text-slate-800 text-sm leading-relaxed font-medium whitespace-pre-wrap">
-                    {selectedHISMessage.text}
+                    {selectedHISMessage.content}
                   </p>
                 </div>
 
-                {selectedHISMessage.details && Object.keys(selectedHISMessage.details).length > 0 && (
+                {selectedHISMessage.details && (
                   <div className="space-y-3">
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      {language === "ar" ? "📊 تفاصيل وملحقات طبية" : "📊 Clinical Parameters"}
+                      {isAr ? "معلومات إضافية" : "Additional Info"}
                     </h4>
                     <div className="bg-white rounded-xl p-3 border border-slate-200 space-y-2">
                       {Object.entries(selectedHISMessage.details).map(
@@ -4114,10 +4159,10 @@ export default function HospitalInformationSystem({
                             className="flex justify-between items-center text-sm"
                           >
                             <span className="text-slate-500">
-                              {language === "ar" ? v.keyAr || k : v.keyEn || k}
+                              {isAr ? v.keyAr : v.keyEn}
                             </span>
                             <span className="font-semibold text-slate-800">
-                              {language === "ar" ? v.ar || String(v) : v.en || String(v)}
+                              {isAr ? v.ar : v.en}
                             </span>
                           </div>
                         ),
@@ -4152,13 +4197,13 @@ export default function HospitalInformationSystem({
                     }}
                     className="px-4 py-2 text-sm font-bold bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-md flex items-center gap-2"
                   >
-                    {language === "ar" ? "📂 فتح ملف المريض" : "📂 Open Patient Chart"}
+                    {isAr ? "الانتقال للسياق ↗" : "Route to Context ↗"}
                   </button>
                   <button
                     onClick={() => setSelectedHISMessage(null)}
                     className="px-4 py-2 text-sm font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
                   >
-                    {language === "ar" ? "إغلاق" : "Close"}
+                    {isAr ? "إغلاق" : "Close"}
                   </button>
                 </div>
               </div>
@@ -4167,7 +4212,7 @@ export default function HospitalInformationSystem({
         )}
       </AnimatePresence>
 
-
+      {/* Enterprise AI Copilot Panel */}
       {isCopilotOpen && (
         <div className="w-96 border-l border-slate-200 bg-white flex flex-col shrink-0 shadow-[-4px_0_24px_rgba(0,0,0,0.05)] z-20">
           <div className="h-20 flex items-center justify-between px-6 border-b border-slate-200 shrink-0 bg-indigo-50/50">
@@ -4176,7 +4221,7 @@ export default function HospitalInformationSystem({
                 <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
               </div>
               <h2 className="font-black text-indigo-900 text-lg">
-                {language === "ar" ? "المساعد السريري الذكي" : "AI Copilot Core"}
+                {isAr ? "مساعد الذكاء الاصطناعي" : "Clinical Copilot"}
               </h2>
             </div>
             <button onClick={() => setIsCopilotOpen(false)} className="text-slate-400 hover:text-slate-700">
@@ -4191,7 +4236,7 @@ export default function HospitalInformationSystem({
 
       <EnterpriseCommandPalette isAr={isAr} />
 
-      {activeSubTab === "comprehensiveregistrationmodal" && (
+      {showGlobalRegModal && (
         <ComprehensiveRegistrationModal
           isAr={isAr}
           onClose={() => setShowGlobalRegModal(false)}
@@ -4202,7 +4247,7 @@ export default function HospitalInformationSystem({
         />
       )}
 
-      {activeSubTab === "comprehensivevisitmodal" && (
+      {showGlobalVisitModal && (
         <ComprehensiveVisitModal
           isAr={isAr}
           existingVisits={globalVisits}
