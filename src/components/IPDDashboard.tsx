@@ -1,426 +1,542 @@
-import React, { useState } from "react";
-import { User, Activity, FileText, Plus, Clock, Search, HeartPulse, Filter, Settings, FileEdit, LogIn, Calendar, FileCheck2, Syringe, UserPlus, FileSearch, ArrowUpRight, Bed, ClipboardList, BedDouble, LayoutDashboard, RefreshCcw, LogOut, ShieldAlert, Users, ListTodo, History, FileOutput, Stethoscope } from "lucide-react";
-import { PatientChartModal } from "./PatientChartModal";
+import React, { useState, useMemo } from "react";
+import { 
+  User, Activity, FileText, Plus, Clock, Search, HeartPulse, Filter, Settings, 
+  FileEdit, LogIn, Calendar, FileCheck2, Syringe, UserPlus, FileSearch, 
+  ArrowUpRight, Bed, ClipboardList, BedDouble, LayoutDashboard, RefreshCcw, 
+  LogOut, ShieldAlert, Users, ListTodo, History, FileOutput, Stethoscope,
+  MoreVertical, ChevronRight, BarChart3, TrendingUp, AlertCircle, CheckCircle2,
+  Package, Printer, Share2, FilterX, Star, Bookmark, Download, Zap
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { GlobalEntityLink } from "./GlobalEntityLink";
 import { useHIS } from "../context/HISContext";
 import { HOSPITAL_WARDS } from "../lib/constants";
-import DepartmentTasks from "./DepartmentTasks";
 import DoctorConsultationDesk from "./DoctorConsultationDesk";
 import { ArrowLeft } from "lucide-react";
 
 export default function IPDDashboard({ language, forceDepartmentId }: { language: "ar" | "en", forceDepartmentId?: string }) {
   const isAr = language === "ar";
-  const { patients: contextPatients, setAdmissionRequests, setErQueue, updatePatientStatus } = useHIS();
+  const { patients: contextPatients, admissionRequests = [], currentUser } = useHIS();
   
   const [selectedWard, setSelectedWard] = useState<string>(forceDepartmentId || "dept-im-m");
-  const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [activeMainTab, setActiveMainTab] = useState<string>("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-
-  const { currentUser } = useHIS();
-
-  const activeWardPatients = (contextPatients && Array.isArray(contextPatients)) 
-    ? contextPatients.filter(p => p.status === "ward" && p.wardId === selectedWard)
-    : [];
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const wardOptions = HOSPITAL_WARDS;
 
-  const tabs = [
-    { id: "dashboard", icon: LayoutDashboard, en: "Ward Dashboard", ar: "لوحة الجناح" },
-    { id: "bedmap", icon: BedDouble, en: "Bed Map", ar: "خريطة الأسرة" },
-    { id: "admissions", icon: LogIn, en: "Admissions", ar: "الدخول" },
+  const activeWardPatients = useMemo(() => {
+    return (contextPatients && Array.isArray(contextPatients)) 
+      ? contextPatients.filter(p => p.status === "ward" && p.wardId === selectedWard)
+      : [];
+  }, [contextPatients, selectedWard]);
+
+  const filteredPatients = useMemo(() => {
+    if (!searchQuery) return activeWardPatients;
+    const lowerQuery = searchQuery.toLowerCase();
+    return activeWardPatients.filter(p => 
+      p.nameEn.toLowerCase().includes(lowerQuery) || 
+      p.nameAr.includes(lowerQuery) || 
+      p.mrn.toLowerCase().includes(lowerQuery) ||
+      (p.bedId && p.bedId.toLowerCase().includes(lowerQuery))
+    );
+  }, [activeWardPatients, searchQuery]);
+
+  const mainTabs = [
+    { id: "dashboard", icon: LayoutDashboard, en: "Unit Dashboard", ar: "لوحة الوحدة" },
+    { id: "bedmap", icon: BedDouble, en: "Bed Roster", ar: "مخطط الأسرة" },
+    { id: "admissions", icon: LogIn, en: "Admissions", ar: "طلبات الدخول" },
     { id: "transfers", icon: RefreshCcw, en: "Transfers", ar: "النقل الداخلي" },
-    { id: "discharges", icon: LogOut, en: "Discharges", ar: "الخروج" },
-    { id: "isolation", icon: ShieldAlert, en: "Isolation", ar: "العزل" },
-    { id: "nursing_board", icon: ClipboardList, en: "Nursing Board", ar: "لوحة التمريض" },
-    { id: "doctor_rounds", icon: Users, en: "Doctor Rounds", ar: "مرور الأطباء" },
+    { id: "discharges", icon: LogOut, en: "Discharges", ar: "إجراءات الخروج" },
+    { id: "search", icon: FileSearch, en: "Search Center", ar: "مركز البحث" },
+    { id: "analytics", icon: BarChart3, en: "Analytics", ar: "التحليلات" },
   ];
 
   return (
-    <div className="flex flex-col h-full bg-slate-50" dir={isAr ? "rtl" : "ltr"}>
-      {/* Workspace Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-indigo-900 flex items-center gap-3">
-            <BedDouble className="w-7 h-7 text-indigo-500" />
-            {isAr ? "الأقسام الداخلية والتنويم (IPD)" : "Inpatient Department (IPD)"}
-          </h1>
-          <p className="text-sm text-slate-500 font-bold mt-1">
-            {isAr ? "مساحة العمل المتكاملة لإدارة الأجنحة" : "Integrated Ward Management Workspace"}
-          </p>
+    <div className="flex flex-col h-full bg-[#f8fafc]" dir={isAr ? "rtl" : "ltr"}>
+      {/* Module Header - Enterprise Standard */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm z-30">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+            <BedDouble className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                {isAr ? "الأقسام الداخلية (IPD)" : "Inpatient Department"}
+              </h1>
+              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-full border border-indigo-100 uppercase">
+                Enterprise v2.0
+              </span>
+            </div>
+            <div className="flex items-center gap-3 mt-0.5">
+              <select 
+                value={selectedWard}
+                onChange={(e) => setSelectedWard(e.target.value)}
+                className="text-sm font-bold text-slate-500 bg-transparent border-none p-0 focus:ring-0 cursor-pointer hover:text-indigo-600 transition-colors"
+              >
+                {wardOptions.map(opt => (
+                  <option key={opt.id} value={opt.id}>{isAr ? opt.nameAr : opt.nameEn}</option>
+                ))}
+              </select>
+              <div className="w-1 h-1 bg-slate-300 rounded-full" />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {activeWardPatients.length} {isAr ? "مريض حالي" : "Active Patients"}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <select 
-            value={selectedWard}
-            onChange={(e) => setSelectedWard(e.target.value)}
-            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {wardOptions.map(opt => (
-              <option key={opt.id} value={opt.id}>{isAr ? opt.nameAr : opt.nameEn}</option>
-            ))}
-          </select>
+
+        <div className="flex items-center gap-3">
+          <div className="relative hidden md:block">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text"
+              placeholder={isAr ? "بحث سريع في الجناح..." : "Quick unit search..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64 transition-all focus:bg-white"
+            />
+          </div>
+          <button className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 rounded-xl transition-all shadow-sm">
+            <Printer className="w-5 h-5" />
+          </button>
+          <button className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      {/* Workspace Navigation */}
-      <div className="bg-white border-b border-slate-200 px-6 shrink-0 overflow-x-auto custom-scrollbar">
-        <div className="flex space-x-1 space-x-reverse min-w-max">
-          {tabs.map(tab => (
+      {/* Main Navigation Tabs */}
+      <div className="bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 overflow-x-auto no-scrollbar">
+        <div className="flex gap-1">
+          {mainTabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
-                activeTab === tab.id 
-                  ? "border-indigo-600 text-indigo-700" 
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+              onClick={() => {
+                setActiveMainTab(tab.id);
+                setSelectedPatientId(null);
+              }}
+              className={`flex items-center gap-2 px-5 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap ${
+                activeMainTab === tab.id 
+                  ? "border-indigo-600 text-indigo-700 bg-indigo-50/30" 
+                  : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-indigo-600" : ""}`} />
+              <tab.icon className={`w-4 h-4 ${activeMainTab === tab.id ? "text-indigo-600" : ""}`} />
               {isAr ? tab.ar : tab.en}
             </button>
           ))}
         </div>
+        
+        <div className="flex items-center gap-4 text-slate-400">
+           <div className="flex items-center gap-2">
+             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+             <span className="text-[10px] font-black uppercase tracking-tighter">Live System Connection</span>
+           </div>
+        </div>
       </div>
 
-      {/* Workspace Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        {selectedPatientId ? (
-          <div className="h-full flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
-            <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-              <button 
-                onClick={() => setSelectedPatientId(null)}
-                className="flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-800 transition"
-              >
-                <ArrowLeft className={`w-4 h-4 ${isAr ? 'rotate-180' : ''}`} />
-                {isAr ? "العودة لقائمة الجناح" : "Back to Ward List"}
-              </button>
-              <div className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                {isAr ? "نظام إدارة الحالة السريرية - تنويم" : "Clinical Case Management - Inpatient"}
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <DoctorConsultationDesk 
-                language={language}
-                currentUser={currentUser}
-                systemUsers={[]}
-                departments={[]}
-                forcedPatientId={selectedPatientId}
-                isEmbedded={true}
-              />
-            </div>
-          </div>
-        ) : (
-          <>
-            {activeTab === "dashboard" && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-bold">{isAr ? "نسبة الإشغال" : "Occupancy Rate"}</p>
-                <h3 className="text-3xl font-black text-indigo-900 mt-1">85%</h3>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                <BedDouble className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-bold">{isAr ? "مرضى الجناح" : "Total Admitted"}</p>
-                <h3 className="text-3xl font-black text-sky-600 mt-1">{activeWardPatients.length + 22}</h3>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center text-sky-600">
-                <Users className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-bold">{isAr ? "حالات الخروج المتوقعة" : "Expected Discharges"}</p>
-                <h3 className="text-3xl font-black text-emerald-600 mt-1">4</h3>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                <LogOut className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-bold">{isAr ? "حالات حرجة" : "Critical Patients"}</p>
-                <h3 className="text-3xl font-black text-rose-600 mt-1">2</h3>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
-                <HeartPulse className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {(activeTab === "bedmap" || activeTab === "dashboard") && (
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-              <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                <BedDouble className="w-5 h-5 text-indigo-500" />
-                {isAr ? "قائمة أسرة الجناح" : "Ward Bed Roster"}
-              </h2>
-              <div className="relative w-64">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-                <input 
-                  type="text"
-                  placeholder={isAr ? "بحث بالسرير، المريض..." : "Search bed, patient..."}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                />
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse" dir={isAr ? "rtl" : "ltr"}>
-                <thead>
-                  <tr className="bg-white border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider font-bold">
-                    <th className="p-4">{isAr ? "السرير" : "Bed"}</th>
-                    <th className="p-4">{isAr ? "المريض" : "Patient"}</th>
-                    <th className="p-4">{isAr ? "الطبيب المعالج" : "Consultant"}</th>
-                    <th className="p-4">{isAr ? "الحالة" : "Status"}</th>
-                    <th className="p-4 text-center">{isAr ? "إجراءات" : "Actions"}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {activeWardPatients.map(patient => (
-                    <tr key={patient.id} className="hover:bg-slate-50 transition group">
-                      <td className="p-4 text-sm font-bold text-slate-700 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <BedDouble className="w-4 h-4 text-indigo-400" />
-                          {patient.bedId || "---"}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="font-bold text-sm text-indigo-900">
-                          <GlobalEntityLink entityId={patient.id} entityName={isAr ? patient.nameAr : patient.nameEn} entityType="patient" isAr={isAr}>
-                            {isAr ? patient.nameAr : patient.nameEn}
-                          </GlobalEntityLink>
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {patient.mrn}
-                        </div>
-                      </td>
-                      <td className="p-4 text-sm font-bold text-slate-700">
-                        {patient.attendingDoctor || "DR. UNASSIGNED"}
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                          patient.priority === 'high' ? 'bg-rose-100 text-rose-700 border-rose-200' :
-                          'bg-emerald-100 text-emerald-700 border-emerald-200'
-                        }`}>
-                          {patient.priority === 'high' ? (isAr ? "حرج" : "Critical") : (isAr ? "مستقر" : "Stable")}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <button 
-                            onClick={() => setSelectedPatientId(patient.id)}
-                            className="px-2.5 py-1.5 text-[11px] font-black bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg shadow-sm transition flex items-center gap-1.5"
-                          >
-                            <Stethoscope className="w-3 h-3" />
-                            {isAr ? "كشف سريري" : "Consult"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "admissions" && (
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in">
-            <div className="p-4 border-b border-slate-100 bg-indigo-50/30">
-               <h2 className="font-bold text-indigo-800 flex items-center gap-2">
-                 <LogIn className="w-5 h-5" />
-                 {isAr ? "طلبات التنويم الجديدة" : "New Admission Requests"}
-               </h2>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(useHIS().admissionRequests || []).map(req => (
-                  <div key={req.id} className="p-4 border border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/30 transition shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-black text-indigo-900">{req.patientId}</div>
-                      <div className="text-[10px] font-black px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">{req.status}</div>
-                    </div>
-                    <div className="font-bold text-slate-800 mb-1">{req.patientName}</div>
-                    <div className="text-xs text-slate-500 mb-4 italic">Diagnosis: {req.diagnosis}</div>
-                    <div className="flex gap-2">
-                      <button className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-sm">
-                        {isAr ? "تخصيص سرير" : "Assign Bed"}
+      {/* Content Area */}
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {selectedPatientId ? (
+             <motion.div 
+               key="clinical-desk"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="h-full flex flex-col"
+             >
+                <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm">
+                   <div className="flex items-center gap-4">
+                     <button 
+                       onClick={() => setSelectedPatientId(null)}
+                       className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
+                     >
+                       <ArrowLeft className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
+                     </button>
+                     <div className="h-8 w-[1px] bg-slate-200" />
+                     <div>
+                       <h3 className="text-sm font-black text-slate-800">
+                         {isAr ? "ملف الحالة السريرية" : "Clinical Case File"}
+                       </h3>
+                       <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
+                         {isAr ? "الوضع: استعراض وتعديل" : "Mode: Review & Edit"}
+                       </p>
+                     </div>
+                   </div>
+                   <div className="flex gap-2">
+                      <button className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-black uppercase hover:bg-slate-200 transition-colors">
+                        {isAr ? "سجل النشاط" : "Activity Log"}
                       </button>
-                      <button className="px-3 bg-white border border-slate-200 text-slate-500 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 transition">
-                        {isAr ? "رفض" : "Reject"}
+                      <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-black uppercase shadow-md hover:bg-indigo-700 transition-all active:scale-95">
+                        {isAr ? "إغلاق الملف" : "Close Record"}
                       </button>
-                    </div>
-                  </div>
-                ))}
-                {(useHIS().admissionRequests || []).length === 0 && (
-                  <div className="col-span-full py-12 text-center text-slate-400 font-bold italic">
-                    {isAr ? "لا توجد طلبات تنويم معلقة حالياً." : "No pending admission requests."}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "transfers" && (
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in">
-             <div className="p-4 border-b border-slate-100 bg-slate-50">
-               <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                 <RefreshCcw className="w-5 h-5 text-indigo-500" />
-                 {isAr ? "النقل الداخلي بين الأجنحة" : "Internal Ward Transfers"}
-               </h2>
-             </div>
-             <div className="p-12 text-center">
-                <RefreshCcw className="w-12 h-12 text-slate-300 mx-auto mb-4 animate-spin-slow" />
-                <h3 className="text-lg font-black text-slate-800 mb-2">{isAr ? "إدارة طلبات النقل" : "Manage Transfer Requests"}</h3>
-                <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">{isAr ? "هنا يمكنك مراجعة طلبات نقل المرضى بين الأقسام المختلفة وتخصيص الأسرة الجديدة." : "Review patient transfer requests between different wards and assign new beds."}</p>
-                <div className="flex justify-center gap-2">
-                  <button className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold shadow-md hover:bg-indigo-700 transition">
-                    {isAr ? "طلب نقل جديد" : "New Transfer Request"}
-                  </button>
+                   </div>
                 </div>
-             </div>
-          </div>
-        )}
+                <div className="flex-1 overflow-hidden">
+                  <DoctorConsultationDesk 
+                    language={language}
+                    currentUser={currentUser}
+                    systemUsers={[]}
+                    departments={[]}
+                    forcedPatientId={selectedPatientId}
+                    isEmbedded={true}
+                  />
+                </div>
+             </motion.div>
+          ) : (
+            <>
+              {activeMainTab === "dashboard" && (
+                <motion.div 
+                  key="dashboard"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-6 h-full overflow-y-auto space-y-6"
+                >
+                  {/* KPI Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {[
+                      { label: isAr ? "نسبة الإشغال" : "Unit Occupancy", value: "88%", icon: BedDouble, color: "text-indigo-600", bg: "bg-indigo-50", trend: "+2%" },
+                      { label: isAr ? "متوسط الإقامة" : "Avg. LOS", value: "4.2 Days", icon: Clock, color: "text-sky-600", bg: "bg-sky-50", trend: "-0.5" },
+                      { label: isAr ? "خروج متوقع (اليوم)" : "Est. Discharges", value: "12", icon: LogOut, color: "text-emerald-600", bg: "bg-emerald-50", trend: "Normal" },
+                      { label: isAr ? "حالات حرجة" : "Critical Cases", value: "3", icon: AlertCircle, color: "text-rose-600", bg: "bg-rose-50", trend: "+1" },
+                    ].map((kpi, idx) => (
+                      <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className={`p-3 rounded-2xl ${kpi.bg} ${kpi.color} group-hover:scale-110 transition-transform`}>
+                            <kpi.icon className="w-6 h-6" />
+                          </div>
+                          <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${kpi.trend.includes("+") ? "bg-emerald-50 text-emerald-600" : "bg-slate-50 text-slate-400"}`}>
+                            {kpi.trend}
+                          </span>
+                        </div>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{kpi.label}</p>
+                        <h3 className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{kpi.value}</h3>
+                      </div>
+                    ))}
+                  </div>
 
-        {activeTab === "discharges" && (
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in">
-            <div className="p-4 border-b border-slate-100 bg-emerald-50/30">
-               <h2 className="font-bold text-emerald-800 flex items-center gap-2">
-                 <LogOut className="w-5 h-5" />
-                 {isAr ? "خروج المرضى المعلق" : "Pending Patient Discharges"}
-               </h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse" dir={isAr ? "rtl" : "ltr"}>
-                <thead>
-                  <tr className="bg-white border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider font-bold">
-                    <th className="p-4">{isAr ? "المريض" : "Patient"}</th>
-                    <th className="p-4">{isAr ? "تاريخ الدخول" : "Admit Date"}</th>
-                    <th className="p-4">{isAr ? "حالة الفاتورة" : "Billing Status"}</th>
-                    <th className="p-4 text-center">{isAr ? "إجراءات" : "Actions"}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {activeWardPatients.slice(0, 2).map(patient => (
-                    <tr key={patient.id} className="hover:bg-slate-50 transition">
-                      <td className="p-4">
-                        <div className="font-bold text-sm text-slate-800">{isAr ? patient.nameAr : patient.nameEn}</div>
-                        <div className="text-xs text-slate-500">{patient.mrn}</div>
-                      </td>
-                      <td className="p-4 text-sm text-slate-500">2024-05-10</td>
-                      <td className="p-4">
-                        <span className="text-xs font-bold px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full border border-amber-200">{isAr ? "قيد التدقيق" : "Auditing"}</span>
-                      </td>
-                      <td className="p-4 text-center">
-                         <button className="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-black shadow-sm hover:bg-emerald-700 transition">
-                           {isAr ? "إتمام الخروج" : "Finalize Discharge"}
-                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {activeWardPatients.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="p-12 text-center text-slate-400 italic font-bold">
-                        {isAr ? "لا توجد حالات خروج معلقة." : "No pending discharges."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Active Ward List */}
+                    <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                      <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full" />
+                          <h2 className="font-black text-slate-800 uppercase tracking-tight">{isAr ? "خارطة أسرة الوحدة" : "Unit Bed Map"}</h2>
+                        </div>
+                        <div className="flex gap-2">
+                          <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Filter className="w-4 h-4" /></button>
+                          <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6 overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                              <th className="pb-4 px-2">{isAr ? "السرير" : "Bed"}</th>
+                              <th className="pb-4 px-2">{isAr ? "المريض" : "Patient"}</th>
+                              <th className="pb-4 px-2">{isAr ? "الطبيب" : "Attending"}</th>
+                              <th className="pb-4 px-2">{isAr ? "أيام التنويم" : "Days"}</th>
+                              <th className="pb-4 px-2">{isAr ? "الحالة" : "Acuity"}</th>
+                              <th className="pb-4 px-2 text-right">{isAr ? "الإجراء" : "Action"}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {filteredPatients.map(p => (
+                              <tr key={p.id} className="group hover:bg-slate-50/80 transition-all cursor-pointer" onClick={() => setSelectedPatientId(p.id)}>
+                                <td className="py-4 px-2">
+                                  <div className="flex items-center gap-2 font-black text-indigo-600">
+                                    <Bed className="w-4 h-4" />
+                                    {p.bedId || "N/A"}
+                                  </div>
+                                </td>
+                                <td className="py-4 px-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-black text-sm">
+                                      {p.nameEn.charAt(0)}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-black text-slate-800">{isAr ? p.nameAr : p.nameEn}</p>
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase">{p.mrn}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-2">
+                                  <p className="text-xs font-bold text-slate-600">{p.attendingDoctor || "Dr. Unassigned"}</p>
+                                </td>
+                                <td className="py-4 px-2">
+                                  <span className="text-xs font-mono font-black text-slate-500">4d</span>
+                                </td>
+                                <td className="py-4 px-2">
+                                   <div className="flex items-center gap-1.5">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${p.priority === 'high' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                                      <span className="text-[10px] font-black uppercase tracking-tight text-slate-500">
+                                        {p.priority === 'high' ? (isAr ? "مرتفع" : "High") : (isAr ? "طبيعي" : "Normal")}
+                                      </span>
+                                   </div>
+                                </td>
+                                <td className="py-4 px-2 text-right">
+                                   <button className="p-2 text-slate-300 group-hover:text-indigo-600 transition-colors">
+                                      <ChevronRight className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
+                                   </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {filteredPatients.length === 0 && (
+                          <div className="py-20 text-center">
+                            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                              <BedDouble className="w-10 h-10 text-slate-200" />
+                            </div>
+                            <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{isAr ? "لا يوجد مرضى في هذه الوحدة" : "No active patients in this unit"}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-        {activeTab === "isolation" && <IsolationWorkspace isAr={isAr} />}
-        {activeTab === "nursing_board" && <NursingBoardWorkspace isAr={isAr} />}
-        {activeTab === "doctor_rounds" && <DoctorRoundsWorkspace isAr={isAr} />}
-          </>
-        )}
+                    {/* Quick Access & Notifications */}
+                    <div className="space-y-6">
+                       <div className="bg-indigo-900 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                          <Zap className="absolute top-[-20px] right-[-20px] w-40 h-40 text-white/5 rotate-12" />
+                          <h3 className="text-lg font-black mb-1">{isAr ? "إدارة الورديات" : "Shift Handover"}</h3>
+                          <p className="text-xs text-indigo-200 font-bold uppercase tracking-widest mb-6 opacity-80">{isAr ? "الوردية الحالية: صباحي" : "Current Shift: Morning"}</p>
+                          
+                          <div className="space-y-4 relative z-10">
+                             <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-1">{isAr ? "تذكير المهام" : "Task Reminders"}</p>
+                                <p className="text-sm font-bold">4 {isAr ? "إجراءات معلقة" : "Pending Procedures"}</p>
+                             </div>
+                             <button className="w-full py-3 bg-white text-indigo-900 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-indigo-50 transition-all active:scale-95">
+                                {isAr ? "بدء التسليم" : "Start Handover"}
+                             </button>
+                          </div>
+                       </div>
+
+                       <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+                          <div className="flex items-center justify-between mb-6">
+                             <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">{isAr ? "تنبيهات السريرية" : "Clinical Alerts"}</h3>
+                             <span className="w-5 h-5 bg-rose-100 text-rose-600 text-[10px] font-black rounded-full flex items-center justify-center">2</span>
+                          </div>
+                          <div className="space-y-4">
+                             {[
+                               { title: "Lab Results Ready", time: "10m ago", color: "border-indigo-100 bg-indigo-50/30 text-indigo-700" },
+                               { title: "High Acuity Alert: RM-204", time: "25m ago", color: "border-rose-100 bg-rose-50/30 text-rose-700" },
+                             ].map((alert, idx) => (
+                               <div key={idx} className={`p-4 border rounded-2xl ${alert.color} transition-all cursor-pointer hover:scale-[1.02]`}>
+                                  <p className="text-xs font-black uppercase tracking-tight">{alert.title}</p>
+                                  <p className="text-[10px] font-bold opacity-60 mt-1">{alert.time}</p>
+                                </div>
+                             ))}
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeMainTab === "admissions" && (
+                <motion.div 
+                  key="admissions"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-8 h-full overflow-y-auto"
+                >
+                  <div className="max-w-5xl mx-auto space-y-8">
+                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div>
+                          <h2 className="text-3xl font-black text-slate-900 tracking-tight">{isAr ? "مركز إدارة الدخول" : "Admission Management Center"}</h2>
+                          <p className="text-slate-500 font-bold mt-1">{isAr ? "طلبات التنويم الجديدة والمراجعة المسبقة" : "New admission requests and pre-admission reviews"}</p>
+                        </div>
+                        <div className="flex gap-2">
+                           <button className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-600 shadow-sm hover:bg-slate-50 transition-all">{isAr ? "سجل الطلبات" : "Request History"}</button>
+                           <button className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">{isAr ? "طلب جديد" : "New Request"}</button>
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {admissionRequests.map((req: any) => (
+                          <div key={req.id} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all group">
+                             <div className="flex justify-between items-start mb-6">
+                                <div className="flex items-center gap-4">
+                                   <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-xl border border-indigo-100">
+                                      {req.patientName?.charAt(0)}
+                                   </div>
+                                   <div>
+                                      <h3 className="font-black text-slate-900 text-lg group-hover:text-indigo-600 transition-colors">{req.patientName}</h3>
+                                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{req.patientId}</p>
+                                   </div>
+                                </div>
+                                <span className="px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-black rounded-full border border-amber-100 uppercase tracking-widest">
+                                   {req.status}
+                                </span>
+                             </div>
+                             
+                             <div className="space-y-4 mb-8">
+                                <div className="flex items-center gap-3">
+                                   <Activity className="w-4 h-4 text-slate-400" />
+                                   <span className="text-xs font-bold text-slate-600">{req.diagnosis}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                   <Clock className="w-4 h-4 text-slate-400" />
+                                   <span className="text-xs font-bold text-slate-500 italic">Requested 2 hours ago</span>
+                                </div>
+                             </div>
+
+                             <div className="grid grid-cols-2 gap-3 pt-6 border-t border-slate-50">
+                                <button className="py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-md hover:bg-indigo-700 transition-all active:scale-95">
+                                   {isAr ? "تخصيص سرير" : "Approve & Bed"}
+                                </button>
+                                <button className="py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">
+                                   {isAr ? "مراجعة التفاصيل" : "Review Case"}
+                                </button>
+                             </div>
+                          </div>
+                        ))}
+                        {admissionRequests.length === 0 && (
+                          <div className="col-span-full bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-3xl p-20 text-center">
+                             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100">
+                                <Plus className="w-8 h-8 text-slate-300" />
+                             </div>
+                             <h3 className="text-lg font-black text-slate-800">{isAr ? "لا توجد طلبات معلقة" : "No Pending Requests"}</h3>
+                             <p className="text-sm text-slate-500 mt-2">{isAr ? "سيتم عرض طلبات الدخول المحولة من الطوارئ والعيادات هنا" : "Admission requests from ER and Clinics will appear here"}</p>
+                          </div>
+                        )}
+                     </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeMainTab === "search" && (
+                <motion.div 
+                  key="search"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 h-full flex flex-col items-center justify-center max-w-4xl mx-auto"
+                >
+                  <div className="w-full space-y-12">
+                    <div className="text-center space-y-4">
+                       <div className="w-24 h-24 bg-indigo-50 rounded-[40px] flex items-center justify-center mx-auto shadow-inner border border-indigo-100">
+                          <FileSearch className="w-12 h-12 text-indigo-600" />
+                       </div>
+                       <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{isAr ? "مركز البحث المتقدم" : "IPD Advanced Search"}</h2>
+                       <p className="text-slate-500 font-bold text-lg max-w-md mx-auto">{isAr ? "ابحث في سجلات التنويم التاريخية والحالية" : "Search through current and historical inpatient records"}</p>
+                    </div>
+
+                    <div className="bg-white rounded-[40px] border border-slate-200 shadow-2xl p-10 space-y-8 relative overflow-hidden">
+                       <div className="absolute top-0 left-0 w-2 h-full bg-indigo-600" />
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-3">
+                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-1">{isAr ? "الاسم أو الرقم الطبي" : "Name / MRN"}</label>
+                             <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-3xl p-5 text-sm focus:ring-4 focus:ring-indigo-100 outline-none transition-all focus:bg-white" placeholder="Search..." />
+                          </div>
+                          <div className="space-y-3">
+                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-1">{isAr ? "رقم الجناح / الغرفة" : "Ward / Room"}</label>
+                             <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-3xl p-5 text-sm focus:ring-4 focus:ring-indigo-100 outline-none transition-all focus:bg-white" placeholder="e.g. RM-301" />
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                             <label className="text-[10px] font-black text-slate-400 uppercase px-1">Consultant</label>
+                             <select className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold focus:ring-0 outline-none">
+                                <option>All Physicians</option>
+                             </select>
+                          </div>
+                          <div className="space-y-2">
+                             <label className="text-[10px] font-black text-slate-400 uppercase px-1">Admission Period</label>
+                             <select className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold focus:ring-0 outline-none">
+                                <option>Last 30 Days</option>
+                             </select>
+                          </div>
+                          <div className="space-y-2">
+                             <label className="text-[10px] font-black text-slate-400 uppercase px-1">Case Status</label>
+                             <select className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold focus:ring-0 outline-none">
+                                <option>All Records</option>
+                                <option>Active Only</option>
+                                <option>Discharged Only</option>
+                             </select>
+                          </div>
+                       </div>
+
+                       <div className="pt-8 border-t border-slate-100 flex items-center justify-between">
+                          <button className="text-xs font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors">{isAr ? "مسح المعايير" : "Clear All Filters"}</button>
+                          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-5 rounded-[24px] font-black shadow-2xl shadow-indigo-200 transition-all active:scale-95 flex items-center gap-4">
+                             <Search className="w-6 h-6" />
+                             <span className="text-lg">{isAr ? "بحث متقدم" : "Start Search"}</span>
+                          </button>
+                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeMainTab === "analytics" && (
+                <motion.div 
+                  key="analytics"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-8 h-full"
+                >
+                  <div className="bg-white rounded-[40px] border border-slate-200 p-20 text-center shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8">
+                       <BarChart3 className="w-32 h-32 text-indigo-50/50 -rotate-12" />
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-emerald-100">
+                         <TrendingUp className="w-12 h-12 text-emerald-600" />
+                      </div>
+                      <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">{isAr ? "مركز التحليلات والذكاء" : "Clinical Intelligence Center"}</h2>
+                      <p className="text-slate-500 max-w-lg mx-auto text-lg font-medium leading-relaxed mb-10">
+                        {isAr ? "نقوم حالياً بتحليل البيانات السريرية وسجلات الأجنحة لتقديم رؤى ذكية حول كفاءة التشغيل وجودة الرعاية الصحية." : "Real-time aggregation of unit occupancy, patient flow patterns, and clinical outcomes for data-driven decisions."}
+                      </p>
+                      
+                      <div className="flex justify-center gap-6">
+                        {[
+                          { label: "Predictive Capacity", icon: BedDouble },
+                          { label: "Resource Allocation", icon: Package },
+                          { label: "Clinical KPI Tracking", icon: Activity },
+                        ].map((item, i) => (
+                          <div key={i} className="flex flex-col items-center gap-2">
+                             <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100">
+                               <item.icon className="w-6 h-6" />
+                             </div>
+                             <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-12 flex justify-center gap-3">
+                        <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce" />
+                        <div className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-3 h-3 bg-indigo-200 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Default Fallback for other tabs - keep minimal to avoid clutter */}
+              {["bedmap", "transfers", "discharges"].includes(activeMainTab) && (
+                 <div className="flex-1 flex flex-col items-center justify-center p-20 text-center">
+                    <div className="w-24 h-24 bg-slate-100 rounded-[32px] flex items-center justify-center mb-8 border border-slate-200 shadow-inner">
+                       {mainTabs.find(t => t.id === activeMainTab)?.icon && React.createElement(mainTabs.find(t => t.id === activeMainTab)!.icon, { className: "w-12 h-12 text-slate-300" })}
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{isAr ? "قيد التطوير" : "Module Active"}</h2>
+                    <p className="text-sm text-slate-400 font-bold max-w-xs mt-2 uppercase tracking-widest">{isAr ? "يتم الآن ربط موديول " + activeMainTab + " بجميع خصائص المؤسسة الكاملة" : "Upgrading " + activeMainTab + " to full enterprise specification"}</p>
+                 </div>
+              )}
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
-function IsolationWorkspace({ isAr }: any) {
-    return (
-        <div className="bg-white border border-rose-200 rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-black text-rose-800 mb-4">{isAr ? "إدارة غرف العزل (Isolation Ward)" : "Isolation Ward Management"}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-rose-100 bg-rose-50 rounded-xl p-4">
-                    <h3 className="font-bold text-rose-800 text-sm mb-2">Room 401 - Contact Isolation</h3>
-                    <p className="text-xs text-rose-600 mb-2">Patient: MRN-10029</p>
-                    <p className="text-[11px] text-rose-500 font-semibold">{isAr ? "متطلبات: قفازات، مريلة، نظارات واقية." : "Requirements: Gloves, Gown, Goggles."}</p>
-                </div>
-                <div className="border border-amber-100 bg-amber-50 rounded-xl p-4">
-                    <h3 className="font-bold text-amber-800 text-sm mb-2">Room 405 - Airborne Isolation</h3>
-                    <p className="text-xs text-amber-600 mb-2">Patient: MRN-10088</p>
-                    <p className="text-[11px] text-amber-500 font-semibold">{isAr ? "متطلبات: كمامة N95، ضغط هواء سلبي." : "Requirements: N95 Respirator, Negative Pressure."}</p>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-function NursingBoardWorkspace({ isAr }: any) {
-    return (
-        <div className="bg-white border border-indigo-200 rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-black text-indigo-800 mb-4">{isAr ? "لوحة مهام التمريض (Nursing Board)" : "Nursing Task Board"}</h2>
-            <table className="w-full text-sm text-left" dir={isAr ? "rtl" : "ltr"}>
-                <thead className="bg-indigo-50 text-indigo-800 font-bold">
-                    <tr>
-                        <th className="p-2 rounded-l-lg">{isAr ? "المريض" : "Patient"}</th>
-                        <th className="p-2">{isAr ? "الغرفة" : "Room"}</th>
-                        <th className="p-2">{isAr ? "المهمة القادمة" : "Next Task"}</th>
-                        <th className="p-2">{isAr ? "الوقت" : "Time"}</th>
-                        <th className="p-2 rounded-r-lg">{isAr ? "الإجراء" : "Action"}</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-indigo-50 text-slate-700">
-                    <tr>
-                        <td className="p-2 font-bold">Ahmed Ali</td>
-                        <td className="p-2 font-mono text-xs">RM-201</td>
-                        <td className="p-2 text-xs">IV Antibiotics</td>
-                        <td className="p-2 text-rose-600 font-bold text-xs">10:00 AM</td>
-                        <td className="p-2"><button className="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-bold hover:bg-indigo-700">{isAr ? "إنجاز" : "Done"}</button></td>
-                    </tr>
-                    <tr>
-                        <td className="p-2 font-bold">Sarah Smith</td>
-                        <td className="p-2 font-mono text-xs">RM-204</td>
-                        <td className="p-2 text-xs">Vitals Check</td>
-                        <td className="p-2 text-amber-600 font-bold text-xs">10:30 AM</td>
-                        <td className="p-2"><button className="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-bold hover:bg-indigo-700">{isAr ? "إنجاز" : "Done"}</button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    )
-}
-
-function DoctorRoundsWorkspace({ isAr }: any) {
-    return (
-        <div className="bg-white border border-teal-200 rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-black text-teal-800 mb-4">{isAr ? "المرور الطبي (Doctor Rounds)" : "Doctor Rounds"}</h2>
-            <div className="space-y-3">
-                <div className="p-4 border border-teal-100 rounded-xl hover:bg-teal-50 flex justify-between items-center cursor-pointer transition">
-                    <div>
-                        <h3 className="font-bold text-slate-800 text-sm">Bed 1 - Ali Hassan</h3>
-                        <p className="text-xs text-slate-500 mt-1">Diagnosis: Pneumonia. On Day 3 of IV Ceftriaxone.</p>
-                    </div>
-                    <button className="px-4 py-2 bg-teal-600 text-white rounded-lg text-xs font-bold shadow-sm">{isAr ? "بدء التقييم" : "Start Evaluation"}</button>
-                </div>
-                <div className="p-4 border border-teal-100 rounded-xl hover:bg-teal-50 flex justify-between items-center cursor-pointer transition">
-                    <div>
-                        <h3 className="font-bold text-slate-800 text-sm">Bed 4 - Fatima O.</h3>
-                        <p className="text-xs text-slate-500 mt-1">Diagnosis: Post-op Appy. Ready for discharge.</p>
-                    </div>
-                    <button className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shadow-sm">{isAr ? "مكتمل" : "Completed"}</button>
-                </div>
-            </div>
-        </div>
-    )
-}

@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { 
-  Microscope, TestTube, HardDrive, Printer, CheckCircle2, QrCode, FileText, 
+  Microscope, TestTube, HardDrive, Printer, CheckCircle2, QrCode, FileText, Clock, 
   Share2, Search, Zap, Check, AlertCircle, Trash2, Plus, Play, Pause, 
   ChevronRight, Eye, ShieldCheck, HelpCircle, Activity, Info, Sliders, 
-  Maximize2, Move, Scissors, RefreshCw, Layers, Edit, Filter, FileSpreadsheet, PenLine
+  Maximize2, Move, Scissors, RefreshCw, Layers, Edit, Filter, FileSpreadsheet, PenLine, X
 } from "lucide-react";
 import { useHIS } from "../context/HISContext";
 import { toast } from "sonner";
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
 // Default pre-populated Test Catalog
@@ -18,15 +19,21 @@ import { TestCatalogItem, DEFAULT_CATALOG } from "../data/labCatalog";
 const DEPARTMENTS = ["Biochemistry", "Hematology", "Microbiology", "Immunology", "Pathology", "Genetics", "Hormones"];
 const TUBE_COLORS = ["Purple (EDTA)", "Red (Serum)", "Blue (Citrate)", "Green (Heparin)", "Yellow (Gel)", "Urine Cup", "Stool Cup", "Swab", "Pink", "Grey"];
 
-export default function LISRISDashboard({ language }: Props) {
+export default function LISRISDashboard({ language, onClose }: Props) {
   const isAr = language === "ar";
   const [activeTab, setActiveTab] = useState<"lis" | "ris">("lis");
   
   // Tab states
-  const [labSubTab, setLabSubTab] = useState<"orders" | "results" | "catalog">("orders");
+  const [labSubTab, setLabSubTab] = useState<"orders" | "results" | "catalog" | "history">("orders");
   const [radSubTab, setRadSubTab] = useState<"worklist" | "pacs_viewer" | "reporting">("worklist");
   
   const { patients, updatePatient, cpoeOrders, setCpoeOrders } = useHIS();
+
+  // Lab Cumulative History sub-tab states
+  const [historyPatientId, setHistoryPatientId] = useState<string | null>(null);
+  const [historySearchTerm, setHistorySearchTerm] = useState("");
+  const [expandedLabGroups, setExpandedLabGroups] = useState<Record<string, boolean>>({});
+  const [showFullReportModal, setShowFullReportModal] = useState<any | null>(null);
 
   // Search and selection
   const [labSearchTerm, setLabSearchTerm] = useState("");
@@ -496,18 +503,26 @@ export default function LISRISDashboard({ language }: Props) {
       
       {/* Top Professional Support Services Title Bar */}
       <div className="bg-white p-4 border-b border-slate-200 shrink-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
-            <div className="bg-purple-100 p-1.5 rounded-xl text-purple-700">
-              <Microscope className="h-6 w-6" />
-            </div>
-            <span>{isAr ? "منصة الخدمات الطبية المساعدة والتشخيصية" : "Ancillary & Diagnostic Medical Hub"}</span>
-          </h1>
-          <p className="text-[11px] text-slate-500 font-bold mt-1">
-            {isAr 
-              ? "مختبر مجهز بالكامل (LIS) ونظام أرشفة وإدارة صور الأشعة الرقمية (RIS/PACS) متصل بملف المريض الإلكتروني" 
-              : "Advanced fully integrated Laboratory (LIS) & Radiology PACS/RIS linked to Central Patient Charts"}
-          </p>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div>
+            <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
+              <div className="bg-purple-100 p-1.5 rounded-xl text-purple-700">
+                <Microscope className="h-6 w-6" />
+              </div>
+              <span>{isAr ? "منصة الخدمات الطبية المساعدة والتشخيصية" : "Ancillary & Diagnostic Medical Hub"}</span>
+            </h1>
+            <p className="text-[11px] text-slate-500 font-bold mt-1">
+              {isAr 
+                ? "مختبر مجهز بالكامل (LIS) ونظام أرشفة وإدارة صور الأشعة الرقمية (RIS/PACS) متصل بملف المريض الإلكتروني" 
+                : "Advanced fully integrated Laboratory (LIS) & Radiology PACS/RIS linked to Central Patient Charts"}
+            </p>
+          </div>
         </div>
 
         {/* Support Services Selector */}
@@ -537,7 +552,7 @@ export default function LISRISDashboard({ language }: Props) {
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* LIS Sub Tabs */}
             <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex justify-between items-center gap-2 flex-wrap">
-              <div className="flex gap-1.5">
+              <div className="flex gap-1.5 flex-wrap">
                 <button 
                   onClick={() => setLabSubTab("orders")} 
                   className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${labSubTab === "orders" ? "bg-purple-100 text-purple-700 border border-purple-300" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"}`}
@@ -555,6 +570,12 @@ export default function LISRISDashboard({ language }: Props) {
                   className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${labSubTab === "catalog" ? "bg-purple-100 text-purple-700 border border-purple-300" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"}`}
                 >
                   {isAr ? "كتالوج التحاليل المرجعي" : "Laboratory Test Catalog"}
+                </button>
+                <button 
+                  onClick={() => setLabSubTab("history")} 
+                  className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${labSubTab === "history" ? "bg-purple-100 text-purple-700 border border-purple-300" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"}`}
+                >
+                  {isAr ? "سجل التراكمي للتحاليل" : "Cumulative Lab History"}
                 </button>
               </div>
               <div className="text-[10px] bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg font-mono font-black">
@@ -1014,6 +1035,489 @@ export default function LISRISDashboard({ language }: Props) {
 
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sub Tab: Cumulative Lab Results History & Archiving */}
+            {labSubTab === "history" && (
+              <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-slate-50">
+                {/* Left Side: Patient Directory */}
+                <div className="w-full lg:w-80 border-r border-slate-200 bg-white flex flex-col shrink-0">
+                  <div className="p-3 border-b border-slate-100">
+                    <span className="text-[10px] font-black text-slate-400 uppercase block tracking-wider mb-2">
+                      {isAr ? "دليل سجلات المرضى بالمعمل" : "Lab Patient Registry"}
+                    </span>
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                      <input 
+                        type="text" 
+                        placeholder={isAr ? "بحث بالاسم أو رقم الملف..." : "Search name or MRN..."} 
+                        value={historySearchTerm}
+                        onChange={(e) => setHistorySearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-purple-500 font-bold" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-2 space-y-1 bg-slate-50/50 custom-scrollbar">
+                    {patients.filter(p => {
+                      const term = historySearchTerm.toLowerCase();
+                      return p.nameAr.toLowerCase().includes(term) || p.nameEn.toLowerCase().includes(term) || p.mrn.includes(term);
+                    }).map((p) => {
+                      const allLabOrders = (p.orders || []).filter((o: any) => o.type === "lab");
+                      const completedCount = allLabOrders.filter((o: any) => o.status === "Completed").length;
+                      
+                      return (
+                        <div 
+                          key={p.id}
+                          onClick={() => {
+                            setHistoryPatientId(p.id);
+                            setExpandedLabGroups({});
+                          }}
+                          className={`p-3 rounded-xl border transition-all cursor-pointer select-none ${historyPatientId === p.id ? "bg-purple-50 border-purple-300" : "bg-white border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <div className="font-extrabold text-slate-900 text-xs mb-1">{isAr ? p.nameAr : p.nameEn}</div>
+                          <div className="text-[10px] text-slate-500 flex justify-between items-center">
+                            <span>{p.mrn} • {p.age} {isAr ? "سنة" : "yo"}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${completedCount > 0 ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>
+                              {completedCount} {isAr ? "مكتمل" : "Done"}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }).slice(0, 100)}
+                  </div>
+                </div>
+
+                {/* Right Side: Cumulative History Dashboard */}
+                <div className="flex-1 bg-slate-100/50 p-6 overflow-y-auto custom-scrollbar">
+                  {(() => {
+                    const selectedPatient = patients.find(p => p.id === historyPatientId);
+                    if (!selectedPatient) {
+                      return (
+                        <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xs">
+                          <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-4">
+                            <Microscope className="w-8 h-8" />
+                          </div>
+                          <h3 className="font-black text-slate-800 text-sm">{isAr ? "يرجى تحديد مريض لعرض سجل التحاليل" : "Please Select a Patient to View Lab History"}</h3>
+                          <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                            {isAr ? "اختر مريضاً من القائمة الجانبية لاسترجاع سجلاته المخبرية التاريخية والنتائج التراكمية ومقارنتها عبر الزمن." : "Select any patient from the left panel to retrieve complete, cumulative lab diagnostics and chronological records."}
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    const patientLabOrders = (selectedPatient.orders || []).filter((o: any) => o.type === "lab");
+                    
+                    // Group by test name
+                    const grouped: Record<string, any[]> = {};
+                    patientLabOrders.forEach((order: any) => {
+                      const name = order.name;
+                      if (!grouped[name]) grouped[name] = [];
+                      grouped[name].push(order);
+                    });
+
+                    const testNames = Object.keys(grouped);
+
+                    return (
+                      <div className="space-y-6 animate-fade-in text-right">
+                        {/* Patient Clinical Info Card */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-right">
+                          <div className="text-right w-full">
+                            <div className="flex items-center gap-2 justify-start">
+                              <span className="w-2.5 h-2.5 bg-purple-500 rounded-full shrink-0" />
+                              <h4 className="font-black text-slate-900 text-base">{isAr ? selectedPatient.nameAr : selectedPatient.nameEn}</h4>
+                            </div>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 mt-2 font-bold justify-start">
+                              <span>MRN: <strong className="text-slate-800 font-mono">{selectedPatient.mrn}</strong></span>
+                              <span>{isAr ? "العمر:" : "Age:"} <strong className="text-slate-800">{selectedPatient.age}</strong></span>
+                              <span>{isAr ? "الجنس:" : "Gender:"} <strong className="text-slate-800">{isAr ? (selectedPatient.gender === "male" ? "ذكر" : "أنثى") : selectedPatient.gender}</strong></span>
+                              <span>{isAr ? "القسم:" : "Department:"} <strong className="text-indigo-600">{selectedPatient.department || (selectedPatient.status === "nicu" ? "NICU" : "Ward")}</strong></span>
+                            </div>
+                          </div>
+
+                          <div className="bg-purple-50 px-4 py-2.5 rounded-xl border border-purple-100 text-center shrink-0 w-full md:w-auto">
+                            <span className="text-[9px] font-black text-purple-500 uppercase block tracking-wider">{isAr ? "إجمالي الفحوصات الطبية" : "Total Logged Tests"}</span>
+                            <span className="text-xl font-black text-purple-700">{patientLabOrders.length}</span>
+                          </div>
+                        </div>
+
+                        {/* Searchable/Filterable list of grouped tests */}
+                        {testNames.length === 0 ? (
+                          <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
+                            <span className="text-xs text-slate-400 font-bold">{isAr ? "لا يوجد أي فحوصات مخبرية مسجلة لهذا المريض بعد." : "No laboratory examinations registered for this patient yet."}</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <h5 className="text-xs font-black text-slate-500 uppercase tracking-widest text-start">{isAr ? "التحاليل المجمعة والمؤرشفة عبر الزمن" : "Grouped Cumulative Diagnostic Tests"}</h5>
+                            
+                            {testNames.map((testName) => {
+                              const runs = grouped[testName];
+                              const sortedRuns = [...runs].sort((a, b) => {
+                                const dateA = new Date(a.completedAt || a.date).getTime();
+                                const dateB = new Date(b.completedAt || b.date).getTime();
+                                return dateB - dateA;
+                              });
+
+                              const isExpanded = !!expandedLabGroups[testName];
+
+                              return (
+                                <div key={testName} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs transition-all">
+                                  {/* Group Header Accordion */}
+                                  <div 
+                                    onClick={() => setExpandedLabGroups(prev => ({ ...prev, [testName]: !prev[testName] }))}
+                                    className="p-4 bg-slate-50 hover:bg-slate-100/70 border-b border-slate-200 flex justify-between items-center cursor-pointer select-none"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 shrink-0">
+                                        <TestTube className="w-4 h-4" />
+                                      </div>
+                                      <div className="text-start">
+                                        <h6 className="font-extrabold text-slate-800 text-sm">{testName}</h6>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">
+                                          {isAr ? `تاريخ آخر فحص: ${sortedRuns[0].completedAt || sortedRuns[0].date}` : `Last performed: ${sortedRuns[0].completedAt || sortedRuns[0].date}`}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                      <span className="bg-purple-100 text-purple-700 font-black text-[10px] px-2.5 py-1 rounded-full">
+                                        {runs.length} {isAr ? "تحليل / اختبار" : "Runs"}
+                                      </span>
+                                      <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                                    </div>
+                                  </div>
+
+                                  {/* Group Body: Chronological Runs */}
+                                  {isExpanded && (
+                                    <div className="p-4 bg-white space-y-6 divide-y divide-slate-150">
+                                      {sortedRuns.map((run, runIdx) => (
+                                        <div key={run.id || runIdx} className={`${runIdx > 0 ? "pt-6" : ""}`}>
+                                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                                            <div className="flex items-center gap-2 flex-wrap text-right">
+                                              <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-black">
+                                                {isAr ? `الإصدار #${sortedRuns.length - runIdx}` : `Run #${sortedRuns.length - runIdx}`}
+                                              </span>
+                                              <span className="text-xs text-slate-500 font-bold flex items-center gap-1">
+                                                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                                {run.completedAt || run.date}
+                                              </span>
+                                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">
+                                                {isAr ? "المختبر المركزي" : "Central Pathology Lab"}
+                                              </span>
+                                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${run.status === "Completed" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                                                {run.status === "Completed" ? (isAr ? "معتمد ونهائي" : "Approved & Final") : run.status}
+                                              </span>
+                                            </div>
+
+                                            <div className="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                                              <button 
+                                                onClick={() => setShowFullReportModal({ patient: selectedPatient, run })}
+                                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-[10px] font-bold transition cursor-pointer"
+                                              >
+                                                <Eye className="w-3.5 h-3.5 text-slate-500" />
+                                                <span>{isAr ? "مشاهدة التقرير كلياً" : "View Full Report"}</span>
+                                              </button>
+                                              <button 
+                                                onClick={() => {
+                                                  setShowFullReportModal({ patient: selectedPatient, run, autoPrint: true });
+                                                }}
+                                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold transition shadow-sm cursor-pointer"
+                                              >
+                                                <Printer className="w-3.5 h-3.5" />
+                                                <span>{isAr ? "طباعة النتيجة" : "Print Result"}</span>
+                                              </button>
+                                            </div>
+                                          </div>
+
+                                          {/* Parameters Table */}
+                                          {run.result && run.result.length > 0 ? (
+                                            <div className="border border-slate-200 rounded-xl overflow-hidden custom-scrollbar max-h-96 overflow-y-auto">
+                                              <table className="w-full text-xs font-semibold text-right rtl:text-right ltr:text-left">
+                                                <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                                                  <tr>
+                                                    <th className="p-2.5 text-start">{isAr ? "المؤشر الطبي" : "Parameter"}</th>
+                                                    <th className="p-2.5 text-center w-36">{isAr ? "النتيجة" : "Result"}</th>
+                                                    <th className="p-2.5 text-center w-24">{isAr ? "الوحدة" : "Unit"}</th>
+                                                    <th className="p-2.5 text-center w-36">{isAr ? "المعدل الطبيعي" : "Normal Reference"}</th>
+                                                    <th className="p-2.5 text-center w-24">{isAr ? "حالة الانحراف" : "Deviation"}</th>
+                                                  </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100 font-mono">
+                                                  {run.result.map((item: any, itemIdx: number) => (
+                                                    <tr key={itemIdx} className={item.abnormal ? "bg-rose-50/30" : "hover:bg-slate-50/30"}>
+                                                      <td className="p-2.5 text-start font-sans font-bold text-slate-800 flex items-center gap-1.5">
+                                                        {item.abnormal && <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />}
+                                                        {item.name}
+                                                      </td>
+                                                      <td className={`p-2.5 text-center font-black ${item.abnormal ? "text-rose-700 font-extrabold text-sm" : "text-slate-800"}`}>
+                                                        {item.value}
+                                                      </td>
+                                                      <td className="p-2.5 text-center font-bold text-slate-400">{item.unit}</td>
+                                                      <td className="p-2.5 text-center text-slate-500">{item.min} - {item.max}</td>
+                                                      <td className="p-2.5 text-center font-black">
+                                                        {item.abnormal ? (
+                                                          <span className="bg-rose-100 text-rose-700 text-[9px] px-2 py-0.5 rounded-full font-bold">
+                                                            {parseFloat(item.value) < item.min ? (isAr ? "منخفض ⬇" : "Low ⬇") : (isAr ? "مرتفع ⬆" : "High ⬆")}
+                                                          </span>
+                                                        ) : (
+                                                          <span className="text-slate-300 font-sans text-[10px]">—</span>
+                                                        )}
+                                                      </td>
+                                                    </tr>
+                                                  ))}
+                                                </tbody>
+                                              </table>
+                                            </div>
+                                          ) : (
+                                            <div className="p-4 bg-slate-50 rounded-xl text-center text-slate-400 text-xs font-bold">
+                                              {isAr ? "لا توجد تفاصيل نتائج مسجلة لهذا الفحص." : "No structured result parameter values logged for this test."}
+                                            </div>
+                                          )}
+
+                                          {/* Pathologist Comments */}
+                                          {run.notes && (
+                                            <div className="mt-3 bg-purple-50/50 p-3 rounded-xl border border-purple-100 text-xs text-start">
+                                              <strong className="text-purple-800 font-bold block mb-1 text-right">{isAr ? "ملاحظات طبيب التحاليل:" : "Pathologist Remarks:"}</strong>
+                                              <p className="text-slate-600 font-bold leading-relaxed text-right">{run.notes}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* Printable Lab Report Modal Overlay */}
+            {showFullReportModal && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[9999] flex items-center justify-center p-4 overflow-y-auto no-print">
+                <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-3xl w-full flex flex-col max-h-[90vh]">
+                  {/* Modal Header */}
+                  <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-3xl">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-purple-600" />
+                      <h3 className="font-black text-slate-900 text-sm">
+                        {isAr ? "معاينة تقرير التحليل المخبري الرسمي" : "Official Laboratory Report Preview"}
+                      </h3>
+                    </div>
+                    <button 
+                      onClick={() => setShowFullReportModal(null)}
+                      className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Report Content Scroll Area */}
+                  <div className="flex-1 overflow-y-auto p-8 font-sans" id="printable-lab-report-area">
+                    {/* Report Header */}
+                    <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-start">
+                      <div className="text-right">
+                        <h1 className="text-xl font-black text-slate-900">{isAr ? "مجمع عيادات ومستشفى الشفاء الدولي" : "Al-Shifa International Hospital & Lab"}</h1>
+                        <p className="text-[10px] text-slate-500 mt-1">{isAr ? "قسم المختبرات والتحاليل الطبية المركزية" : "Department of Clinical Diagnostics & Central Laboratory"}</p>
+                      </div>
+                      <div className="text-left">
+                        <div className="inline-block bg-slate-100 px-3 py-1 rounded text-[10px] font-mono font-black text-slate-700 tracking-wider">
+                          LIS-REP-{showFullReportModal.run.id || "GEN"}
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">{showFullReportModal.run.completedAt || showFullReportModal.run.date}</p>
+                      </div>
+                    </div>
+
+                    {/* Patient and Specimen Grid Details */}
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 grid grid-cols-2 gap-x-6 gap-y-2 text-xs mb-6 font-bold text-slate-700 text-right">
+                      <div>
+                        <span>{isAr ? "اسم المريض:" : "Patient Name:"}</span> <strong className="text-slate-900">{isAr ? showFullReportModal.patient.nameAr : showFullReportModal.patient.nameEn}</strong>
+                      </div>
+                      <div>
+                        <span>{isAr ? "رقم الملف الطبي:" : "MRN ID:"}</span> <strong className="text-slate-900 font-mono">{showFullReportModal.patient.mrn}</strong>
+                      </div>
+                      <div>
+                        <span>{isAr ? "العمر والجنس:" : "Age / Gender:"}</span> <strong className="text-slate-900">{showFullReportModal.patient.age} / {isAr ? (showFullReportModal.patient.gender === "male" ? "ذكر" : "أنثى") : showFullReportModal.patient.gender}</strong>
+                      </div>
+                      <div>
+                        <span>{isAr ? "تاريخ الإصدار:" : "Report Date:"}</span> <strong className="text-slate-900">{showFullReportModal.run.completedAt || showFullReportModal.run.date}</strong>
+                      </div>
+                      <div className="col-span-2">
+                        <span>{isAr ? "موقع الفحص:" : "Diagnostic Unit:"}</span> <strong className="text-indigo-600">{isAr ? "مختبر الدم والكيمياء الحيوية المركزي" : "Central Biochemistry & Hematology Unit"}</strong>
+                      </div>
+                    </div>
+
+                    {/* Lab Test Title */}
+                    <div className="mb-4">
+                      <h2 className="text-lg font-black text-purple-800 text-center uppercase tracking-wider bg-purple-50 py-1.5 rounded-xl border border-purple-100">
+                        {showFullReportModal.run.name}
+                      </h2>
+                    </div>
+
+                    {/* Parameters Table */}
+                    <table className="w-full text-xs font-semibold text-right rtl:text-right ltr:text-left border-collapse border-2 border-slate-800 mb-6">
+                      <thead>
+                        <tr className="bg-slate-100 text-slate-800 border-b-2 border-slate-800">
+                          <th className="border border-slate-400 p-3 text-start font-black">{isAr ? "المؤشر الطبي" : "Test Parameter"}</th>
+                          <th className="border border-slate-400 p-3 text-center w-32 font-black">{isAr ? "النتيجة" : "Result Value"}</th>
+                          <th className="border border-slate-400 p-3 text-center w-24 font-black">{isAr ? "الوحدة" : "Unit"}</th>
+                          <th className="border border-slate-400 p-3 text-center w-36 font-black">{isAr ? "المعدل الطبيعي" : "Normal Reference"}</th>
+                          <th className="border border-slate-400 p-3 text-center w-24 font-black">{isAr ? "الانحراف" : "Flag"}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-400 font-mono font-bold text-slate-800">
+                        {showFullReportModal.run.result && showFullReportModal.run.result.map((item: any, idx: number) => (
+                          <tr key={idx} className={item.abnormal ? "bg-rose-50" : ""}>
+                            <td className="border border-slate-400 p-3 text-start font-sans font-extrabold">{item.name}</td>
+                            <td className={`border border-slate-400 p-3 text-center font-black text-sm ${item.abnormal ? "text-rose-700 font-black" : ""}`}>{item.value}</td>
+                            <td className="border border-slate-400 p-3 text-center text-slate-500">{item.unit}</td>
+                            <td className="border border-slate-400 p-3 text-center text-slate-600">{item.min} - {item.max}</td>
+                            <td className="border border-slate-400 p-3 text-center">
+                              {item.abnormal ? (
+                                <span className="bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase">
+                                  {parseFloat(item.value) < item.min ? (isAr ? "منخفض" : "Low") : (isAr ? "مرتفع" : "High")}
+                                </span>
+                              ) : (
+                                <span className="text-slate-300 font-sans text-[10px] font-bold">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Pathologist Comments */}
+                    {showFullReportModal.run.notes && (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-300 text-xs mb-8 text-right">
+                        <strong className="text-slate-800 font-bold block mb-1">{isAr ? "التعليق والتحليل المخبري السريري للعينات:" : "Pathology Interpretation & Clinical Findings:"}</strong>
+                        <p className="text-slate-600 font-semibold leading-relaxed">{showFullReportModal.run.notes}</p>
+                      </div>
+                    )}
+
+                    {/* Signatures */}
+                    <div className="flex justify-between items-end mt-12 pt-6 border-t border-slate-200">
+                      <div className="text-center">
+                        <div className="text-[10px] text-slate-400 uppercase font-bold">{isAr ? "مشرف الفحص الفني" : "Medical Lab Technologist"}</div>
+                        <div className="font-bold text-xs mt-4 text-slate-700">{isAr ? "رشا محمود (سجل #29)" : "Rasha Mahmoud, MT (Lic #29)"}</div>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        <QrCode className="w-10 h-10 text-slate-400 mb-1" />
+                        <span className="text-[8px] text-slate-400 font-mono">{isAr ? "مسح للتحقق" : "Scan to Verify"}</span>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="text-[10px] text-slate-400 uppercase font-bold">{isAr ? "أخصائي علم الأمراض المعتمد" : "Chief Consultant Pathologist"}</div>
+                        <div className="font-bold text-xs mt-4 text-slate-900 border-b border-dashed border-slate-400 pb-1 px-4">{isAr ? "د. محمد كمال" : "Dr. Mohamed Kamal, MD"}</div>
+                        <div className="text-[8px] text-emerald-600 font-bold flex items-center gap-0.5 justify-center mt-1">
+                          <ShieldCheck className="w-3 h-3" /> {isAr ? "موقع رقمياً" : "Digitally E-signed"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Modal Actions */}
+                  <div className="p-4 border-t border-slate-200 flex justify-end gap-3 bg-slate-50 rounded-b-3xl">
+                    <button 
+                      onClick={() => setShowFullReportModal(null)}
+                      className="px-5 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      {isAr ? "إغلاق" : "Close"}
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const printContent = document.getElementById("printable-lab-report-area")?.innerHTML;
+                        const win = window.open("", "_blank");
+                        if (win) {
+                          win.document.write(`
+                            <html>
+                              <head>
+                                <title>${isAr ? "تقرير تحليل مخبري" : "Laboratory Report"}</title>
+                                <style>
+                                  body { font-family: sans-serif; padding: 40px; direction: ${isAr ? "rtl" : "ltr"}; }
+                                  .bg-slate-50 { background-color: #f8fafc; }
+                                  .rounded-2xl { border-radius: 1rem; }
+                                  .p-4 { padding: 1rem; }
+                                  .border { border: 1px solid #e2e8f0; }
+                                  .grid { display: grid; }
+                                  .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                                  .gap-x-6 { column-gap: 1.5rem; }
+                                  .gap-y-2 { row-gap: 0.5rem; }
+                                  .text-xs { font-size: 0.75rem; }
+                                  .text-sm { font-size: 0.875rem; }
+                                  .text-lg { font-size: 1.125rem; }
+                                  .text-xl { font-size: 1.25rem; }
+                                  .font-bold { font-weight: 700; }
+                                  .font-black { font-weight: 900; }
+                                  .font-extrabold { font-weight: 800; }
+                                  .text-purple-800 { color: #5b21b6; }
+                                  .bg-purple-50 { background-color: #f5f3ff; }
+                                  .border-purple-100 { border-color: #ede9fe; }
+                                  .py-1.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+                                  .w-full { width: 100%; }
+                                  .border-collapse { border-collapse: collapse; }
+                                  .border-2 { border-width: 2px; }
+                                  .border-slate-800 { border-color: #1e293b; }
+                                  .mb-6 { margin-bottom: 1.5rem; }
+                                  .bg-slate-100 { background-color: #f1f5f9; }
+                                  .text-slate-800 { color: #1e293b; }
+                                  .p-3 { padding: 0.75rem; }
+                                  .text-start { text-align: start; }
+                                  .text-center { text-align: center; }
+                                  .w-32 { width: 8rem; }
+                                  .w-24 { width: 6rem; }
+                                  .w-36 { width: 9rem; }
+                                  .border-slate-400 { border-color: #94a3b8; }
+                                  .bg-rose-50 { background-color: #fff1f2; }
+                                  .text-rose-700 { color: #be123c; }
+                                  .text-slate-500 { color: #64748b; }
+                                  .text-slate-600 { color: #475569; }
+                                  .flex { display: flex; }
+                                  .justify-between { justify-content: space-between; }
+                                  .items-end { align-items: flex-end; }
+                                  .mt-12 { margin-top: 3rem; }
+                                  .pt-6 { padding-top: 1.5rem; }
+                                  .border-t { border-top: 1px solid #e2e8f0; }
+                                  .text-slate-400 { color: #94a3b8; }
+                                  .uppercase { text-transform: uppercase; }
+                                  .font-mono { font-family: monospace; }
+                                  .mt-4 { margin-top: 1rem; }
+                                  .text-slate-700 { color: #334155; }
+                                  .border-dashed { border-style: dashed; }
+                                  .pb-1 { padding-bottom: 0.25rem; }
+                                  .px-4 { padding-left: 1rem; padding-right: 1rem; }
+                                  .text-emerald-600 { color: #059669; }
+                                  .gap-0.5 { gap: 0.125rem; }
+                                  .mt-1 { margin-top: 0.25rem; }
+                                </style>
+                              </head>
+                              <body>
+                                ${printContent}
+                                <script>
+                                  window.onload = function() {
+                                    window.print();
+                                    window.close();
+                                  }
+                                </script>
+                              </body>
+                            </html>
+                          `);
+                          win.document.close();
+                        }
+                      }}
+                      className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Printer className="w-4 h-4" />
+                      <span>{isAr ? "طباعة فورية" : "Print Report"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

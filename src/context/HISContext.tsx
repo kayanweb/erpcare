@@ -16,6 +16,18 @@ import {
   saveSetting
 } from "../lib/storage";
 
+export type PatientJourneyStep = {
+  id: string;
+  patientId: string;
+  department: string;
+  status: string;
+  startTime: string;
+  endTime?: string;
+  actionBy: string;
+  notesEn?: string;
+  notesAr?: string;
+};
+
 export type Patient = {
   id: string;
   mrn: string;
@@ -24,7 +36,7 @@ export type Patient = {
   age: number;
   gender: string;
   phone: string;
-  status: "registered" | "triage" | "doctor" | "ward" | "discharged";
+  status: "registered" | "triage" | "er" | "doctor" | "ward" | "discharged" | "nicu" | "pacu" | "opd";
   insurance: string;
   departmentId?: string;
   wardId?: string;
@@ -88,12 +100,36 @@ export type Invoice = {
   date: string;
 };
 
+export type MasterDataEntry = {
+  id: string;
+  category: string;
+  valueEn: string;
+  valueAr: string;
+  isOfficial: boolean;
+  status: "pending" | "approved" | "rejected";
+  createdBy: string;
+  department?: string;
+  module?: string;
+  screen?: string;
+  fieldName?: string;
+  date: string;
+  time: string;
+  useCount: number;
+  hospital?: string;
+  branch?: string;
+};
+
 interface HISState {
   patients: Patient[];
   addPatient: (p: Patient) => void;
   updatePatient: (id: string, updates: Partial<Patient>) => void;
   deletePatient: (id: string) => void;
   updatePatientStatus: (id: string, status: Patient["status"]) => void;
+
+  masterData: MasterDataEntry[];
+  addMasterData: (entry: Omit<MasterDataEntry, "id" | "date" | "time" | "useCount" | "status" | "isOfficial">) => void;
+  updateMasterDataStatus: (id: string, status: MasterDataEntry["status"], isOfficial?: boolean) => void;
+  deleteMasterData: (id: string) => void;
 
   prescriptions: Prescription[];
   addPrescription: (p: Prescription) => void;
@@ -126,11 +162,19 @@ interface HISState {
   inventory: InventoryItem[];
   setInventory: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
   addConsumableToPatient: (patientId: string, item: InventoryItem, qty: number) => void;
+  rosterWishes: any[];
+  setRosterWishes: React.Dispatch<React.SetStateAction<any[]>>;
+  patientJourneys: PatientJourneyStep[];
+  setPatientJourneys: React.Dispatch<React.SetStateAction<PatientJourneyStep[]>>;
+  addJourneyStep: (step: Omit<PatientJourneyStep, "id" | "startTime">) => void;
+  
+  language: "ar" | "en";
+  currentUser: any;
 }
 
 const HISContext = createContext<HISState | undefined>(undefined);
 
-export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isLoggedIn: boolean }) {
+export function HISProvider({ children, isLoggedIn, language = "ar", currentUser = null }: { children: ReactNode, isLoggedIn: boolean, language?: "ar" | "en", currentUser?: any }) {
   const [patients, setPatients] = useFirestoreSync<Patient>(syncPatients, []);
   const safePatients = Array.isArray(patients) ? patients : [];
   const [prescriptions, setPrescriptions] = useFirestoreSync<Prescription>(syncPrescriptions, []);
@@ -156,6 +200,9 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
   const [erQueueRaw, setErQueueRaw] = useFirestoreSetting<any[]>(syncSetting, 'his_er_queue', [], [], isLoggedIn);
   const [cpoeOrdersRaw, setCpoeOrdersRaw] = useFirestoreSetting<any[]>(syncSetting, 'his_cpoe_orders', [], [], isLoggedIn);
   const [inventoryRaw, setInventoryRaw] = useFirestoreSetting<InventoryItem[]>(syncSetting, 'his_inventory', [], [], isLoggedIn);
+  const [masterDataRaw, setMasterDataRaw] = useFirestoreSetting<MasterDataEntry[]>(syncSetting, 'his_master_data', [], [], isLoggedIn);
+  const [rosterWishesRaw, setRosterWishesRaw] = useFirestoreSetting<any[]>(syncSetting, 'his_roster_wishes', [], [], isLoggedIn);
+  const [patientJourneysRaw, setPatientJourneysRaw] = useFirestoreSetting<PatientJourneyStep[]>(syncSetting, 'his_patient_journeys', [], [], isLoggedIn);
 
   const setAdmissionRequests = (valOrFunc: React.SetStateAction<any[]>) => {
     setAdmissionRequestsRaw(prev => {
@@ -195,6 +242,39 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
       saveSetting('his_inventory', newVal).catch(console.error);
       return newVal;
     });
+  };
+
+  const setMasterData = (valOrFunc: React.SetStateAction<MasterDataEntry[]>) => {
+    setMasterDataRaw(prev => {
+      const newVal = typeof valOrFunc === 'function' ? (valOrFunc as any)(prev) : valOrFunc;
+      saveSetting('his_master_data', newVal).catch(console.error);
+      return newVal;
+    });
+  };
+
+  const setRosterWishes = (valOrFunc: React.SetStateAction<any[]>) => {
+    setRosterWishesRaw(prev => {
+      const newVal = typeof valOrFunc === 'function' ? (valOrFunc as any)(prev) : valOrFunc;
+      saveSetting('his_roster_wishes', newVal).catch(console.error);
+      return newVal;
+    });
+  };
+
+  const setPatientJourneys = (valOrFunc: React.SetStateAction<PatientJourneyStep[]>) => {
+    setPatientJourneysRaw(prev => {
+      const newVal = typeof valOrFunc === 'function' ? (valOrFunc as any)(prev) : valOrFunc;
+      saveSetting('his_patient_journeys', newVal).catch(console.error);
+      return newVal;
+    });
+  };
+
+  const addJourneyStep = (step: Omit<PatientJourneyStep, "id" | "startTime">) => {
+    const newStep: PatientJourneyStep = {
+      ...step,
+      id: `jstp-${Date.now()}`,
+      startTime: new Date().toISOString()
+    };
+    setPatientJourneys(prev => [...(Array.isArray(prev) ? prev : []), newStep]);
   };
 
   const addConsumableToPatient = (patientId: string, item: InventoryItem, qty: number) => {
@@ -238,12 +318,16 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
   const bedMap = bedMapRaw || {};
   const cpoeOrders = Array.isArray(cpoeOrdersRaw) ? cpoeOrdersRaw : [];
   const inventory = Array.isArray(inventoryRaw) ? inventoryRaw : [];
+  const masterData = Array.isArray(masterDataRaw) ? masterDataRaw : [];
+  const rosterWishes = Array.isArray(rosterWishesRaw) ? rosterWishesRaw : [];
   
   // Seed initial mock data if empty (useful for fresh DB)
   const [hasSeeded, setHasSeeded] = useState(false);
   useEffect(() => {
     if (safePatients.length === 0 && !hasSeeded) {
-      setHasSeeded(true);
+      setTimeout(() => {
+        setHasSeeded(true);
+      }, 0);
       // Wait a moment for sync to settle, then add default data only if it is actually empty
       setTimeout(() => {
         if (safePatients.length === 0) {
@@ -257,6 +341,21 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
             { id: "inv-2", nameEn: "Syringe 10ml", nameAr: "سرنجة 10 مل", type: "consumable", stockMain: 800, stockSub: 150, unit: "pc", price: 8 },
             { id: "inv-3", nameEn: "Gauze Pad", nameAr: "شاش طبي", type: "consumable", stockMain: 500, stockSub: 100, unit: "pack", price: 15 },
             { id: "inv-4", nameEn: "Paracetamol 500mg", nameAr: "باراسيتامول 500 ملجم", type: "medication", stockMain: 2000, stockSub: 500, unit: "tablet", price: 2 }
+          ]);
+        }
+
+        // Seed Master Data if empty
+        if (masterData.length === 0) {
+          setMasterData([
+            { id: "md-ins-1", category: "insurance", valueEn: "Cash", valueAr: "كاش", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-ins-2", category: "insurance", valueEn: "Bupa", valueAr: "بوبا", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-ins-3", category: "insurance", valueEn: "Tawuniya", valueAr: "التعاونية", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-ins-4", category: "insurance", valueEn: "MedNet", valueAr: "ميد نت", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-city-1", category: "city", valueEn: "Cairo", valueAr: "القاهرة", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-city-2", category: "city", valueEn: "Giza", valueAr: "الجيزة", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-city-3", category: "city", valueEn: "Alexandria", valueAr: "الإسكندرية", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-nat-1", category: "nationality", valueEn: "Egyptian", valueAr: "مصري", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
+            { id: "md-nat-2", category: "nationality", valueEn: "Saudi", valueAr: "سعودي", isOfficial: true, status: "approved", useCount: 0, createdBy: "System", date: "2026-01-01", time: "00:00:00" },
           ]);
         }
       }, 5000);
@@ -325,6 +424,40 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
     }
   };
 
+  const addMasterData = (entry: Omit<MasterDataEntry, "id" | "date" | "time" | "useCount" | "status" | "isOfficial">) => {
+    const existing = masterData.find(m => 
+      m.category === entry.category && 
+      (m.valueEn.toLowerCase() === entry.valueEn.toLowerCase() || 
+       m.valueAr === entry.valueAr)
+    );
+
+    if (existing) {
+      setMasterData(prev => prev.map(m => m.id === existing.id ? { ...m, useCount: m.useCount + 1 } : m));
+      return;
+    }
+
+    const now = new Date();
+    const newEntry: MasterDataEntry = {
+      ...entry,
+      id: `md-${Math.random().toString(36).substr(2, 9)}`,
+      date: now.toISOString().split('T')[0],
+      time: now.toTimeString().split(' ')[0],
+      useCount: 1,
+      status: "pending",
+      isOfficial: false
+    };
+
+    setMasterData(prev => [...prev, newEntry]);
+  };
+
+  const updateMasterDataStatus = (id: string, status: MasterDataEntry["status"], isOfficial: boolean = false) => {
+    setMasterData(prev => prev.map(m => m.id === id ? { ...m, status, isOfficial } : m));
+  };
+
+  const deleteMasterData = (id: string) => {
+    setMasterData(prev => prev.filter(m => m.id !== id));
+  };
+
   const addInvoice = (i: Invoice) => {
     saveInvoice(i).catch(err => console.error("Cloud invoice save error:", err));
   };
@@ -340,6 +473,7 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
     <HISContext.Provider value={{
       patients: safePatients, addPatient, updatePatient, deletePatient, updatePatientStatus,
       prescriptions: safePrescriptions, addPrescription, updatePrescriptionStatus,
+      masterData, addMasterData, updateMasterDataStatus, deleteMasterData,
       invoices: safeInvoices, addInvoice, updateInvoiceStatus,
       activePatient, setActivePatient,
       admissionRequests, setAdmissionRequests,
@@ -353,7 +487,14 @@ export function HISProvider({ children, isLoggedIn }: { children: ReactNode, isL
       setCpoeOrders,
       inventory,
       setInventory,
-      addConsumableToPatient
+      addConsumableToPatient,
+      patientJourneys: Array.isArray(patientJourneysRaw) ? patientJourneysRaw : [],
+      setPatientJourneys,
+      addJourneyStep,
+      rosterWishes,
+      setRosterWishes,
+      language,
+      currentUser
     }}>
       {children}
     </HISContext.Provider>

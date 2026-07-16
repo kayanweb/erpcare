@@ -8,15 +8,25 @@ import DepartmentTasks from "./DepartmentTasks";
 interface Props {
   language: "ar" | "en";
   forceDepartmentId?: string;
+  onOpenPatientChart?: (id: string, name: string, tab?: string) => void;
 }
 
-export default function PhysicianWardDashboard({ language, forceDepartmentId }: Props) {
+export default function PhysicianWardDashboard({ language, forceDepartmentId, onOpenPatientChart }: Props) {
   const isAr = language === "ar";
   const { patients: contextPatients } = useHIS();
   const [selectedDepartment, setSelectedDepartment] = useState<string>(forceDepartmentId || "dept-im");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [localSelectedPatientId, setLocalSelectedPatientId] = useState<string | null>(null);
   const [initialPatientTab, setInitialPatientTab] = useState<string>("summary");
   const [activeTab, setActiveTab] = useState<"patients" | "tasks">("patients");
+
+  const handleOpenChart = (patient: any, tab: string = "summary") => {
+    if (onOpenPatientChart) {
+      onOpenPatientChart(patient.id, isAr ? patient.nameAr : patient.name, tab);
+    } else {
+      setLocalSelectedPatientId(patient.id);
+      setInitialPatientTab(tab);
+    }
+  };
 
   const departments = [
     { id: "dept-im", name: "Internal Medicine", nameAr: "الباطنة العامة" },
@@ -116,7 +126,7 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
                     key={patient.id} 
                     className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-300 transition relative group"
                   >
-                    <div className="flex justify-between items-start mb-4 cursor-pointer" onClick={() => { setSelectedPatientId(patient.mrn); setInitialPatientTab("summary"); }}>
+                    <div className="flex justify-between items-start mb-4 cursor-pointer" onClick={() => handleOpenChart(patient, "summary")}>
                        <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center shrink-0">
                              <User className="w-6 h-6 text-indigo-600 group-hover:scale-110 transition" />
@@ -135,13 +145,13 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
                        </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-sm font-bold text-slate-700 mb-4 truncate cursor-pointer" onClick={() => { setSelectedPatientId(patient.mrn); setInitialPatientTab("summary"); }}>
+                    <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-sm font-bold text-slate-700 mb-4 truncate cursor-pointer" onClick={() => handleOpenChart(patient, "summary")}>
                       <span className="text-slate-500">{isAr ? "التشخيص:" : "Dx:"}</span> {patient.dx}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
                       <div 
-                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("labs"); }}
+                        onClick={(e) => { e.stopPropagation(); handleOpenChart(patient, "labs"); }}
                         className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.labs > 0 ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
                       >
                          <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
@@ -152,7 +162,7 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
                       </div>
                       
                       <div 
-                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("vitals"); }}
+                        onClick={(e) => { e.stopPropagation(); handleOpenChart(patient, "vitals"); }}
                         className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.vitals > 0 ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
                       >
                          <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
@@ -163,7 +173,7 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
                       </div>
 
                       <div 
-                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("progress_notes"); }}
+                        onClick={(e) => { e.stopPropagation(); handleOpenChart(patient, "progress_notes"); }}
                         className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.consults > 0 ? 'bg-sky-50 border-sky-200 text-sky-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
                       >
                          <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
@@ -174,7 +184,7 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
                       </div>
 
                       <div 
-                        onClick={(e) => { e.stopPropagation(); setSelectedPatientId(patient.mrn); setInitialPatientTab("orders"); }}
+                        onClick={(e) => { e.stopPropagation(); handleOpenChart(patient, "orders"); }}
                         className={`flex flex-col p-2 rounded-xl border cursor-pointer hover:shadow-sm transition ${patient.alerts.unsigned > 0 ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
                       >
                          <div className="flex items-center gap-1.5 text-xs font-bold mb-1">
@@ -192,11 +202,11 @@ export default function PhysicianWardDashboard({ language, forceDepartmentId }: 
         </div>
       )}
 
-      {selectedPatientId && (
+      {localSelectedPatientId && (
         <PatientChartModal
-          patientId={selectedPatientId}
-          patientName={selectedPatientId} // In a real app we'd pass the actual object
-          onClose={() => setSelectedPatientId(null)}
+          patientId={localSelectedPatientId}
+          patientName={localSelectedPatientId} // In a real app we'd pass the actual object
+          onClose={() => setLocalSelectedPatientId(null)}
           isAr={isAr}
           initialTab={initialPatientTab}
         />

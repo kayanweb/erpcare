@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Package, Activity, RefreshCw, Trash2, ShoppingCart, ArrowLeftRight, Archive, AlertCircle, FileText, Barcode, ShieldCheck, FilePlus2, CheckCircle2, Factory } from "lucide-react";
+import { Plus, Package, Activity, RefreshCw, Trash2, ShoppingCart, ArrowLeftRight, Archive, AlertCircle, FileText, Barcode, ShieldCheck, FilePlus2, CheckCircle2, Factory, X } from "lucide-react";
 import { syncSetting, saveSetting } from "../lib/firestoreService";
 import { motion, AnimatePresence } from "motion/react";
 import GenericActionModal from "./GenericActionModal";
@@ -9,9 +9,10 @@ interface InventoryEngineProps {
   language: "ar" | "en";
   mode: "pharmacy" | "supplies" | "laboratory" | "radiology" | "cssd" | "blood_bank" | "engineering";
   currentUser?: any;
+  onClose?: () => void;
 }
 
-export default function EnterpriseInventoryEngine({ language, mode, currentUser }: InventoryEngineProps) {
+export default function EnterpriseInventoryEngine({ language, mode, currentUser, onClose }: InventoryEngineProps) {
   const isAr = language === "ar";
 
   // Tab State
@@ -21,7 +22,15 @@ export default function EnterpriseInventoryEngine({ language, mode, currentUser 
     <div className="flex h-full w-full bg-slate-50 overflow-hidden" dir={isAr ? "rtl" : "ltr"}>
       {/* Sidebar for Engine Modules */}
       <div className="w-64 bg-white border-r border-slate-200 border-l border-slate-200 flex flex-col z-10 shrink-0">
-        <div className="p-4 bg-slate-900 text-white shadow-md">
+        <div className="p-4 bg-slate-900 text-white shadow-md relative">
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="absolute top-2 ltr:right-2 rtl:left-2 p-1 hover:bg-white/20 rounded transition text-white/70 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           <div className="flex items-center gap-3">
             <Package className="h-6 w-6 text-pink-400" />
             <h2 className="text-lg font-black tracking-tight">

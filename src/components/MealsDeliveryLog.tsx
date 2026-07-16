@@ -6,8 +6,8 @@ import { useSettings } from "../context/SettingsContext";
 
 interface MealsDeliveryLogProps {
   language: "ar" | "en";
-  rosterList: DepartmentRoster[];
-  departments: string[];
+  rosterList?: DepartmentRoster[];
+  departments?: string[];
 }
 
 export default function MealsDeliveryLog({ language, rosterList, departments }: MealsDeliveryLogProps) {
@@ -82,12 +82,12 @@ export default function MealsDeliveryLog({ language, rosterList, departments }: 
   });
 
   const getMealStaffListForDept = (dept: string, type: "lunch" | "dinner") => {
-    const activeRoster = rosterList.find((r: any) => r.departmentName === dept && r.month === selectedMonth) 
-      || rosterList.find((r: any) => r.departmentName === dept && !r.month && selectedMonth === "2026-05");
+    const activeRoster = (rosterList || []).find((r: any) => r.departmentName === dept && r.month === selectedMonth) 
+      || (rosterList || []).find((r: any) => r.departmentName === dept && !r.month && selectedMonth === "2026-05");
       
     if (!activeRoster) return [];
     
-    return activeRoster.rows.filter(row => {
+    return (activeRoster.rows || []).filter(row => {
       const shiftForDay = row.shifts[selectedDay];
       if (!shiftForDay) return false;
       
@@ -119,7 +119,7 @@ export default function MealsDeliveryLog({ language, rosterList, departments }: 
           <div className="flex flex-col items-end gap-1 shrink-0">
             <div className="flex items-center gap-1.5 border border-pink-200 bg-pink-50/25 px-3 py-1.5 rounded-xl">
               <span className="font-mono font-black text-pink-700 text-xs tracking-wider border border-pink-300 px-1 py-0.5 rounded leading-none shrink-0">
-                {settings.nameEn ? settings.nameEn.split(/\s+/).map((w: string) => w[0]).filter((c: string) => /^[a-zA-Z\u0600-\u06FF]$/.test(c)).slice(0, 2).join("").toUpperCase() : "BH"}
+                {settings.institutionNameEn ? settings.institutionNameEn.split(/\s+/).map((w: string) => w[0]).filter((c: string) => /^[a-zA-Z\u0600-\u06FF]$/.test(c)).slice(0, 2).join("").toUpperCase() : "BH"}
               </span>
               <div className="text-right">
                 <span className="font-sans font-black text-slate-800 text-xs block leading-none">
@@ -220,15 +220,15 @@ export default function MealsDeliveryLog({ language, rosterList, departments }: 
   };
 
   const handleSmartImport = () => {
-    const activeRoster = rosterList.find((r: any) => r.departmentName === selectedDept && r.month === selectedMonth) 
-      || rosterList.find((r: any) => r.departmentName === selectedDept && !r.month && selectedMonth === "2026-05");
+    const activeRoster = (rosterList || []).find((r: any) => r.departmentName === selectedDept && r.month === selectedMonth) 
+      || (rosterList || []).find((r: any) => r.departmentName === selectedDept && !r.month && selectedMonth === "2026-05");
       
     if (!activeRoster) {
       alert(isAr ? "لا يوجد روستر لهذا القسم في هذا الشهر." : "No roster found for this department/month.");
       return;
     }
     
-    const imported = activeRoster.rows.filter(row => {
+    const imported = (activeRoster.rows || []).filter(row => {
       const shiftForDay = row.shifts[selectedDay];
       if (!shiftForDay) return false;
       
@@ -390,7 +390,7 @@ export default function MealsDeliveryLog({ language, rosterList, departments }: 
               onChange={(e) => { setSelectedDept(e.target.value); setMealStaffList([]); }}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold outline-none focus:border-indigo-500"
             >
-              {departments.map(d => (
+              {departments?.map(d => (
                 <option key={d} value={d}>{d}</option>
               ))}
             </select>
@@ -486,7 +486,7 @@ export default function MealsDeliveryLog({ language, rosterList, departments }: 
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <div className="flex items-center gap-1.5 border border-pink-200 bg-pink-50/25 px-3 py-1.5 rounded-xl">
                   <span className="font-mono font-black text-pink-700 text-xs tracking-wider border border-pink-300 px-1 py-0.5 rounded leading-none shrink-0">
-                    {settings.nameEn ? settings.nameEn.split(/\s+/).map((w: string) => w[0]).filter((c: string) => /^[a-zA-Z\u0600-\u06FF]$/.test(c)).slice(0, 2).join("").toUpperCase() : "BH"}
+                    {settings.institutionNameEn ? settings.institutionNameEn.split(/\s+/).map((w: string) => w[0]).filter((c: string) => /^[a-zA-Z\u0600-\u06FF]$/.test(c)).slice(0, 2).join("").toUpperCase() : "BH"}
                   </span>
                   <div className="text-right">
                     <span className="font-sans font-black text-slate-800 text-xs block leading-none">
@@ -638,7 +638,7 @@ export default function MealsDeliveryLog({ language, rosterList, departments }: 
       {/* Hidden Batch Print Container */}
       <div style={{ display: "none" }}>
         <div ref={batchComponentRef}>
-          {departments.map((dept) => (
+          {departments?.map((dept) => (
             <React.Fragment key={dept}>
               {['lunch', 'dinner'].map((type) => {
                 const staff = getMealStaffListForDept(dept, type as any);

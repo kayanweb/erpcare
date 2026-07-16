@@ -1,25 +1,31 @@
 import React from "react";
-import { Shield, Lock, AlertTriangle, Key, Users, Activity, Eye, Server, Database, Globe } from "lucide-react";
+import { Shield, Lock, AlertTriangle, Key, Users, Activity, Eye, Server, Database, Globe, Plus } from "lucide-react";
 
-export default function CyberSecurityHub({ language }: { language: "ar" | "en" }) {
+export default function CyberSecurityHub({ language, onClose }: { language: "ar" | "en", onClose?: () => void }) {
   const isAr = language === "ar";
   return (
     <div className="p-6 bg-slate-950 min-h-full font-sans text-slate-200" dir={isAr ? "rtl" : "ltr"}>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
         <div className="flex items-center gap-4">
-          <div className="bg-red-500/20 p-4 rounded-2xl border border-red-500/50">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-500/50 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div className="bg-red-500/20 p-4 rounded-2xl border border-red-500/50 shrink-0">
             <Shield className="w-8 h-8 text-red-500" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-white">
               {isAr ? "مركز الأمن السيبراني" : "Cyber Security Command"}
             </h1>
-            <p className="text-slate-400 font-mono mt-1">ZERO TRUST ARCHITECTURE - LEVEL 5</p>
+            <p className="text-slate-400 font-mono mt-1 uppercase tracking-widest text-[10px]">Zero Trust Architecture - Level 5 Defense</p>
           </div>
         </div>
         <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center gap-3">
           <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></div>
-          <span className="font-bold text-emerald-400 font-mono text-sm">SECURE & COMPLIANT (HIPAA/GDPR)</span>
+          <span className="font-bold text-emerald-400 font-mono text-sm uppercase tracking-tighter">Secure & Compliant (HIPAA/GDPR)</span>
         </div>
       </div>
 

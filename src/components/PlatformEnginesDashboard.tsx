@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { Cpu, Server, Activity, Database, Zap, RefreshCw, Layers, ShieldCheck } from "lucide-react";
+import { X, Cpu, Server, Activity, Database, Zap, RefreshCw, Layers, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
-export default function PlatformEnginesDashboard({ language }: Props) {
+export default function PlatformEnginesDashboard({ language, onClose }: Props) {
   const isAr = language === "ar";
 
   const engines = [
@@ -27,7 +28,15 @@ export default function PlatformEnginesDashboard({ language }: Props) {
   };
 
   return (
-    <div className="p-4 md:p-6 bg-slate-50 min-h-full font-sans" dir={isAr ? "rtl" : "ltr"}>
+    <div className="p-4 md:p-6 bg-slate-50 min-h-full font-sans relative" dir={isAr ? "rtl" : "ltr"}>
+      {onClose && (
+        <button 
+          onClick={onClose}
+          className="absolute top-4 ltr:right-4 rtl:left-4 p-2 hover:bg-slate-200 rounded-xl transition text-slate-400 hover:text-slate-600 z-50"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white shadow-lg">

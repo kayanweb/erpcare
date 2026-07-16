@@ -1,17 +1,24 @@
 import React from "react";
-import { ShieldAlert, CheckCircle, AlertTriangle, Scale, Target, ActivitySquare } from "lucide-react";
+import { ShieldAlert, CheckCircle, AlertTriangle, Scale, Target, ActivitySquare, Plus } from "lucide-react";
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
-export default function QualityDashboard({ language }: Props) {
+export default function QualityDashboard({ language, onClose }: Props) {
   const isAr = language === "ar";
   
   return (
     <div className="p-6 bg-slate-50 min-h-full font-sans" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200">
+        <button 
+          onClick={onClose}
+          className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+        >
+           <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+        </button>
+        <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200 shrink-0">
           <Scale className="w-6 h-6" />
         </div>
         <div>

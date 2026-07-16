@@ -59,7 +59,7 @@ const MOCK_DAILY_REPORT_INITIAL = {
   date: "2026-06-19",
   shift: "Night",
   supervisor: "Amir Khedr",
-  units: {
+  units: { 
     icu: { totalBeds: 12, start: 7, admission: 1, transferIn: 0, transferOut: 0, discharge: 0, death: 0, rrt: 0 },
     imcu: { totalBeds: 4, start: 0, admission: 0, transferIn: 0, transferOut: 0, discharge: 0, death: 0, rrt: 0 },
     inpatient: { totalBeds: 26, start: 9, admission: 0, transferIn: 0, transferOut: 0, discharge: 1, death: 0, rrt: 0 },
@@ -86,7 +86,8 @@ const MOCK_DAILY_REPORT_INITIAL = {
     unite1: 14,
     unite2: 18,
     unite3: 16
-  }
+  },
+  notes: ""
 };
 
 const MOCK_NURSING_CENSUS_INITIAL = {
@@ -676,7 +677,7 @@ export default function SupervisorDailySuite({ language }: Props) {
                     
                     {/* VIP Category */}
                     <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-2 text-xs">
-                      <strong className="text-yellow-600 block border-b pb-1">👑 {isAr ? "تسجيل شخصية VIP" : "Register VIP Client"}</strong>
+                      <strong className="text-yellow-600 block border-b pb-1">�� {isAr ? "تسجيل شخصية VIP" : "Register VIP Client"}</strong>
                       <div className="space-y-1">
                         <input 
                           type="text" 
@@ -713,7 +714,7 @@ export default function SupervisorDailySuite({ language }: Props) {
 
                     {/* Ventilator Patient */}
                     <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-2 text-xs">
-                      <strong className="text-sky-600 block border-b pb-1">💨 {isAr ? "مريض تنفس اصطناعي" : "Register Vent Case"}</strong>
+                      <strong className="text-sky-600 block border-b pb-1">�� {isAr ? "مريض تنفس اصطناعي" : "Register Vent Case"}</strong>
                       <div className="space-y-1">
                         <input 
                           type="text" 
@@ -741,7 +742,7 @@ export default function SupervisorDailySuite({ language }: Props) {
 
                     {/* Bedsore Category */}
                     <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-2 text-xs col-span-1 md:col-span-2">
-                      <strong className="text-pink-600 block border-b pb-1">🛏️ {isAr ? "تسجيل حالة قرحة فراش (Bedsore)" : "Log Bedsore Ulcer"}</strong>
+                      <strong className="text-pink-600 block border-b pb-1">��️ {isAr ? "تسجيل حالة قرحة فراش (Bedsore)" : "Log Bedsore Ulcer"}</strong>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                         <input 
                           type="text" 
@@ -787,7 +788,7 @@ export default function SupervisorDailySuite({ language }: Props) {
 
                     {/* Isolation Category */}
                     <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-2 text-xs col-span-1 md:col-span-2">
-                      <strong className="text-teal-600 block border-b pb-1">🛡️ {isAr ? "تسجيل مريض عزل طبي مكثف" : "Add Isolation Log"}</strong>
+                      <strong className="text-teal-600 block border-b pb-1">��️ {isAr ? "تسجيل مريض عزل طبي مكثف" : "Add Isolation Log"}</strong>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <input 
                           type="text" 
@@ -1507,44 +1508,44 @@ export default function SupervisorDailySuite({ language }: Props) {
                               value={u.totalBeds} 
                               onChange={(e) => setDailyReport({
                                 ...dailyReport, 
-                                units: { ...dailyReport.units, [key]: { ...u, totalBeds: e.target.value } }
+                                units: {  ...dailyReport.units, [key]: { ...u, totalBeds: e.target.value } }
                               })} 
                               className="w-16 bg-transparent text-center focus:bg-white border-0 focus:border" 
                             />
                           </td>
                           <td className="p-2 border-l border-slate-200">
                             <input type="number" value={u.start} onChange={(e) => setDailyReport({
-                              ...dailyReport, units: { ...dailyReport.units, [key]: { ...u, start: e.target.value } }
+                              ...dailyReport, units: {  ...dailyReport.units, [key]: { ...u, start: e.target.value } }
                             })} className="w-14 bg-transparent text-center" />
                           </td>
                           <td className="p-2 border-l border-slate-200">
                             <input type="number" value={u.admission} onChange={(e) => setDailyReport({
-                              ...dailyReport, units: { ...dailyReport.units, [key]: { ...u, admission: e.target.value } }
+                              ...dailyReport, units: {  ...dailyReport.units, [key]: { ...u, admission: e.target.value } }
                             })} className="w-14 bg-transparent text-center text-indigo-700" />
                           </td>
                           <td className="p-2 border-l border-slate-200">
                             <input type="number" value={u.transferIn} onChange={(e) => setDailyReport({
-                              ...dailyReport, units: { ...dailyReport.units, [key]: { ...u, transferIn: e.target.value } }
+                              ...dailyReport, units: {  ...dailyReport.units, [key]: { ...u, transferIn: e.target.value } }
                             })} className="w-14 bg-transparent text-center" />
                           </td>
                           <td className="p-2 border-l border-slate-200">
                             <input type="number" value={u.transferOut} onChange={(e) => setDailyReport({
-                              ...dailyReport, units: { ...dailyReport.units, [key]: { ...u, transferOut: e.target.value } }
+                              ...dailyReport, units: {  ...dailyReport.units, [key]: { ...u, transferOut: e.target.value } }
                             })} className="w-14 bg-transparent text-center" />
                           </td>
                           <td className="p-2 border-l border-slate-200">
                             <input type="number" value={u.discharge} onChange={(e) => setDailyReport({
-                              ...dailyReport, units: { ...dailyReport.units, [key]: { ...u, discharge: e.target.value } }
+                              ...dailyReport, units: {  ...dailyReport.units, [key]: { ...u, discharge: e.target.value } }
                             })} className="w-14 bg-transparent text-center text-emerald-700" />
                           </td>
                           <td className="p-2 border-l border-slate-200">
                             <input type="number" value={u.death} onChange={(e) => setDailyReport({
-                              ...dailyReport, units: { ...dailyReport.units, [key]: { ...u, death: e.target.value } }
+                              ...dailyReport, units: {  ...dailyReport.units, [key]: { ...u, death: e.target.value } }
                             })} className="w-14 bg-transparent text-center text-rose-600" />
                           </td>
                           <td className="p-2 border-l border-slate-200">
                             <input type="number" value={u.rrt} onChange={(e) => setDailyReport({
-                              ...dailyReport, units: { ...dailyReport.units, [key]: { ...u, rrt: e.target.value } }
+                              ...dailyReport, units: {  ...dailyReport.units, [key]: { ...u, rrt: e.target.value } }
                             })} className="w-14 bg-transparent text-center text-rose-500" />
                           </td>
                           <td className="p-3 font-black text-center bg-slate-900/10 text-slate-800">{endVal}</td>
@@ -2635,7 +2636,7 @@ export default function SupervisorDailySuite({ language }: Props) {
                 {/* BED REDDENING */}
                 <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-3">
                   <h5 className="font-extrabold text-xs text-amber-805 border-b pb-1">
-                    🛏️ {isAr ? "احمرار الجلد وسائد السرير (Bed Redden)" : "Skin Care / Bedsore Signs"}
+                    ��️ {isAr ? "احمرار الجلد وسائد السرير (Bed Redden)" : "Skin Care / Bedsore Signs"}
                   </h5>
                   <div className="space-y-2 text-xs font-sans">
                     <div>
@@ -2725,7 +2726,7 @@ export default function SupervisorDailySuite({ language }: Props) {
                 {/* OR SURGICAL FLOW */}
                 <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-3">
                   <h5 className="font-extrabold text-xs text-indigo-950 border-b pb-1">
-                    🏥 {isAr ? "حالات تدفق غرف العمليات (OR Surgery)" : "Surgical OR Audits"}
+                    �� {isAr ? "حالات تدفق غرف العمليات (OR Surgery)" : "Surgical OR Audits"}
                   </h5>
                   <div className="space-y-2 text-xs">
                     <div>
@@ -2830,7 +2831,7 @@ export default function SupervisorDailySuite({ language }: Props) {
                               const current = clinicalIndicators.orStatus;
                               setClinicalIndicators({
                                 ...clinicalIndicators,
-                                orStatus: { ...current, postOrRoom: { ...current.postOrRoom, inp: inpVal }, postOrVal: current.postOrRoom.icu + current.orStatus.postOrRoom.imcu + inpVal }
+                                orStatus: { ...current, postOrRoom: { ...current.postOrRoom, inp: inpVal }, postOrVal: current.postOrRoom.icu + current.postOrRoom.imcu + inpVal }
                               });
                             }}
                             className="w-full p-0.5 border text-center text-[10px] font-mono"
@@ -2847,7 +2848,7 @@ export default function SupervisorDailySuite({ language }: Props) {
                 {/* TRANSFER IN & TRANSFERS OUT */}
                 <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-3">
                   <h5 className="font-extrabold text-xs text-emerald-900 border-b pb-1">
-                    🔄 {isAr ? "تحويلات المرضى والأقسام (Transfers)" : "Patient Transfers Flow"}
+                    �� {isAr ? "تحويلات المرضى والأقسام (Transfers)" : "Patient Transfers Flow"}
                   </h5>
                   <div className="space-y-2 text-xs">
                     <div>
@@ -2962,10 +2963,10 @@ export default function SupervisorDailySuite({ language }: Props) {
           {/* Global Supervisor Qualitative Field Notes */}
           <div className="mt-8 border-t border-slate-300 pt-6 no-print">
             <span className="font-extrabold text-xs text-slate-800 uppercase tracking-wider block mb-2">
-              📝 {isAr ? "ملاحظات وتوصيات السوبرفايزر اليدوية المقيدة:" : "Supervisor Shift Handover & Field Notes:"}
+              �� {isAr ? "ملاحظات وتوصيات السوبرفايزر اليدوية المقيدة:" : "Supervisor Shift Handover & Field Notes:"}
             </span>
             <textarea 
-              value={dailyReport.notes || ""} 
+              value={(dailyReport as any).notes || ""} 
               onChange={(e) => setDailyReport({...dailyReport, notes: e.target.value})} 
               placeholder={isAr ? "اكتب هنا أي ملاحظات إضافية، طوارئ مخصصة، كسر أجهزة، إلخ..." : "Write any clinical issues, device breakdowns, emergency incidents, etc..."}
               className="w-full border border-slate-300 p-2 text-xs rounded-xl min-h-[90px] outline-none hover:border-pink-300 focus:border-pink-500 bg-slate-50/50 transition-all font-sans"
@@ -2977,7 +2978,7 @@ export default function SupervisorDailySuite({ language }: Props) {
               {isAr ? "الملاحظات الإدارية والسريرية الموثقة:" : "Supervisor Handover Notes:"}
             </strong>
             <p className="text-xs font-sans text-slate-700 whitespace-pre-wrap leading-relaxed">
-              {dailyReport.notes || (isAr ? "لا توجد ملاحظات إضافية مسجلة." : "No additional handover remarks recorded.")}
+              {(dailyReport as any).notes || (isAr ? "لا توجد ملاحظات إضافية مسجلة." : "No additional handover remarks recorded.")}
             </p>
           </div>
 

@@ -12,7 +12,7 @@ import {
   Building,
 } from "lucide-react";
 import PhysicianWardDashboard from "./PhysicianWardDashboard";
-import WardNurseDashboard from "./WardNurseDashboard";
+import InpatientDashboard from "./InpatientDashboard";
 import ClinicalFormsLibrary from "./ClinicalFormsLibrary";
 import BedManagementDashboard from "./BedManagementDashboard";
 import PatientTrackingKardex from "./PatientTrackingKardex";
@@ -20,16 +20,15 @@ import DepartmentDashboard from "./DepartmentDashboard";
 import DepartmentTasks from "./DepartmentTasks";
 import DepartmentReports from "./DepartmentReports";
 import ERDashboard from "./ERDashboard";
-import ICUDashboard from "./ICUDashboard";
-import NICUDashboard from "./NICUDashboard";
+
+
 import PACUDashboard from "./PACUDashboard";
 import RehabDashboard from "./RehabDashboard";
 import PsychiatryDashboard from "./PsychiatryDashboard";
 import DialysisDashboard from "./DialysisDashboard";
 import OncologyDashboard from "./OncologyDashboard";
-import ObstetricsDashboard from "./ObstetricsDashboard";
-import OperatingTheaterBoard from "./OperatingTheaterBoard";
 import OutpatientClinicsDashboard from "./OutpatientClinicsDashboard";
+import OperatingTheaterBoard from "./OperatingTheaterBoard";
 
 interface Props {
   language: "ar" | "en";
@@ -210,17 +209,17 @@ export default function DepartmentWorkspace({
           {activeModule === "classic_dashboard" &&
             (() => {
               if (departmentId === "icu" || departmentId === "dept_ccu")
-                return <ICUDashboard language={language} />;
+                return <InpatientDashboard language={language}  />;
               if (departmentId === "er")
                 return <ERDashboard language={language} />;
               if (departmentId === "nicu")
-                return <NICUDashboard language={language} />;
+                return <InpatientDashboard language={language}  />;
               if (departmentId === "pacu")
                 return <PACUDashboard language={language} />;
               if (departmentId === "ot")
                 return <OperatingTheaterBoard language={language} />;
               if (departmentId === "obs_gyn")
-                return <ObstetricsDashboard language={language} />;
+                return <OutpatientClinicsDashboard language={language}  />;
               if (departmentId === "pt" || departmentId === "rehab")
                 return <RehabDashboard language={language} />;
               if (departmentId === "psychiatry")
@@ -238,9 +237,9 @@ export default function DepartmentWorkspace({
                 );
               if (departmentId.startsWith("dept_ward_"))
                 return (
-                  <WardNurseDashboard
+                  <InpatientDashboard
                     language={language}
-                    forceDepartmentId={departmentId}
+                    defaultModuleType={departmentId}
                   />
                 );
               return <ERDashboard language={language} />;
@@ -254,9 +253,9 @@ export default function DepartmentWorkspace({
           )}
 
           {activeModule === "nursing" && (
-            <WardNurseDashboard
+            <InpatientDashboard
               language={language}
-              forceDepartmentId={departmentId}
+              defaultModuleType={departmentId}
             />
           )}
 

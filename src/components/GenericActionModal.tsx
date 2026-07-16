@@ -549,6 +549,7 @@ export default function GenericActionModal() {
 
                 {detectedActionType === "discharge" ? (
                   <ComprehensiveDischargeForm 
+                    language={isAr ? "ar" : "en"}
                     initialData={formData}
                     onDataChange={(data) => {
                       // Just merge to formData for the payload

@@ -18,6 +18,7 @@ interface ProfileViewProps {
   hospitalSettings?: any;
   systemUsers?: any[];
   currentUser?: AppUser; // Added currentUser prop
+  onClose?: () => void;
 }
 
 interface LeaveRequestRecord {
@@ -42,7 +43,7 @@ interface AdminRequestRecord {
   timestampMs: number;
 }
 
-export default function ProfileView({ user, language, hospitalSettings, systemUsers = [], currentUser }: ProfileViewProps) {
+export default function ProfileView({ user, language, hospitalSettings, systemUsers = [], currentUser, onClose }: ProfileViewProps) {
   const isAr = language === "ar";
 
   if (!user) {
@@ -565,6 +566,26 @@ export default function ProfileView({ user, language, hospitalSettings, systemUs
   return (
     <div className="space-y-6 text-right font-sans" dir={isAr ? "rtl" : "ltr"}>
       
+      <div className="flex items-center justify-between bg-white border border-slate-200 p-4 rounded-[32px] shadow-sm shrink-0">
+          <div className="flex items-center gap-4">
+             <button 
+               onClick={onClose}
+               className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group"
+             >
+                <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+             </button>
+             <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
+                   <User className="w-6 h-6" />
+                </div>
+                <div>
+                   <h2 className="text-base font-black text-slate-900 leading-tight">{isAr ? "الملف الشخصي والمهني" : "Personal & Career Profile"}</h2>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "إدارة التفضيلات والطلبات" : "Profile Settings & Requests"}</p>
+                </div>
+             </div>
+          </div>
+       </div>
+
       {!isAuthorizedToView && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md">
           <div className="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl border border-slate-200">

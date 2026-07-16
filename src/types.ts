@@ -27,7 +27,7 @@ export interface SavedRecord {
   staffName: string;
   staffId: string;
   notes?: string;
-  createdAt: string;
+  createdAt?: string;
   shift?: string; // Active clinical tracking shift/period
   status?: string; // status e.g. "Pending", "Submitted by [Employee]", etc.
   // Patient / Custom Info
@@ -91,6 +91,7 @@ export interface AppUser {
   roleId?: string; // Dynamic role
   status?: "pending" | "active" | "disabled";
   avatarInitials: string;
+  avatar?: string;
   profilePictureUrl?: string;
   department: string;
   staffId: string;
@@ -282,6 +283,7 @@ export interface Patient {
   insurancePolicyNumber?: string;
   currentWorkflowStage: WorkflowStage;
   workflowId?: string; // ID of the current active visit/workflow
+  age: number;
 }
 
 export interface RosterAuditLog {
@@ -341,6 +343,14 @@ export interface VitalSigns {
   height?: number;
   bmi?: number;
   painScale?: number; // 0-10
+  // Compatibility with UI components
+  patientName?: string;
+  patientMRN?: string;
+  temp?: string | number;
+  bp?: string;
+  hr?: string | number;
+  spo2?: string | number;
+  createdAt?: any;
 }
 
 export interface NursingAssessment {

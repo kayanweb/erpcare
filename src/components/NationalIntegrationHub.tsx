@@ -1,16 +1,22 @@
 import React from "react";
-import { Network, Database, RefreshCw, CheckCircle, Globe, Link as LinkIcon, Building } from "lucide-react";
+import { Network, Database, RefreshCw, CheckCircle, Globe, Link as LinkIcon, Building, Plus } from "lucide-react";
 
-export default function NationalIntegrationHub({ language }: { language: "ar" | "en" }) {
+export default function NationalIntegrationHub({ language, onClose }: { language: "ar" | "en", onClose?: () => void }) {
   const isAr = language === "ar";
   return (
     <div className="p-6 bg-slate-50 min-h-full font-sans" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex items-center gap-4 mb-8">
-        <div className="bg-sky-600 p-4 rounded-2xl text-white shadow-lg shadow-sky-200">
+        <button 
+          onClick={onClose}
+          className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+        >
+           <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+        </button>
+        <div className="bg-sky-600 p-4 rounded-2xl text-white shadow-lg shadow-sky-200 shrink-0">
           <Network className="w-8 h-8" />
         </div>
         <div>
-          <h1 className="text-3xl font-black text-slate-900">
+          <h1 className="text-3xl font-black text-slate-900 leading-tight">
             {isAr ? "التكامل الوطني و HL7/FHIR" : "National Integration & FHIR Hub"}
           </h1>
           <p className="text-slate-500 font-medium mt-1">

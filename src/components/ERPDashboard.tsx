@@ -3,9 +3,10 @@ import { Calculator, Briefcase, Truck, Box, DollarSign, FileText, PieChart, Tren
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
-export default function ERPDashboard({ language }: Props) {
+export default function ERPDashboard({ language, onClose }: Props) {
   const isAr = language === "ar";
   const [activeTab, setActiveTab] = useState<"finance" | "hr" | "inventory" | "procurement">("finance");
   
@@ -19,8 +20,14 @@ export default function ERPDashboard({ language }: Props) {
   return (
     <div className="p-6 bg-slate-50 min-h-full font-sans" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-200">
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-200 shrink-0">
             <Calculator className="w-7 h-7" />
           </div>
           <div>

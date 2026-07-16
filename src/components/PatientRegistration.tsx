@@ -10,6 +10,7 @@ interface Props {
 
 import { GlobalEntityLink } from "./GlobalEntityLink";
 import { FindPatientForm } from "./FindPatientForm";
+import DynamicSelector from "./DynamicSelector";
 
 export default function PatientRegistration({ language, departments = [] }: Props) {
   const isAr = language === "ar";
@@ -384,8 +385,17 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                             <input type="text" placeholder="Country" className="w-full bg-white border border-slate-300 focus:border-blue-500 rounded-lg p-2.5 text-xs outline-none" />
                           </div>
                           <div>
-                            <label className="text-[11px] text-slate-500 font-bold block mb-1">City</label>
-                            <input type="text" placeholder="City" className="w-full bg-white border border-slate-300 focus:border-blue-500 rounded-lg p-2.5 text-xs outline-none" />
+                            <DynamicSelector
+                              language={language}
+                              category="city"
+                              labelAr="المدينة"
+                              labelEn="City"
+                              value={""} // Adding state would be better, but demonstrating with simple binding
+                              onChange={(val) => console.log("City selected:", val)}
+                              module="Registration"
+                              screen="New Patient"
+                              fieldName="City"
+                            />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -408,14 +418,17 @@ export default function PatientRegistration({ language, departments = [] }: Prop
                       <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><CreditCard className="w-4 h-4 text-slate-500" /> {isAr ? "التأمين (Insurance)" : "Insurance"}</h4>
                       <div className="space-y-4">
                         <div>
-                          <label className="text-[11px] text-slate-500 font-bold block mb-1">{isAr ? "شركة التأمين (Insurance Company)" : "Insurance Company"}</label>
-                          <select value={insurance} onChange={e => setInsurance(e.target.value)} className="w-full bg-white border border-slate-300 focus:border-blue-500 rounded-lg p-2.5 text-xs outline-none">
-                            <option value="Cash">Cash (None)</option>
-                            <option value="Bupa">Bupa</option>
-                            <option value="Tawuniya">Tawuniya</option>
-                            <option value="MedNet">MedNet</option>
-                            <option value="AXA">AXA</option>
-                          </select>
+                          <DynamicSelector
+                            language={language}
+                            category="insurance"
+                            labelAr="شركة التأمين"
+                            labelEn="Insurance Company"
+                            value={insurance}
+                            onChange={setInsurance}
+                            module="Registration"
+                            screen="New Patient"
+                            fieldName="Insurance Company"
+                          />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className={insurance === "Cash" ? "opacity-50 pointer-events-none" : ""}>

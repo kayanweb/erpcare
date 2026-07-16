@@ -11,7 +11,7 @@ import {
   Pill,
   CreditCard,
   LogOut,
-  History,
+  History as HistoryIcon,
   ClipboardList,
   FileText
 } from "lucide-react";
@@ -28,7 +28,7 @@ interface Props {
 const STAGES: { id: WorkflowStage; labelAr: string; labelEn: string; icon: any; color: string }[] = [
   { id: "registration", labelAr: "التسجيل", labelEn: "Registration", icon: UserPlus, color: "blue" },
   { id: "insurance_verification", labelAr: "تأمين", labelEn: "Insurance", icon: ShieldCheck, color: "indigo" },
-  { id: "triage", labelAr: "فرز", labelEn: "Triage", icon: History, color: "cyan" },
+  { id: "triage", labelAr: "فرز", labelEn: "Triage", icon: HistoryIcon, color: "cyan" },
   { id: "doctor_consultation", labelAr: "الطبيب", labelEn: "Doctor", icon: Stethoscope, color: "pink" },
   { id: "diagnosis", labelAr: "التشخيص", labelEn: "Diagnosis", icon: ClipboardList, color: "rose" },
   { id: "orders", labelAr: "طلبات", labelEn: "Orders", icon: FileText, color: "amber" },

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import {  User, Activity, FileText, Plus, Clock, Search, HeartPulse, Filter, Settings, FileEdit, LogIn, Calendar, FileCheck2, Syringe, UserPlus, FileSearch, ArrowUpRight, Bed, ClipboardList, LayoutDashboard, MessageSquare, ListTodo, History, FileOutput, Stethoscope , Users } from "lucide-react";
+import {  User, Activity, FileText, Plus, Clock, Search, HeartPulse, Filter, Settings, FileEdit, LogIn, Calendar, FileCheck2, Syringe, UserPlus, FileSearch, ArrowUpRight, Bed, ClipboardList, LayoutDashboard, MessageSquare, ListTodo, History as HistoryIcon, FileOutput, Stethoscope , Users } from "lucide-react";
 import { PatientChartModal } from "./PatientChartModal";
 import { GlobalEntityLink } from "./GlobalEntityLink";
 import { useHIS } from "../context/HISContext";
+import { savePatient } from "../lib/storage";
 import DepartmentTasks from "./DepartmentTasks";
 
 export default function OutpatientClinicsDashboard({ language, forceDepartmentId }: { language: "ar" | "en", forceDepartmentId?: string }) {
@@ -12,15 +13,10 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
   const [selectedClinic, setSelectedClinic] = useState<string>(forceDepartmentId || "clinic-im");
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
-  const { savePatient } = useHIS();
 
-  const activeClinicPatients = [
-    { id: "P-301", mrn: "MRN-2026-0301", name: "Ahmed Youssef", nameAr: "أحمد يوسف", time: "09:00 AM", status: "waiting", statusAr: "في الانتظار", type: "Follow Up", typeAr: "متابعة", doctor: "Dr. Ali" },
-    { id: "P-302", mrn: "MRN-2026-0302", name: "Sara Mahmoud", nameAr: "سارة محمود", time: "09:30 AM", status: "in-progress", statusAr: "مع الطبيب", type: "New Consult", typeAr: "استشارة جديدة", doctor: "Dr. Ali" },
-    ...((contextPatients && Array.isArray(contextPatients)) ? contextPatients.filter(p => ["waiting", "triage", "doctor", "pharmacy", "completed"].includes(p.status)).map((p, idx) => ({
+  const activeClinicPatients = ((contextPatients && Array.isArray(contextPatients)) ? contextPatients.filter(p => ["waiting", "triage", "doctor", "pharmacy", "completed"].includes(p.status)).map((p, idx) => ({
       id: p.id, mrn: p.mrn, name: p.nameEn, nameAr: p.nameAr, time: "11:00 AM", status: p.status, statusAr: p.status === 'triage' ? 'فرز' : p.status, type: "General", typeAr: "عام", doctor: "Dr. Ali"
-    })) : [])
-  ];
+    })) : []);
 
   const handleAdmissionRequest = (patient: any) => {
     setAdmissionRequests(prev => [...prev, {
@@ -43,7 +39,7 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
     { id: "appointments", icon: Calendar, en: "Today's Appointments", ar: "مواعيد اليوم" },
     { id: "waiting", icon: Clock, en: "Waiting Queue", ar: "طابور الانتظار" },
     { id: "examination", icon: Stethoscope, en: "Examination Workspace", ar: "مساحة الفحص" },
-    { id: "recent", icon: History, en: "Recent Patients", ar: "المرضى السابقين" },
+    { id: "recent", icon: HistoryIcon, en: "Recent Patients", ar: "المرضى السابقين" },
     { id: "tasks", icon: ListTodo, en: "Tasks & Follow-ups", ar: "المهام والمتابعات" },
     { id: "chat", icon: MessageSquare, en: "Internal Chat", ar: "المحادثة الداخلية" },
     { id: "reports", icon: FileOutput, en: "Reports", ar: "التقارير" },
@@ -108,7 +104,7 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-slate-500 text-sm font-bold">{isAr ? "إجمالي المرضى" : "Total Patients"}</p>
-                <h3 className="text-3xl font-black text-[#0a4275] mt-1">{activeClinicPatients.length + 15}</h3>
+                <h3 className="text-3xl font-black text-[#0a4275] mt-1">{activeClinicPatients.length}</h3>
               </div>
               <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center text-sky-600">
                 <Users className="w-6 h-6" />
@@ -117,7 +113,7 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-slate-500 text-sm font-bold">{isAr ? "في الانتظار" : "Waiting"}</p>
-                <h3 className="text-3xl font-black text-amber-600 mt-1">{activeClinicPatients.filter(p => p.status === 'waiting' || p.status === 'triage').length}</h3>
+                <h3 className="text-3xl font-black text-amber-600 mt-1">{activeClinicPatients.filter(p => p.status === ('waiting' as any) || p.status === 'triage').length}</h3>
               </div>
               <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
                 <Clock className="w-6 h-6" />
@@ -202,8 +198,8 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
                       </td>
                       <td className="p-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                          patient.status === 'waiting' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-                          patient.status === 'in-progress' ? 'bg-sky-100 text-sky-700 border-sky-200' :
+                          (patient.status as string) === 'waiting' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                          (patient.status as string) === 'in-progress' ? 'bg-sky-100 text-sky-700 border-sky-200' :
                           'bg-emerald-100 text-emerald-700 border-emerald-200'
                         }`}>
                           {isAr ? patient.statusAr : patient.status}
@@ -270,7 +266,7 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {activeClinicPatients.filter(p => p.status === 'waiting' || p.status === 'triage').map((patient, idx) => (
+                {activeClinicPatients.filter(p => p.status === ('waiting' as any) || p.status === 'triage').map((patient, idx) => (
                   <div key={patient.id} className="p-4 border border-slate-200 rounded-xl hover:border-amber-300 hover:bg-amber-50/30 transition-all cursor-pointer shadow-sm">
                     <div className="flex justify-between items-start mb-3">
                       <div className="font-black text-[#0a4275]">{patient.mrn}</div>
@@ -300,7 +296,7 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
                     </div>
                   </div>
                 ))}
-                {activeClinicPatients.filter(p => p.status === 'waiting' || p.status === 'triage').length === 0 && (
+                {activeClinicPatients.filter(p => p.status === ('waiting' as any) || p.status === 'triage').length === 0 && (
                   <div className="col-span-full py-12 text-center text-slate-400 italic font-bold">
                     {isAr ? "لا يوجد مرضى في قائمة الانتظار حالياً." : "No patients in waiting queue."}
                   </div>
@@ -335,7 +331,7 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in">
             <div className="p-4 border-b border-slate-100 bg-slate-50">
                <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                 <History className="w-5 h-5 text-slate-500" />
+                 <HistoryIcon className="w-5 h-5 text-slate-500" />
                  {isAr ? "المرضى الذين تم فحصهم مؤخراً" : "Recently Examined Patients"}
                </h2>
             </div>
@@ -350,12 +346,20 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {activeClinicPatients.filter(p => p.status === 'completed' || p.status === 'pharmacy').map(patient => (
+                  {activeClinicPatients.filter(p => p.status === ('completed' as any) || p.status === ('pharmacy' as any)).map(patient => (
                     <tr key={patient.id} className="hover:bg-slate-50 transition">
                       <td className="p-4 text-sm font-bold text-slate-500">{patient.time}</td>
                       <td className="p-4">
-                        <div className="font-bold text-sm text-slate-800">{isAr ? patient.nameAr : patient.name}</div>
-                        <div className="text-xs text-slate-500">{patient.mrn}</div>
+                        <div className="font-bold text-sm text-slate-800">
+                          <GlobalEntityLink entityId={patient.id} entityName={isAr ? patient.nameAr : patient.name} entityType="patient" isAr={isAr}>
+                            {isAr ? patient.nameAr : patient.name}
+                          </GlobalEntityLink>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          <GlobalEntityLink entityId={patient.id} entityName={isAr ? patient.nameAr : patient.name} entityType="patient" isAr={isAr}>
+                            {patient.mrn}
+                          </GlobalEntityLink>
+                        </div>
                       </td>
                       <td className="p-4 text-sm font-bold text-slate-600">{patient.doctor}</td>
                       <td className="p-4">
@@ -363,7 +367,7 @@ export default function OutpatientClinicsDashboard({ language, forceDepartmentId
                       </td>
                     </tr>
                   ))}
-                  {activeClinicPatients.filter(p => p.status === 'completed' || p.status === 'pharmacy').length === 0 && (
+                  {activeClinicPatients.filter(p => p.status === ('completed' as any) || p.status === ('pharmacy' as any)).length === 0 && (
                     <tr>
                       <td colSpan={4} className="p-12 text-center text-slate-400 italic font-bold">
                         {isAr ? "لا يوجد مرضى سابقين لهذه الجلسة." : "No recent patients for this session."}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Brain, Activity, HeartPulse, UserCheck, Stethoscope, AlertCircle, FileText } from "lucide-react";
+import { Brain, Activity, HeartPulse, UserCheck, Stethoscope, AlertCircle, FileText, Plus } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { EntityText } from "./EntityText";
 import { EntityType } from "../types";
@@ -12,12 +12,18 @@ const sepsisData = [
   { hour: "Now", risk: 65 },
 ];
 
-export default function AIClinicalDecisionSupport({ language, userRole = "doctor" }: { language: "ar" | "en", userRole?: string }) {
+export default function AIClinicalDecisionSupport({ language, userRole = "doctor", onClose }: { language: "ar" | "en", userRole?: string, onClose?: () => void }) {
   const isAr = language === "ar";
   return (
     <div className="p-6 bg-slate-50 min-h-full font-sans" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex items-center gap-4 mb-8">
-        <div className="bg-purple-600 p-4 rounded-2xl text-white shadow-lg shadow-purple-200">
+        <button 
+          onClick={onClose}
+          className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+        >
+           <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+        </button>
+        <div className="bg-purple-600 p-4 rounded-2xl text-white shadow-lg shadow-purple-200 shrink-0">
           <Brain className="w-8 h-8" />
         </div>
         <div>

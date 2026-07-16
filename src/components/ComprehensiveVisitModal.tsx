@@ -156,7 +156,7 @@ export function ComprehensiveVisitModal({ isAr, onClose, onRegister, existingVis
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col">
         
         {/* Header */}

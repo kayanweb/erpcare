@@ -15,7 +15,7 @@ export function resolveEntityClick(
   // Since this app uses a custom event-based modal system for top-level navigation:
   switch (entity.type) {
     case EntityType.PATIENT:
-      console.log(`Navigating to Patient: ${entity.id}`);
+      console.log(`Navigating to Patient: ${entity.id}`, entity);
       window.dispatchEvent(new CustomEvent("openPatientChart", { detail: { patientId: entity.id, patientName: entity.name } }));
       break;
 

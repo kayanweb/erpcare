@@ -134,7 +134,7 @@ export function ComprehensiveRegistrationModal({ isAr, onClose, onRegister }: Pr
   const totalRequired = fields.filter(f => f.enabled && f.required).length;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fadeIn" dir={isAr ? "rtl" : "ltr"}>
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fadeIn" dir={isAr ? "rtl" : "ltr"}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden flex flex-col border border-slate-150">
         
         {/* Header */}

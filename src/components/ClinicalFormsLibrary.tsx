@@ -39,12 +39,19 @@ interface FormsLibraryProps {
   isAr?: boolean;
   patientId?: string;
   patientName?: string;
+  initialCategory?: string;
+  initialForm?: any;
 }
 
-export default function ClinicalFormsLibrary({ isAr = true, patientId = "", patientName = "" }: FormsLibraryProps = {}) {
-  const [activeTab, setActiveTab] = useState("admission");
+export default function ClinicalFormsLibrary({ isAr = true, patientId = "", patientName = "", initialCategory, initialForm }: FormsLibraryProps = {}) {
+  const [activeTab, setActiveTab] = useState(initialCategory || "admission");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedForm, setSelectedForm] = useState<any>(null);
+  const [selectedForm, setSelectedForm] = useState<any>(initialForm || null);
+
+  useEffect(() => {
+    if (initialCategory) setActiveTab(initialCategory);
+    if (initialForm) setSelectedForm(initialForm);
+  }, [initialCategory, initialForm]);
 
   const categories = [
     { id: "admission", label: "الاستقبال والتسجيل والقبول (Admission & Registration)", icon: UserCircle },

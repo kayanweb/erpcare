@@ -1,39 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  TrendingUp,
-  Database,
-  Sliders,
-  ShieldAlert,
-  Award,
-  FileSpreadsheet,
-  User,
-  CheckSquare,
-  X,
-  Check,
-  Users,
-  Shield,
-  BookOpen,
-  Clock,
-  Activity,
-  FileText,
-  Bell,
-  Trash2,
-  HeartPulse,
-  Star,
-  Sparkles,
-  UserCheck,
-  BarChart3,
-  ChevronRight,
-  AlertTriangle,
-  File,
-  ThumbsUp,
-  Printer,
-  Calendar,
-  Filter,
-  Search,
-  ShieldCheck,
-  Brain
-} from "lucide-react";
+import { TrendingUp, Database, Sliders, ShieldAlert, Award, FileSpreadsheet, User, CheckSquare, X, Check, Users, Shield, BookOpen, Clock, Activity, FileText, Bell, Trash2, HeartPulse, Star, Sparkles, UserCheck, BarChart3, ChevronRight, AlertTriangle, File, ThumbsUp, Printer, Calendar, Filter, Search, ShieldCheck, Brain } from "lucide-react";
 import { AppUser, SavedRecord } from "../types";
 import { useFirestoreSync } from "../hooks/useFirestoreSync";
 import { DynamicProfessionalLogo } from "./DynamicProfessionalLogo";
@@ -70,6 +36,7 @@ interface QualityAnalyticsHubProps {
   allAvailableTemplates: any[];
   language: "ar" | "en";
   currentUser: AppUser;
+  onClose?: () => void;
   resolvedGaps: Record<string, { resolved: boolean; notes: string; resolvedBy: string; resolvedAt: string }>;
   handleToggleGapState: (gapKey: string) => void;
   editingGapKey: string | null;
@@ -124,6 +91,7 @@ export default function QualityAnalyticsHub({
   allAvailableTemplates,
   language,
   currentUser,
+  onClose,
   resolvedGaps,
   handleToggleGapState,
   editingGapKey,
@@ -954,7 +922,15 @@ export default function QualityAnalyticsHub({
   );
 
   return (
-    <div className="space-y-6 animate-fade text-right font-sans" dir="rtl">
+    <div className="space-y-6 animate-fade text-right font-sans relative" dir="rtl">
+      {onClose && (
+        <button 
+          onClick={onClose}
+          className="absolute top-0 ltr:right-0 rtl:left-0 p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-slate-500 z-50 no-print"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
       
       {/* Custom Auth Modal for Signatures */}
       {authModal.open && (

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { 
+import { Plus, 
   Globe, Activity, Server, Database, ShieldCheck, 
   Wifi, Cpu, Zap, Network, Layers, BarChart4,
   AlertTriangle, CheckCircle2, ChevronDown, Building2,
@@ -12,6 +12,7 @@ import {
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
 const networkData = [
@@ -31,7 +32,7 @@ const hospitalNodes = [
   { id: "N-05", nameAr: "مركز زراعة الأعضاء", nameEn: "Transplant Center", status: "Warning", patients: 300, beds: 500, load: 98 }
 ];
 
-export default function EnterpriseCommandCenter({ language }: Props) {
+export default function EnterpriseCommandCenter({ language, onClose }: Props) {
   const isAr = language === "ar";
   const [activeRegion, setActiveRegion] = useState("all");
 
@@ -41,6 +42,12 @@ export default function EnterpriseCommandCenter({ language }: Props) {
       <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-700 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
         <div className="flex items-center gap-4 relative z-10">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-rose-500 hover:border-rose-500/50 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
           <div className="bg-blue-600 p-3 rounded-2xl text-white shadow-lg shadow-blue-900/50">
              <Globe className="w-8 h-8" />
           </div>

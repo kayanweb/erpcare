@@ -5,10 +5,10 @@ import { useHIS } from '../context/HISContext';
 interface ComprehensiveDischargeFormProps {
   onDataChange: (data: any) => void;
   initialData?: any;
+  language?: "ar" | "en";
 }
 
-export default function ComprehensiveDischargeForm({ onDataChange, initialData }: ComprehensiveDischargeFormProps) {
-  const { language } = useHIS();
+export default function ComprehensiveDischargeForm({ onDataChange, initialData, language = "en" }: ComprehensiveDischargeFormProps) {
   const isAr = language === 'ar';
 
   const [activeTab, setActiveTab] = useState('summary');

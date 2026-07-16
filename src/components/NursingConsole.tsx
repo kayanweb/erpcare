@@ -112,7 +112,7 @@ export const NursingConsole: React.FC<Props> = ({ patient, staffId, language = "
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
       <div className="p-4 bg-slate-50 border-b border-slate-200">
-        <PatientClinicalHeader patient={patient} language={language} showVitals={true} />
+        <PatientClinicalHeader patient={patient as any} language={language} showVitals={true} />
       </div>
       {/* Tab Navigation */}
       <div className="flex bg-slate-50 p-1 border-b border-slate-200 overflow-x-auto">

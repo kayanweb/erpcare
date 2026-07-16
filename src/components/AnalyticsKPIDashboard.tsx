@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { TrendingUp, Users, Activity, Banknote } from "lucide-react";
+import { TrendingUp, Users, Activity, Banknote, X } from "lucide-react";
 import { syncSetting, saveSetting } from "../lib/firestoreService";
 
 export default function AnalyticsKPIDashboard({
   language,
+  onClose,
 }: {
   language: "ar" | "en";
+  onClose?: () => void;
 }) {
   const isAr = language === "ar";
 
@@ -14,7 +16,15 @@ export default function AnalyticsKPIDashboard({
       className="p-4 md:p-6 bg-slate-50 min-h-full"
       dir={isAr ? "rtl" : "ltr"}
     >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-200 pb-4 relative">
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="absolute top-0 ltr:right-0 rtl:left-0 p-1.5 hover:bg-slate-200 rounded-lg transition text-slate-400 hover:text-slate-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
         <div>
           <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
             <TrendingUp className="h-7 w-7 text-indigo-600" />

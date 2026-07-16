@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Brain, X, Activity, Droplet, MonitorPlay as Ste2, Sparkles, AlertTriangle, ClipboardList, MonitorPlay, MessageSquare, Send } from "lucide-react";
+import { Brain, X, Activity, Droplet, MonitorPlay as Ste2, Sparkles, AlertTriangle, ClipboardList, MonitorPlay, MessageSquare, Send, Plus } from "lucide-react";
 import { Stethoscope, Pill, ShieldAlert, HeartPulse, Microscope, FileText, FileCheck, BookOpen, Key, Calendar, Calculator, Flame } from "lucide-react";
 
-export default function SmartAIAssistant({ language, currentUser }: any) {
+export default function SmartAIAssistant({ language, currentUser, onClose }: any) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const isAr = language === "ar";
 
   // Dynamic Tool States
   const [bmiWeight, setBmiWeight] = useState("");
@@ -304,6 +305,27 @@ export default function SmartAIAssistant({ language, currentUser }: any) {
   return (
     <div className="w-full h-full flex flex-col font-sans bg-slate-50">
         
+        {/* Main Header with Close Button */}
+        <div className="flex items-center justify-between bg-white border-b border-slate-200 p-4 shrink-0 shadow-sm z-30" dir={isAr ? "rtl" : "ltr"}>
+          <div className="flex items-center gap-4">
+             <button 
+               onClick={onClose}
+               className="w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all group shrink-0 shadow-sm"
+             >
+                <Plus className="w-5 h-5 rotate-45 group-hover:scale-110 transition-transform" />
+             </button>
+             <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 shrink-0 animate-pulse">
+                   <Brain className="w-5 h-5" />
+                </div>
+                <div>
+                   <h2 className="text-sm font-black text-slate-900 leading-tight">{isAr ? "المساعد السريري الذكي" : "Clinical AI Copilot"}</h2>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isAr ? "أدوات الدعم السريري الفوري" : "Instant Clinical Support Tools"}</p>
+                </div>
+             </div>
+          </div>
+       </div>
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 relative" dir="rtl">
           

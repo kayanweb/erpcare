@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { 
   ClipboardX, FileText, UserMinus, 
-  Printer, ArrowRightLeft, ShieldAlert
+  Printer, ArrowRightLeft, ShieldAlert, Plus
 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
-export default function MortuaryDashboard({ language }: Props) {
+export default function MortuaryDashboard({ language, onClose }: Props) {
   const isAr = language === "ar";
 
   const [deaths] = useState([
@@ -20,14 +21,22 @@ export default function MortuaryDashboard({ language }: Props) {
   return (
     <div className="p-4 md:p-6 bg-slate-50 min-h-full font-sans animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-            <ClipboardX className="w-7 h-7 text-slate-700" />
-            {isAr ? "قسم الوفيات (Mortuary)" : "Mortuary & Expiry Management"}
-          </h2>
-          <p className="text-slate-500 font-medium mt-1">
-            {isAr ? "إدارة حالات الوفاة، التقارير، وتصاريح الدفن" : "Manage expiries, death reports, and burial permits"}
-          </p>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div>
+            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <ClipboardX className="w-7 h-7 text-slate-700" />
+              {isAr ? "قسم الوفيات (Mortuary)" : "Mortuary & Expiry Management"}
+            </h2>
+            <p className="text-slate-500 font-medium mt-1">
+              {isAr ? "إدارة حالات الوفاة، التقارير، وتصاريح الدفن" : "Manage expiries, death reports, and burial permits"}
+            </p>
+          </div>
         </div>
       </div>
 

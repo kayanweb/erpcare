@@ -118,11 +118,15 @@ export default function CloudSettingsPage({
     POCKETBASE: "standby",
     LOCAL_HOST: "standby",
     MQTT: "standby",
-    SOCKET_IO_REDIS: "standby"
+    SOCKET_IO_REDIS: "standby",
+    APPWRITE: "standby",
+    NULL_DB: "standby",
+    POSTGRES_PRISMA: "standby",
+    POSTGRES_NEON: "standby"
   });
 
   // Advanced DB Settings state
-  const [alert, setAlert] = useState<{ show: boolean; message: string; type: "success" | "error" | "" }>({ show: false, message: "", type: "" });
+  const [statusAlert, setStatusAlert] = useState<{ show: boolean; message: string; type: "success" | "error" | "" }>({ show: false, message: "", type: "" });
   const [quotaExceeded, setQuotaExceeded] = useState(false);
 
   // Firebase connection keys
@@ -167,7 +171,7 @@ export default function CloudSettingsPage({
 
     const handleQuotaExceeded = () => {
       setQuotaExceeded(true);
-      setAlert({
+      setStatusAlert({
         show: true,
         type: "error",
         message: isAr
@@ -889,22 +893,22 @@ export default function CloudSettingsPage({
           </div>
 
           {/* SMART NOTIFICATION BANNER */}
-          {alert.show && (
+          {statusAlert.show && (
             <div 
               className={`p-4 rounded-xl border flex items-start gap-3 shadow-sm transition duration-300 ${
-                alert.type === "success" 
+                statusAlert.type === "success" 
                   ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
                   : "bg-rose-50 border-rose-200 text-rose-800"
               }`}
             >
               <div className="text-lg mt-0.5">
-                {alert.type === "success" ? "🚀" : "⚠️"}
+                {statusAlert.type === "success" ? "🚀" : "⚠️"}
               </div>
               <div className="flex-1 text-xs font-semibold leading-relaxed">
-                {alert.message}
+                {statusAlert.message}
               </div>
               <button 
-                onClick={() => setAlert({ show: false, message: "", type: "" })}
+                onClick={() => setStatusAlert({ show: false, message: "", type: "" })}
                 className="text-slate-400 hover:text-slate-600 self-center text-sm font-bold ml-2 transition"
               >
                 ✕
@@ -1000,7 +1004,7 @@ export default function CloudSettingsPage({
                   const success = switchEnvironment("FIREBASE", settings);
                   if (success) {
                     setCurrentDbProvider("FIREBASE");
-                    setAlert({
+                    setStatusAlert({
                       show: true,
                       message: isAr
                         ? "🚀 تم بنجاح التحول لحافلة محرك [ FIREBASE ] السحابي. التحديثات تجري فاصلاً فاصلاً."
@@ -1092,7 +1096,7 @@ export default function CloudSettingsPage({
                 type="button"
                 onClick={() => {
                   if (!supabaseUrl || !supabaseKey) {
-                    setAlert({
+                    setStatusAlert({
                       show: true,
                       message: isAr 
                         ? "⚠️ تنبيه: يرجى ملء الخانات الأساسية (SUPABASE ENDPOINT URL & SECRET API KEY) لبدء تشغيل سوبابيس."
@@ -1117,7 +1121,7 @@ export default function CloudSettingsPage({
                   const success = switchEnvironment("SUPABASE", settings);
                   if (success) {
                     setCurrentDbProvider("SUPABASE");
-                    setAlert({
+                    setStatusAlert({
                       show: true,
                       message: isAr
                         ? "🚀 تم بنجاح التحول والانتقال السريع لبيئة [ SUPABASE ] ومزامنة الجداول والريل تايم بنجاح."
@@ -1201,7 +1205,7 @@ export default function CloudSettingsPage({
                 type="button"
                 onClick={() => {
                   if (!pocketbaseUrl || !pocketbaseAdminEmail || !pocketbaseAdminPassword) {
-                    setAlert({
+                    setStatusAlert({
                       show: true,
                       message: isAr 
                         ? "⚠️ تنبيه: يرجى ملء جميع الخانات الفارغة لتجنب كسر اتصال بيئة [ POCKETBASE ]."
@@ -1218,7 +1222,7 @@ export default function CloudSettingsPage({
                   const success = switchEnvironment("POCKETBASE", settings);
                   if (success) {
                     setCurrentDbProvider("POCKETBASE");
-                    setAlert({
+                    setStatusAlert({
                       show: true,
                       message: isAr
                         ? "🚀 تم بنجاح الحفظ وتفعيل بيئة بوكيت بيز للعمل ببث أحداث الخادم المباشر."
@@ -1312,7 +1316,7 @@ export default function CloudSettingsPage({
                 type="button"
                 onClick={() => {
                   if (!localIntranetHost || !localWsUrl) {
-                    setAlert({
+                    setStatusAlert({
                       show: true,
                       message: isAr 
                         ? "⚠️ تنبيه: يرجى ملء البيانات المستهدفة لتجنب كسر محرك السيرفر المحلي للأمن القومي."
@@ -1331,7 +1335,7 @@ export default function CloudSettingsPage({
                   const success = switchEnvironment("LOCAL_HOST", settings);
                   if (success) {
                     setCurrentDbProvider("LOCAL_HOST");
-                    setAlert({
+                    setStatusAlert({
                       show: true,
                       message: isAr
                         ? "🚀 تم بنجاح الانتقال الكامل والربط الفيدرالي بمخدم الشبكة المحلية للمستشفى بنجاح."
@@ -1405,7 +1409,7 @@ export default function CloudSettingsPage({
                 type="button"
                 onClick={() => {
                    if (!mqttBrokerUrl) {
-                      setAlert({
+                      setStatusAlert({
                         show: true,
                         message: isAr ? "⚠️ تنبيه: يرجى تحديد Broker URL." : "⚠️ Attention: Broker URL required.",
                         type: "error"
@@ -1415,7 +1419,7 @@ export default function CloudSettingsPage({
                    const success = switchEnvironment("MQTT", { brokerUrl: mqttBrokerUrl, clientId: mqttClientId });
                    if (success) {
                      setCurrentDbProvider("MQTT");
-                     setAlert({
+                     setStatusAlert({
                         show: true,
                         message: isAr ? "🚀 تم بنجاح الربط مع محرك MQTT." : "🚀 Successfully linked to MQTT broker.",
                         type: "success"
@@ -1485,7 +1489,7 @@ export default function CloudSettingsPage({
                 type="button"
                 onClick={() => {
                    if (!socketIoServerUrl || !socketIoRedisUrl) {
-                      setAlert({
+                      setStatusAlert({
                         show: true,
                         message: isAr ? "⚠️ تنبيه: يرجى تحديد Server و Redis URL." : "⚠️ Attention: Server & Redis URL required.",
                         type: "error"
@@ -1495,7 +1499,7 @@ export default function CloudSettingsPage({
                    const success = switchEnvironment("SOCKET_IO_REDIS", { serverUrl: socketIoServerUrl, redisUrl: socketIoRedisUrl });
                    if (success) {
                      setCurrentDbProvider("SOCKET_IO_REDIS");
-                     setAlert({
+                     setStatusAlert({
                         show: true,
                         message: isAr ? "🚀 تم بنجاح الربط مع Socket.io." : "🚀 Successfully linked to Socket.io.",
                         type: "success"

@@ -18,7 +18,8 @@ import {
   Info,
   Calendar,
   Layers,
-  FileSpreadsheet
+  FileSpreadsheet,
+  X,
 } from "lucide-react";
 
 interface AppUser {
@@ -32,6 +33,7 @@ interface AppUser {
 interface AdvancedMedicalCalculatorsProps {
   currentUser: AppUser | null;
   language: "ar" | "en";
+  onClose?: () => void;
   addSystemLog?: (text: string, type: "info" | "warning" | "success" | "error") => void;
 }
 
@@ -51,6 +53,7 @@ interface HandoverRecord {
 export default function AdvancedMedicalCalculators({
   currentUser,
   language,
+  onClose,
   addSystemLog
 }: AdvancedMedicalCalculatorsProps) {
   const isAr = language === "ar";
@@ -435,6 +438,14 @@ export default function AdvancedMedicalCalculators({
     <div className="space-y-6">
       {/* Top Banner & Tab Switcher */}
       <div className="bg-gradient-to-l from-slate-900 via-pink-950 to-slate-900 p-6 rounded-3xl border border-pink-500/30 text-right text-white shadow-xl relative overflow-hidden">
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="absolute top-2 ltr:right-2 rtl:left-2 p-2 hover:bg-white/20 rounded-2xl transition text-white/50 hover:text-white z-50"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
         <div className="absolute top-0 left-0 bg-pink-600/10 h-72 w-72 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 right-0 bg-emerald-600/5 h-60 w-60 rounded-full blur-3xl pointer-events-none"></div>
         

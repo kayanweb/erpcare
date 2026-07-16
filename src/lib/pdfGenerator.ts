@@ -27,7 +27,7 @@ export function generatePDF(
     footerEn?: string;
   },
   language: "ar" | "en" = "ar",
-  dayFocus: "all" | number = "all",
+  dayFocus: "all" | number | string = "all",
   selectedShift?: string
 ) {
   // Determine sheet orientation and page size

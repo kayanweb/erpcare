@@ -4,9 +4,11 @@ import {
   X, User, Activity, FileText, Pill, FlaskConical, Stethoscope, 
   Clock, ShieldAlert, BadgeCheck, Printer, ArrowLeft, 
   Calendar, Droplets, Thermometer, HeartPulse, FileEdit, Plus, Syringe,
-  Share, CheckCircle2, QrCode, ClipboardList, Upload, Ban
+  Share, CheckCircle2, QrCode, ClipboardList, Upload, Ban, History as HistoryIcon,
+  Siren, Eye, LogOut, Zap, LifeBuoy, Wind
 } from "lucide-react";
 import { toast } from "sonner";
+import GenericClinicalTab from "./GenericClinicalTab";
 import ClinicalFormsLibrary from "./ClinicalFormsLibrary";
 import { ClinicalDocumentation } from "./ClinicalDocumentation";
 import DoctorConsultationDesk from "./DoctorConsultationDesk";
@@ -16,15 +18,30 @@ import { EXTENDED_LAB_TESTS } from "../data/labTests";
 import { DEFAULT_CATALOG as DEFAULT_LAB_CATALOG } from "../data/labCatalog";
 import { INVENTORY_CATALOG, InventoryItem } from "../data/inventoryCatalog";
 import { RadiologyOrderForm } from "./RadiologyOrderForm";
+import { PatientNutritionTab } from "./PatientNutritionTab";
+import { EnterpriseReportCenter } from "./EnterpriseReportCenter";
 
 export function PatientChartModal({ patientId, patientName, onClose, isAr, initialTab = "summary", isEmbedded = false }: any) {
   const { patients, updatePatient, cpoeOrders, setCpoeOrders, addPrescription, updatePrescriptionStatus } = useHIS();
-  const currentPatient = patients.find(p => p.id === patientId || p.mrn === patientId) || { id: patientId, mrn: patientId, nameEn: patientName, nameAr: patientName };
+  const currentPatient = (patients.find(p => p.id === patientId || p.mrn === patientId) || { id: patientId, mrn: patientId, nameEn: patientName, nameAr: patientName }) as any;
 
   const [showDocForm, setShowDocForm] = useState(false);
   const [showTransferForm, setShowTransferForm] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
+  const [patientDiet, setPatientDiet] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("hospital_patient_diets");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed[patientId]) {
+          setPatientDiet(parsed[patientId]);
+        }
+      } catch (e) {}
+    }
+  }, [patientId]);
 
   // Dynamic User Role Logic
   const currentUserStr = sessionStorage.getItem("hospital_currentUser");
@@ -112,7 +129,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   const handleRecordConsumable = () => {
     if (!selectedConsumable) return;
     
-    const billedConsumables = currentPatient.consumables || [];
+    const billedConsumables = (currentPatient as any).consumables || [];
     const newConsumable = {
       id: "CON-" + Date.now(),
       itemId: selectedConsumable.id,
@@ -148,11 +165,11 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   const [vitalsRR, setVitalsRR] = useState("16");
   const [selectedLabReportId, setSelectedLabReportId] = useState("");
 
-  const currentIntakes = currentPatient.fluidIntake || [
+  const currentIntakes = (currentPatient as any).fluidIntake || [
     { id: "in1", type: isAr ? "فموي (ماء)" : "Oral (Water)", amount: 250, date: "08:00" },
     { id: "in2", type: isAr ? "وريدي (محلول ملحي)" : "IV Fluids (Normal Saline)", amount: 500, date: "10:30" }
   ];
-  const currentOutputs = currentPatient.fluidOutput || [
+  const currentOutputs = (currentPatient as any).fluidOutput || [
     { id: "out1", type: isAr ? "بول" : "Urine", amount: 350, date: "09:00" }
   ];
 
@@ -160,7 +177,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   const ioOutputTotal = currentOutputs.reduce((acc: number, curr: any) => acc + Number(curr.amount), 0);
 
   const clinicalStudies = [
-    ...((currentPatient.orders || [])
+    ...(((currentPatient as any).orders || [])
       .filter((o: any) => o.type === "RAD" && o.status === "Completed")
       .map((o: any) => ({
         id: o.id,
@@ -178,7 +195,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
   const handleSaveProgressNote = () => {
     if (!noteText.trim()) return;
-    const notes = currentPatient.progressNotes || [
+    const notes = (currentPatient as any).progressNotes || [
       { id: "pn1", author: "Dr. Ahmed Ali (Cardiology)", text: isAr ? "حالة المريض مستقرة بعد العملية. العلامات الحيوية جيدة." : "Patient status is stable post-op. Vital signs are within normal limits.", date: "2026-06-29 09:00" },
       { id: "pn2", author: "Dr. Samir Hassan (Consultant)", text: isAr ? "يجب مراقبة مستويات السكر في الدم وضبط جرعة الأنسولين." : "Monitor blood glucose levels and adjust Insulin dosage accordingly.", date: "2026-06-29 14:30" }
     ];
@@ -195,7 +212,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
   const handleSaveNurseNote = () => {
     if (!nurseNoteText.trim()) return;
-    const notes = currentPatient.nursingNotes || [
+    const notes = (currentPatient as any).nursingNotes || [
       { id: "nn1", author: "RN. Sarah Jones", text: isAr ? "تم إعطاء الأدوية الوريدية المقررة في موعدها. المريض لا يعاني من ألم." : "Prescribed IV medications administered on time. Patient reports no pain.", date: "2026-06-30 08:00" },
       { id: "nn2", author: "RN. Fatima Saeed", text: isAr ? "تم تغيير ضماد الجرح الجراحي. الجرح نظيف ولا توجد علامات التهاب." : "Surgical wound dressing changed. Wound is clean, no signs of infection.", date: "2026-06-30 11:30" }
     ];
@@ -211,7 +228,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
   };
 
   const handleSaveAssessment = (type: string, score: number) => {
-    const assessments = currentPatient.assessments || {};
+    const assessments = (currentPatient as any).assessments || {};
     const updated = {
       ...assessments,
       [type]: {
@@ -253,30 +270,56 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
     setActiveTab(initialTab);
   }, [initialTab]);
 
-  const tabs = [
-    { id: "summary", ar: "الملخص", en: "Summary", icon: User },
-    { id: "timeline", ar: "التسلسل الزمني", en: "Timeline", icon: Clock },
-    { id: "doctor_desk", ar: "مكتب الطبيب (شامل)", en: "Doctor's Desk", icon: Stethoscope },
-    { id: "nursing_desk", ar: "محطة التمريض (شامل)", en: "Nursing Desk", icon: ClipboardList },
-    { id: "problems", ar: "التشخيصات والحساسية", en: "Problems & Allergies", icon: ShieldAlert },
+  const isER = currentPatient?.status === "triage" || currentPatient?.departmentId === "er-unit" || (currentPatient as any)?.visitType === "ER";
+  const isICU = currentPatient?.status === "nicu" || currentPatient?.status === "pacu" || currentPatient?.departmentId === "icu-unit" || currentPatient?.wardId === "icu";
+
+    const tabs = [
+    // Specialized ER tabs
+    ...(isER ? [
+      { id: "er_triage", ar: "فرز الطوارئ", en: "ER Triage", icon: BadgeCheck, color: "text-rose-600" },
+      { id: "er_resus", ar: "الإنعاش", en: "Resuscitation", icon: Siren, color: "text-rose-700" },
+      { id: "er_procedures", ar: "إجراءات الطوارئ", en: "ER Procedures", icon: Zap, color: "text-amber-600" },
+      { id: "er_observation", ar: "الملاحظة", en: "ER Observation", icon: Eye, color: "text-blue-600" },
+      { id: "er_disposition", ar: "قرار الخروج/الدخول", en: "Disposition", icon: LogOut, color: "text-emerald-600" },
+    ] : []),
+    // Specialized ICU tabs
+    ...(isICU ? [
+      { id: "icu_vent", ar: "التنفس الصناعي", en: "Ventilation", icon: Wind, color: "text-blue-600" },
+      { id: "icu_hemo", ar: "الديناميكا الدموية", en: "Hemodynamics", icon: Activity, color: "text-rose-600" },
+      { id: "io", ar: "توازن السوائل", en: "Intake/Output", icon: Droplets, color: "text-indigo-600" },
+    ] : []),
+    { id: "basic_info", ar: "البيانات الأساسية", en: "Basic Info", icon: User },
+    { id: "admission", ar: "بيانات الدخول", en: "Admission Details", icon: CheckCircle2 },
+    { id: "diagnoses", ar: "التشخيصات", en: "Diagnoses", icon: ShieldAlert },
+    { id: "history", ar: "التاريخ المرضي", en: "History", icon: HistoryIcon },
+    { id: "allergies", ar: "الحساسية", en: "Allergies", icon: ShieldAlert },
+    { id: "chronic", ar: "الأمراض المزمنة", en: "Chronic Conditions", icon: HeartPulse },
     { id: "vitals", ar: "العلامات الحيوية", en: "Vital Signs", icon: HeartPulse },
-    { id: "mar", ar: "إعطاء الأدوية (MAR)", en: "MAR", icon: Pill },
-    { id: "orders", ar: "أوامر الطبيب", en: "Orders", icon: Stethoscope },
-    { id: "labs", ar: "التحاليل (Labs)", en: "Labs", icon: FlaskConical },
-    { id: "radiology", ar: "الأشعة", en: "Radiology", icon: Activity },
-    { id: "progress_notes", ar: "ملاحظات الأطباء", en: "Progress Notes", icon: FileEdit },
-    { id: "nursing_notes", ar: "ملاحظات التمريض", en: "Nursing Notes", icon: FileText },
-    { id: "reports", ar: "التقارير والطباعة", en: "Reports & Printing", icon: Printer },
+    { id: "physician_assessments", ar: "تقييمات الطبيب", en: "Physician Assessments", icon: Stethoscope },
+    { id: "nursing_assessments", ar: "تقييمات التمريض", en: "Nursing Assessments", icon: ClipboardList },
     { id: "care_plan", ar: "خطة الرعاية", en: "Care Plan", icon: CheckCircle2 },
-    { id: "assessments", ar: "التقييمات السريرية", en: "Assessments", icon: ShieldAlert },
-    { id: "io", ar: "السوائل (I & O)", en: "Intake & Output", icon: Droplets },
-    { id: "forms", ar: "النماذج الطبية", en: "Clinical Forms", icon: FileText },
-    { id: "surgery", ar: "العمليات والإجراءات", en: "Surgery & Procedures", icon: Activity },
+    { id: "progress_notes", ar: "Progress Notes", en: "Progress Notes", icon: FileEdit },
+    { id: "physician_notes", ar: "Physician Notes", en: "Physician Notes", icon: FileText },
+    { id: "nursing_notes", ar: "Nursing Notes", en: "Nursing Notes", icon: FileText },
+    { id: "orders", ar: "أوامر الطبيب", en: "Physician Orders", icon: Stethoscope },
+    { id: "medication_orders", ar: "Medication Orders", en: "Medication Orders", icon: Pill },
+    { id: "mar", ar: "MAR / eMAR", en: "MAR", icon: Pill },
+    { id: "labs", ar: "المختبر", en: "Laboratory", icon: FlaskConical },
+    { id: "radiology", ar: "الأشعة", en: "Radiology", icon: Activity },
+    { id: "surgery", ar: "العمليات والإجراءات", en: "Procedures", icon: Activity },
+    { id: "pt", ar: "العلاج الطبيعي", en: "Physical Therapy", icon: Activity },
+    { id: "nutrition", ar: "التغذية العلاجية", en: "Nutrition", icon: Droplets },
+    { id: "consultations", ar: "الاستشارات", en: "Consultations", icon: Share },
+    { id: "infection", ar: "مكافحة العدوى", en: "Infection Control", icon: ShieldAlert },
+    { id: "appointments", ar: "المواعيد", en: "Appointments", icon: Calendar },
+    { id: "transfers", ar: "التحويلات", en: "Transfers", icon: ArrowLeft },
+    { id: "discharge", ar: "الخروج", en: "Discharge", icon: User },
     { id: "attachments", ar: "المرفقات", en: "Attachments", icon: FileText },
-    { id: "billing", ar: "الفوترة والتأمين", en: "Billing & Insurance", icon: FileText },
-    { id: "handover", ar: "تسليم الشيفت", en: "Shift Handover", icon: Share },
-    { id: "consumables", ar: "المستهلكات", en: "Consumables", icon: Syringe },
-    { id: "discharge", ar: "خروج المريض", en: "Discharge", icon: User },
+    { id: "documents", ar: "المستندات", en: "Documents", icon: FileText },
+    { id: "pacs", ar: "الصور الطبية", en: "Medical Images", icon: Activity },
+    { id: "timeline", ar: "التسلسل الزمني", en: "Timeline", icon: Clock },
+    { id: "audit", ar: "سجل التدقيق", en: "Audit Log", icon: ShieldAlert },
+    { id: "activity", ar: "سجل الأحداث", en: "Activity Log", icon: Clock },
   ];
 
   const quickActions = [
@@ -493,7 +536,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
             <button 
               onClick={() => {
                 if (!quickNurseText.trim()) return;
-                const notes = currentPatient.nursingNotes || [];
+                const notes = (currentPatient as any).nursingNotes || [];
                 const newNote = {
                   id: "nn-" + Date.now(),
                   author: isAr ? "ممرض. فاطمة سعيد" : "RN. Fatima Saeed",
@@ -632,7 +675,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
             <button 
               onClick={() => {
                 if (!quickLabName.trim()) return toast.error(isAr ? "الرجاء تحديد اسم الفحص" : "Please specify test name");
-                const currentOrders = currentPatient.orders || [];
+                const currentOrders = (currentPatient as any).orders || [];
                 const newOrder = {
                   id: "ord-" + Date.now(),
                   type: "LAB",
@@ -674,10 +717,10 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
     return (
       <RadiologyOrderForm 
         isAr={isAr}
-        patientGender={currentPatient?.gender || currentPatient?.genderEn}
+        patientGender={(currentPatient as any)?.gender || (currentPatient as any)?.genderEn}
         onClose={() => setShowOrderRadForm(false)}
         onSubmit={(orderData) => {
-          const currentOrders = currentPatient.orders || [];
+          const currentOrders = (currentPatient as any).orders || [];
           const newOrders = orderData.procedures.map((procName: string, index: number) => ({
             id: `ord-${Date.now()}-${index}`,
             type: "RAD",
@@ -744,7 +787,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
               <span className="text-slate-400">|</span>
               <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">MRN: {currentPatient.mrn}</span>
               <span className="text-slate-400">|</span>
-              <span>{isAr ? `${currentPatient.age || 45} سنة` : `Age: ${currentPatient.age || 45}`}</span>
+              <span>{isAr ? `${(currentPatient as any).age || 45} سنة` : `Age: ${(currentPatient as any).age || 45}`}</span>
             </div>
             <div className="bg-rose-600 text-white font-bold px-2 py-1 rounded text-[10px] uppercase tracking-wider animate-pulse shadow-sm">
               {isAr ? "⚠️ تحذير: حساسية البنسلين" : "⚠️ Penicillin Allergy Alert"}
@@ -971,7 +1014,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                 }
 
                 const displayDosageStr = `${quickDrugDoseNum}${quickDrugDoseUnit} ${quickDrugRoute} ${quickDrugFrequency.toUpperCase()}${quickDrugOrderType === "prn" ? " (PRN: " + quickDrugPrnReason + ")" : ""}`;
-                const prescriptionsList = currentPatient.prescriptions || [];
+                const prescriptionsList = (currentPatient as any).prescriptions || [];
                 const newRxId = "rx-" + Date.now();
                 
                 const newRx = {
@@ -1052,7 +1095,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] sm:text-xs text-slate-300 font-mono mt-0.5 sm:mt-1">
                 <span className="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">MRN: {currentPatient.mrn || patientId}</span>
                 <span className="hidden xs:inline">•</span>
-                <span>{isAr ? `${currentPatient.age || 45} سنة` : `Age: ${currentPatient.age || 45}`}</span>
+                <span>{isAr ? `${(currentPatient as any).age || 45} سنة` : `Age: ${(currentPatient as any).age || 45}`}</span>
                 <span className="hidden xs:inline">•</span>
                 <span className="text-rose-400 font-bold">{isAr ? "حساسية: بنسيلين" : "Penicillin Allergy"}</span>
               </div>
@@ -1170,9 +1213,9 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden min-h-0">
           {/* Vertical Sidebar Tabs */}
-          <div className="w-full md:w-48 lg:w-56 bg-slate-50 border-b md:border-b-0 md:border-l rtl:md:border-r rtl:md:border-l-0 border-slate-200 overflow-x-auto md:overflow-y-auto shrink-0 hide-scrollbar">
+          <div className="w-full md:w-48 lg:w-56 bg-slate-50 border-b md:border-b-0 md:border-l rtl:md:border-r rtl:md:border-l-0 border-slate-200 overflow-x-auto md:overflow-y-auto shrink-0 custom-scrollbar">
             <div className="p-2 flex flex-row md:flex-col gap-1 md:space-y-1">
               {tabs.map(tab => (
                 <button
@@ -1184,7 +1227,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                       : "text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-indigo-200' : 'text-slate-400'}`} />
+                  {React.createElement(tab.icon as any, { className: `w-4 h-4 ${activeTab === tab.id ? 'text-indigo-200' : 'text-slate-400'}` })}
                   {isAr ? tab.ar : tab.en}
                 </button>
               ))}
@@ -1203,6 +1246,114 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                 className="w-full"
               >
             
+            {activeTab === "er_triage" && (
+              <div className="space-y-4">
+                <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <div className="bg-rose-600 p-2 rounded-lg text-white">
+                        <BadgeCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-rose-900">{isAr ? "نظام فرز حالات الطوارئ (ESI)" : "Emergency Severity Index (ESI) Triage"}</h3>
+                        <p className="text-xs text-rose-600 font-medium">{isAr ? "تقييم حدة الحالة وتحديد الأولوية" : "Priority determination and acuity assessment"}</p>
+                      </div>
+                   </div>
+                </div>
+                <ClinicalFormsLibrary isAr={isAr} patientId={patientId} patientName={patientName} initialCategory="ed" />
+              </div>
+            )}
+
+            {activeTab === "er_resus" && (
+              <div className="space-y-4">
+                <div className="bg-red-600 p-6 rounded-2xl text-white shadow-xl shadow-red-100 flex items-center justify-between">
+                   <div className="flex items-center gap-4">
+                      <div className="bg-white/20 p-3 rounded-full animate-pulse">
+                        <Siren className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black tracking-tight">{isAr ? "وحدة الإنعاش والتدخل الحرج" : "RESUSCITATION & CRITICAL INTERVENTION"}</h2>
+                        <p className="text-red-100 font-bold uppercase text-xs tracking-widest">{isAr ? "وضع التدخل السريع" : "Stat Intervention Mode"}</p>
+                      </div>
+                   </div>
+                   <div className="flex gap-2">
+                      <button className="px-4 py-2 bg-white text-red-600 rounded-lg text-xs font-black uppercase shadow-sm">{isAr ? "تنشيط كود بلو" : "Activate Code Blue"}</button>
+                      <button className="px-4 py-2 bg-red-800 text-white rounded-lg text-xs font-black uppercase">{isAr ? "طلب دعم" : "Request Support"}</button>
+                   </div>
+                </div>
+                <ClinicalFormsLibrary isAr={isAr} patientId={patientId} patientName={patientName} initialCategory="ed" />
+              </div>
+            )}
+
+            {activeTab === "er_procedures" && (
+              <div className="space-y-4">
+                <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-center gap-3">
+                   <Zap className="text-amber-600 w-6 h-6" />
+                   <div>
+                     <h3 className="text-sm font-bold text-amber-900">{isAr ? "توثيق إجراءات الطوارئ" : "Emergency Procedures Documentation"}</h3>
+                   </div>
+                </div>
+                <ClinicalFormsLibrary isAr={isAr} patientId={patientId} patientName={patientName} initialCategory="ed" />
+              </div>
+            )}
+
+            {activeTab === "er_observation" && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center gap-3">
+                   <Eye className="text-blue-600 w-6 h-6" />
+                   <div>
+                     <h3 className="text-sm font-bold text-blue-900">{isAr ? "مراقبة وملاحظة مريض الطوارئ" : "ER Observation & Monitoring"}</h3>
+                   </div>
+                </div>
+                <ClinicalFormsLibrary isAr={isAr} patientId={patientId} patientName={patientName} initialCategory="ed" />
+              </div>
+            )}
+
+            {activeTab === "er_disposition" && (
+              <div className="space-y-4">
+                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3">
+                   <LogOut className="text-emerald-600 w-6 h-6" />
+                   <div>
+                     <h3 className="text-sm font-bold text-emerald-900">{isAr ? "قرار التصرف النهائي (Disposition)" : "Final Disposition Decision"}</h3>
+                   </div>
+                </div>
+                <ClinicalFormsLibrary isAr={isAr} patientId={patientId} patientName={patientName} initialCategory="ed" />
+              </div>
+            )}
+
+            {activeTab === "icu_vent" && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <div className="bg-blue-600 p-2 rounded-lg text-white">
+                        <Wind className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-blue-900">{isAr ? "إدارة التنفس الصناعي والغازات الدموية" : "Ventilator Management & Blood Gases"}</h3>
+                        <p className="text-xs text-blue-600 font-medium">{isAr ? "مراقبة المعاملات التنفسية ونتائج ABG" : "Monitoring respiratory parameters and ABG results"}</p>
+                      </div>
+                   </div>
+                </div>
+                <ClinicalFormsLibrary isAr={isAr} patientId={patientId} patientName={patientName} initialCategory="icu" />
+              </div>
+            )}
+
+            {activeTab === "icu_hemo" && (
+              <div className="space-y-4">
+                <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <div className="bg-rose-600 p-2 rounded-lg text-white">
+                        <Activity className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-rose-900">{isAr ? "الديناميكا الدموية المتقدمة" : "Advanced Hemodynamics Monitoring"}</h3>
+                        <p className="text-xs text-rose-600 font-medium">{isAr ? "مراقبة الضغط الشرياني المباشر وCVP" : "Monitoring Invasive Arterial Pressure and CVP"}</p>
+                      </div>
+                   </div>
+                </div>
+                <ClinicalFormsLibrary isAr={isAr} patientId={patientId} patientName={patientName} initialCategory="icu" />
+              </div>
+            )}
+
             {activeTab === "summary" && (
               <div className="space-y-6 max-w-5xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1343,63 +1494,19 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                        </div>
                        <div className="bg-white p-3 rounded-xl border border-slate-200">
                          <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">{isAr ? "تعليمات الطبيب الهامة" : "Important Doctor Orders"}</label>
-                         <textarea className="w-full mt-2 text-sm border-none bg-slate-50 p-2 rounded-lg focus:ring-0" rows={3} placeholder={isAr ? "أهم التحديثات الطبية..." : "Key medical updates..."}></textarea>
-                       </div>
-                     </div>
-                     <div className="bg-white p-3 rounded-xl border border-slate-200">
-                         <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">{isAr ? "المخاطر والملاحظات التمريضية" : "Risks & Nursing Observations"}</label>
-                         <textarea className="w-full mt-2 text-sm border-none bg-slate-50 p-2 rounded-lg focus:ring-0" rows={3} placeholder={isAr ? "ملاحظات حول التنفس، الألم، الجروح..." : "Notes on breathing, pain, wounds..."}></textarea>
-                     </div>
-                     <button className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition">
-                       {isAr ? "حفظ التسليم إلكترونياً (E-Sign)" : "Sign & Save Handover"}
-                     </button>
-                   </div>
-                 </div>
+                          <textarea className="w-full mt-2 text-sm border-none bg-slate-50 p-2 rounded-lg focus:ring-0" rows={3} placeholder={isAr ? "أهم التعليمات الطبية..." : "Important medical instructions..."}></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+             )}
 
-                 <div className="mt-8">
-                   <h4 className="font-bold text-slate-700 mb-4">{isAr ? "سجل التسليمات السابقة" : "Previous Handover Log"}</h4>
-                   <div className="space-y-4">
-                     <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-sm flex flex-col md:flex-row gap-4">
-                       <div className="w-32 shrink-0 border-r border-slate-100 pr-4">
-                         <p className="font-bold text-sm text-slate-800">Shift: Morning</p>
-                         <p className="text-xs text-slate-500">Today, 07:00 AM</p>
-                         <p className="text-xs font-bold text-indigo-600 mt-2">By: RN. Fatima</p>
-                       </div>
-                       <div className="flex-1 space-y-2">
-                         <div>
-                           <span className="text-[10px] font-bold uppercase text-slate-400">Pending Tasks</span>
-                           <p className="text-sm font-medium">Follow up on morning lab results (K+ was slightly low yesterday).</p>
-                         </div>
-                         <div>
-                           <span className="text-[10px] font-bold uppercase text-slate-400">Risks & Observations</span>
-                           <p className="text-sm font-medium">Patient complained of mild pain at incision site. Administered Paracetamol at 06:00.</p>
-                         </div>
-                       </div>
-                       <div className="flex items-center">
-                         <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                           <CheckCircle2 className="w-3 h-3" /> {isAr ? "تم الاستلام" : "Acknowledged"}
-                         </span>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-            )}
-
-            {activeTab === "doctor_desk" && (
-              <div className="flex-1 overflow-hidden h-full flex flex-col bg-slate-50">
-                <DoctorConsultationDesk 
-                  language={isAr ? "ar" : "en"} 
-                  forcedPatientId={patientId}
-                  isEmbedded={true}
-                />
-              </div>
-            )}
 
             {activeTab === "nursing_desk" && (
               <div className="flex-1 overflow-hidden h-full flex flex-col bg-slate-50">
                 <NursingConsole 
-                  patient={currentPatient} 
+                  patient={currentPatient as any} 
                   staffId={currentUserObj?.id || "nurse1"} 
                   language={isAr ? "ar" : "en"}
                 />
@@ -1407,53 +1514,10 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
             )}
 
             {activeTab === "reports" && (
-               <div className="p-6 space-y-6">
-                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-xl border border-slate-200 gap-4">
-                   <div>
-                     <h3 className="font-bold text-lg text-slate-800">{isAr ? "التقارير الطبية والطباعة" : "Medical Reports & Printing"}</h3>
-                     <p className="text-xs text-slate-500">{isAr ? "يمكنك توليد تقارير شاملة أو مخصصة وطباعتها" : "Generate and print comprehensive or custom reports"}</p>
-                   </div>
-                   <div className="flex gap-2 w-full sm:w-auto">
-                     <button className="flex-1 sm:flex-none bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition">
-                       <Plus className="w-4 h-4" />
-                       {isAr ? "إنشاء تقرير" : "Create Report"}
-                     </button>
-                     <button 
-                       onClick={() => setShowPrintPreview(true)}
-                       className="flex-1 sm:flex-none bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-900 transition"
-                     >
-                       <Printer className="w-4 h-4" />
-                       {isAr ? "طباعة الملف" : "Print Record"}
-                     </button>
-                   </div>
-                 </div>
-
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[
-                      { id: "sum", ar: "تقرير ملخص الحالة", en: "Case Summary Report", date: "2026-07-10" },
-                      { id: "lab", ar: "تقرير نتائج المختبر", en: "Lab Results Report", date: "2026-07-11" },
-                      { id: "rad", ar: "تقرير الأشعة", en: "Radiology Report", date: "2026-07-09" },
-                      { id: "dis", ar: "ملخص الخروج", en: "Discharge Summary", date: "N/A" }
-                    ].map(report => (
-                      <div key={report.id} className="bg-white border border-slate-200 p-4 rounded-xl hover:shadow-md transition group cursor-pointer">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-400 font-mono">{report.date}</span>
-                        </div>
-                        <h4 className="font-bold text-slate-800 mb-1">{isAr ? report.ar : report.en}</h4>
-                        <div className="flex items-center justify-between mt-4">
-                          <button className="text-indigo-600 hover:text-indigo-800 text-xs font-bold">{isAr ? "عرض" : "View"}</button>
-                          <button className="text-slate-500 hover:text-slate-800">
-                             <Printer className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                 </div>
+               <div className="flex-1 overflow-hidden h-full min-h-[500px]">
+                 <EnterpriseReportCenter language={isAr ? "ar" : "en"} patientId={patientId} patientName={patientName} />
                </div>
-            )}
+             )}
 
             {activeTab === "progress_notes" && (
               <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12">
@@ -1466,6 +1530,18 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     <p className="text-xs text-slate-500 mt-1">
                       {isAr ? "توثيق التطور اليومي وخطة العلاج من قبل الأطباء الاستشاريين والأخصائيين." : "Daily progress documentation and clinical plan by attending medical staff."}
                     </p>
+                    {patientDiet && (
+                      <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg text-xs mt-3 w-fit">
+                        <Droplets className="w-4 h-4 text-orange-500" />
+                        <span className="font-bold text-slate-700">{isAr ? "الأنظمة الغذائية:" : "Diet:"}</span>
+                        <span className="font-black text-orange-700">{patientDiet.diet}</span>
+                        {patientDiet.allergy && patientDiet.allergy !== "None" && patientDiet.allergy !== "لا يوجد" && (
+                          <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded ml-2 font-bold flex items-center gap-1">
+                            <ShieldAlert className="w-3 h-3" /> {patientDiet.allergy}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1499,7 +1575,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
                 {/* Timeline list */}
                 <div className="space-y-4">
-                  {(currentPatient.progressNotes || [
+                  {((currentPatient as any).progressNotes || [
                     { id: "pn1", author: "Dr. Ahmed Ali (Cardiology)", text: isAr ? "حالة المريض مستقرة بعد العملية. العلامات الحيوية جيدة وقيد المتابعة مستمرة." : "Patient status is stable post-op. Vital signs are within normal limits and being monitored.", date: "2026-06-29 09:00" },
                     { id: "pn2", author: "Dr. Samir Hassan (Consultant)", text: isAr ? "يجب مراقبة مستويات السكر في الدم وضبط جرعة الأنسولين بناءً على الفحوصات الطبية الدورية." : "Monitor blood glucose levels and adjust Insulin dosage accordingly based on tests.", date: "2026-06-29 14:30" }
                   ]).map((note: any) => (
@@ -1541,6 +1617,18 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     <p className="text-xs text-slate-500 mt-1">
                       {isAr ? "تسجيل الملاحظات التمريضية المستمرة، وإعطاء المحاليل والأدوية والعناية اليومية بالسرير." : "Continuous nursing logs, critical care nursing records, and bedside interventions."}
                     </p>
+                    {patientDiet && (
+                      <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg text-xs mt-3 w-fit">
+                        <Droplets className="w-4 h-4 text-orange-500" />
+                        <span className="font-bold text-slate-700">{isAr ? "الأنظمة الغذائية:" : "Diet:"}</span>
+                        <span className="font-black text-orange-700">{patientDiet.diet}</span>
+                        {patientDiet.allergy && patientDiet.allergy !== "None" && patientDiet.allergy !== "لا يوجد" && (
+                          <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded ml-2 font-bold flex items-center gap-1">
+                            <ShieldAlert className="w-3 h-3" /> {patientDiet.allergy}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1574,7 +1662,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
 
                 {/* Nursing Notes List */}
                 <div className="space-y-4">
-                  {(currentPatient.nursingNotes || [
+                  {((currentPatient as any).nursingNotes || [
                     { id: "nn1", author: "RN. Sarah Jones", text: isAr ? "تم إعطاء الأدوية الوريدية المقررة في موعدها المعتمد. المريض لا يعاني من ألم حالياً." : "Prescribed IV medications administered on schedule. Patient reports no pain currently.", date: "2026-06-30 08:00" },
                     { id: "nn2", author: "RN. Fatima Saeed", text: isAr ? "تم تغيير ضماد الجرح الجراحي بنجاح. الجرح نظيف تماماً ولا توجد أي علامات للالتهاب الموضعي." : "Surgical wound dressing changed successfully. Wound is clean, no signs of infection.", date: "2026-06-30 11:30" }
                   ]).map((note: any) => (
@@ -1957,7 +2045,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     </div>
                     <button 
                       onClick={() => {
-                        const logs = currentPatient.vitalsLog || [
+                        const logs = (currentPatient as any).vitalsLog || [
                           { time: "2026-06-30 08:00", bp: "115/75", hr: 82, temp: 37.1, spo2: 98, rr: 16 },
                           { time: "2026-06-29 20:00", bp: "120/80", hr: 80, temp: 36.8, spo2: 99, rr: 14 }
                         ];
@@ -1998,7 +2086,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                            {(currentPatient.vitalsLog || [
+                            {((currentPatient as any).vitalsLog || [
                               { time: "2026-06-30 08:00", bp: "115/75", hr: 82, temp: 37.1, spo2: 98, rr: 16 },
                               { time: "2026-06-29 20:00", bp: "120/80", hr: 80, temp: 36.8, spo2: 99, rr: 14 }
                             ]).map((log: any, idx: number) => {
@@ -2053,7 +2141,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded font-black border border-emerald-200">ICU Bedside Verified</span>
                   </div>
                   <div className="divide-y divide-slate-100">
-                    {(currentPatient.prescriptions && currentPatient.prescriptions.length > 0 ? currentPatient.prescriptions : [
+                    {((currentPatient as any).prescriptions && (currentPatient as any).prescriptions.length > 0 ? (currentPatient as any).prescriptions : [
                       { id: "rx-default-1", name: "Ceftriaxone IV (مضاد حيوي)", dosage: "1g IV Q12H", status: "Active", date: "2026-06-29" },
                       { id: "rx-default-2", name: "Paracetamol Infusion (مسكن)", dosage: "1g IV Q8H", status: "Active", date: "2026-06-29" }
                     ]).map((rx: any) => {
@@ -2104,7 +2192,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                             {/* eMAR Timeline Slots */}
                             {["08:00", "14:00", "20:00"].map((slot) => {
                               const marKey = `${rx.id}-${slot}`;
-                              const adminRecord = (currentPatient.marLog || {})[marKey];
+                              const adminRecord = ((currentPatient as any).marLog || {})[marKey];
 
                               if (isDc) {
                                 return (
@@ -2150,7 +2238,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                                     {/* Give button */}
                                     <button
                                       onClick={() => {
-                                        const marLog = currentPatient.marLog || {};
+                                        const marLog = (currentPatient as any).marLog || {};
                                         const updatedMarLog = {
                                           ...marLog,
                                           [marKey]: {
@@ -2264,7 +2352,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                           </button>
                           <button 
                             onClick={() => {
-                              const marLog = currentPatient.marLog || {};
+                              const marLog = (currentPatient as any).marLog || {};
                               const marKey = `${notGivenState.rxId}-${notGivenState.slot}`;
                               
                               const holdReasonsAr = {
@@ -2364,7 +2452,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                           </button>
                           <button 
                             onClick={() => {
-                              const updatedPrescriptions = currentPatient.prescriptions?.map(rx => 
+                              const updatedPrescriptions = (currentPatient as any).prescriptions?.map(rx => 
                                 rx.id === discontinueRxId ? { ...rx, status: "discontinued" as "discontinued" } : rx
                               );
                               
@@ -2417,7 +2505,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                        {(currentPatient.orders && currentPatient.orders.length > 0 ? currentPatient.orders : [
+                        {((currentPatient as any).orders && (currentPatient as any).orders.length > 0 ? (currentPatient as any).orders : [
                           { id: "ord-default-1", type: "LAB", name: "CBC (Complete Blood Count)", status: "Completed", date: "2026-06-29" },
                           { id: "ord-default-2", type: "RAD", name: "Chest X-Ray Portable", status: "Completed", date: "2026-06-28" }
                         ]).map((ord: any) => {
@@ -2490,7 +2578,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                   <div className="space-y-3 lg:col-span-1">
                     <h4 className="text-xs font-black text-slate-700 uppercase tracking-widest">{isAr ? "التقارير المتوفرة" : "Available Reports"}</h4>
                     {[
-                      ...((currentPatient.orders || [])
+                      ...(((currentPatient as any).orders || [])
                         .filter((o: any) => o.type === "LAB" && o.status === "Completed")
                         .map((o: any) => ({
                           id: o.id,
@@ -2546,7 +2634,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                   {/* Clinical Report Display Card */}
                   <div className="lg:col-span-3">
                     {(() => {
-                      const completedLabOrders = (currentPatient.orders || [])
+                      const completedLabOrders = ((currentPatient as any).orders || [])
                         .filter((o: any) => o.type === "LAB" && o.status === "Completed")
                         .map((o: any) => ({
                           id: o.id,
@@ -2934,15 +3022,15 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                       <div className="flex flex-col items-center justify-center h-28 bg-slate-50 rounded-xl border border-slate-100">
                         <span className="text-slate-500 text-xs font-bold uppercase mb-2">{isAr ? "المبلغ المستحق (غير مغطى)" : "Patient Responsibility"}</span>
                         <span className="text-4xl font-black text-slate-900">
-                          ${(120 + (currentPatient.consumables?.reduce((acc: number, curr: any) => acc + (curr.price * curr.qty), 0) || 0)).toFixed(2)}
+                          ${(120 + ((currentPatient as any).consumables?.reduce((acc: number, curr: any) => acc + (curr.price * curr.qty), 0) || 0)).toFixed(2)}
                         </span>
                       </div>
                       
-                      {currentPatient.consumables?.length > 0 && (
+                      {(currentPatient as any).consumables?.length > 0 && (
                         <div className="pt-4 border-t border-slate-100">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{isAr ? "تفاصيل المستهلكات" : "Consumables Breakdown"}</p>
                           <div className="space-y-1.5 max-h-32 overflow-y-auto pr-2">
-                            {currentPatient.consumables.map((c: any) => (
+                            {(currentPatient as any).consumables.map((c: any) => (
                               <div key={c.id} className="flex justify-between text-xs font-bold text-slate-600">
                                 <span>{isAr ? c.nameAr : c.nameEn} (x{c.qty})</span>
                                 <span className="font-mono">${(c.price * c.qty).toFixed(2)}</span>
@@ -3060,7 +3148,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                       <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
                         <h4 className="font-black text-slate-800 text-xs uppercase tracking-wider">{isAr ? "المستهلكات المسجلة للزيارة" : "Recorded Consumables for Visit"}</h4>
                         <span className="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full uppercase">
-                          {currentPatient.consumables?.length || 0} ITEMS
+                          {(currentPatient as any).consumables?.length || 0} ITEMS
                         </span>
                       </div>
                       <div className="overflow-x-auto">
@@ -3075,7 +3163,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
-                            {(currentPatient.consumables || []).map((c: any) => (
+                            {((currentPatient as any).consumables || []).map((c: any) => (
                               <tr key={c.id} className="hover:bg-slate-50 transition">
                                 <td className="px-5 py-3">
                                   <p className="text-slate-900">{isAr ? c.nameAr : c.nameEn}</p>
@@ -3089,7 +3177,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                                 <td className="px-5 py-3 text-right font-black text-slate-900">${(c.price * c.qty).toFixed(2)}</td>
                               </tr>
                             ))}
-                            {(!currentPatient.consumables || currentPatient.consumables.length === 0) && (
+                            {(!(currentPatient as any).consumables || (currentPatient as any).consumables.length === 0) && (
                               <tr>
                                 <td colSpan={5} className="px-5 py-10 text-center text-slate-400 font-bold italic">
                                   {isAr ? "لا يوجد مستهلكات مسجلة لهذه الزيارة بعد." : "No consumables recorded for this visit yet."}
@@ -3097,12 +3185,12 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                               </tr>
                             )}
                           </tbody>
-                          {currentPatient.consumables?.length > 0 && (
+                          {(currentPatient as any).consumables?.length > 0 && (
                             <tfoot className="bg-slate-50 font-black">
                               <tr>
                                 <td colSpan={4} className="px-5 py-3 text-right text-slate-500 uppercase tracking-widest">{isAr ? "إجمالي المستهلكات" : "Total Consumables"}</td>
                                 <td className="px-5 py-3 text-right text-emerald-600 font-mono">
-                                  ${currentPatient.consumables.reduce((acc: number, curr: any) => acc + (curr.price * curr.qty), 0).toFixed(2)}
+                                  ${(currentPatient as any).consumables.reduce((acc: number, curr: any) => acc + (curr.price * curr.qty), 0).toFixed(2)}
                                 </td>
                               </tr>
                             </tfoot>
@@ -3112,6 +3200,12 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === "nutrition" && (
+              <div className="max-w-5xl mx-auto pb-12">
+                <PatientNutritionTab isAr={isAr} patientId={currentPatient.id} patientName={isAr ? currentPatient.nameAr : currentPatient.nameEn} />
               </div>
             )}
 
@@ -3156,7 +3250,19 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
               </div>
             )}
               </motion.div>
-            </AnimatePresence>
+              {![
+    "summary", "timeline", "doctor_desk", "nursing_desk", "problems", "vitals", 
+    "mar", "orders", "labs", "radiology", "progress_notes", "nursing_notes", 
+    "reports", "care_plan", "assessments", "io", "forms", "surgery", 
+    "attachments", "billing", "handover", "consumables", "discharge"
+  ].includes(activeTab) && activeTab !== "nutrition" && (
+    <GenericClinicalTab 
+      language={isAr ? "ar" : "en"} 
+      titleEn={tabs.find(t => t.id === activeTab)?.en || activeTab} 
+      titleAr={tabs.find(t => t.id === activeTab)?.ar || activeTab} 
+    />
+  )}
+</AnimatePresence>
           </div>
         </div>
       </div>
@@ -3236,7 +3342,7 @@ export function PatientChartModal({ patientId, patientName, onClose, isAr, initi
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setShowPrintPreview({ ...showPrintPreview, reportType: item.id } as any)}
+                      onClick={() => setShowPrintPreview({ ...(showPrintPreview as any), reportType: item.id } as any)}
                       className={`w-full text-left rtl:text-right p-3 rounded-xl border flex items-center gap-3 transition-all ${
                         isSelected 
                           ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/15" 

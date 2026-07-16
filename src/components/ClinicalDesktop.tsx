@@ -122,10 +122,6 @@ export const ClinicalDesktop: React.FC<Props> = ({ currentUser }) => {
     { id: "overview", label: "Overview", icon: Activity },
     { id: "flowsheets", label: "Vitals & Flowsheets", icon: Stethoscope },
     { id: "notes", label: "Clinical Notes", icon: FileText },
-    { id: "orders", label: "CPOE / Orders", icon: ClipboardList },
-    { id: "medications", label: "Medications", icon: Pill },
-    { id: "lab_rad", label: "Lab & Rad", icon: TestTube },
-    { id: "billing", label: "Billing", icon: CreditCard },
   ] as const;
 
   return (

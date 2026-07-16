@@ -16,10 +16,14 @@ export function useFirestoreSync<T>(
 
   useEffect(() => {
     if (!enabled) {
-      setIsLoaded(false);
+      setTimeout(() => {
+        setIsLoaded(false);
+      }, 0);
       return;
     }
     const unsubscribe = syncFnRef.current((newData) => {
+      setTimeout(() => {
+
       console.log("DEBUG useFirestoreSync newData:", newData?.length, "initialData:", initialData?.length);
       // If newData is somehow strictly empty, we MUST fallback to initialData to avoid breaking the app.
       // Additionally, we merge missing initialData items by ID to guarantee mock fallbacks are always present.
@@ -46,6 +50,7 @@ export function useFirestoreSync<T>(
         }
       }
       setIsLoaded(true);
+      }, 0);
     });
     return () => unsubscribe();
   }, [...deps, enabled]);
@@ -70,14 +75,18 @@ export function useFirestoreSetting<T>(
 
   useEffect(() => {
     if (!enabled) {
-      setIsLoaded(false);
+      setTimeout(() => {
+        setIsLoaded(false);
+      }, 0);
       return;
     }
     const unsubscribe = syncFnRef.current(settingKey, (newData) => {
-      if (newData !== null && newData !== undefined) {
-        setData(newData);
-      }
-      setIsLoaded(true);
+      setTimeout(() => {
+        if (newData !== null && newData !== undefined) {
+          setData(newData);
+        }
+        setIsLoaded(true);
+      }, 0);
     });
     return () => unsubscribe();
   }, [...deps, enabled]);

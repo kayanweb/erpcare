@@ -5,9 +5,10 @@ import { toast } from "sonner";
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
-export default function BillingInsurance({ language }: Props) {
+export default function BillingInsurance({ language, onClose }: Props) {
   const isAr = language === "ar";
   const { invoices: realInvoices, patients, updateInvoiceStatus, cpoeOrders, prescriptions } = useHIS();
   
@@ -61,7 +62,7 @@ export default function BillingInsurance({ language }: Props) {
     const items = [];
     
     // Check if this is a real patient invoice
-    if (activeInvoice?.isReal) {
+    if ((activeInvoice as any)?.isReal) {
       items.push({ name: isAr ? "رسوم استشارة وإقامة (قياسية)" : "Standard Consultation & Stay Rate", qty: 1, price: 150 });
       
       const patId = activeInvoice.patientId;
@@ -133,7 +134,7 @@ export default function BillingInsurance({ language }: Props) {
     // Add to paid trackers to update local UI list status immediately
     setPaidInvoiceIds(prev => [...prev, activeInvoice.id]);
     
-    if (activeInvoice.isReal) {
+    if ((activeInvoice as any).isReal) {
       await updateInvoiceStatus(activeInvoice.id, "paid");
     }
     
@@ -143,14 +144,24 @@ export default function BillingInsurance({ language }: Props) {
   return (
     <div className="flex flex-col h-full bg-slate-50 font-sans" dir={isAr ? "rtl" : "ltr"}>
       {/* Header */}
-      <div className="bg-white p-4 sm:p-6 border-b border-slate-200 shrink-0">
-        <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-          <Receipt className="h-7 w-7 text-amber-600" />
-          {isAr ? "نظام الفواتير والمالية RCM" : "Billing & Financials (RCM)"}
-        </h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
-          {isAr ? "إدارة فواتير المرضى، دورة الإيرادات، والمطالبات التأمينية في الوقت الفعلي." : "Real-time patient invoices, Revenue Cycle Management, and insurance claims."}
-        </p>
+      <div className="bg-white p-4 sm:p-6 border-b border-slate-200 shrink-0 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <Receipt className="h-7 w-7 text-amber-600" />
+              {isAr ? "نظام الفواتير والمالية RCM" : "Billing & Financials (RCM)"}
+            </h1>
+            <p className="text-sm text-slate-500 font-medium mt-1">
+              {isAr ? "إدارة فواتير المرضى، دورة الإيرادات، والمطالبات التأمينية في الوقت الفعلي." : "Real-time patient invoices, Revenue Cycle Management, and insurance claims."}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Main Layout */}

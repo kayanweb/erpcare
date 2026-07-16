@@ -1,8 +1,9 @@
 import React from "react";
+import InpatientDashboard from "./InpatientDashboard";
 import ProfileView from "./ProfileView";
 import AdvancedMedicalCalculators from "./AdvancedMedicalCalculators";
 import HISImplementationDashboard from "./HISImplementationDashboard";
-import AdminDashboard from "./AdminDashboard";
+
 import DocumentCenter from "./DocumentCenter";
 import MessagingDashboard from "./MessagingDashboard";
 import HISSettingsPage from "./HISSettingsPage";
@@ -11,6 +12,7 @@ interface DashboardRouterProps {
   activeTab: string;
   currentUser: any;
   language: "ar" | "en";
+  onClose?: () => void;
   addSystemLog: any;
   itStrictComplianceMode: boolean;
   setItStrictComplianceMode: any;
@@ -32,6 +34,7 @@ export const DashboardRouter: React.FC<DashboardRouterProps> = ({
   activeTab,
   currentUser,
   language,
+  onClose,
   addSystemLog,
   itStrictComplianceMode,
   setItStrictComplianceMode,
@@ -51,6 +54,7 @@ export const DashboardRouter: React.FC<DashboardRouterProps> = ({
   const componentProps = {
     currentUser,
     language,
+    onClose,
     addSystemLog,
     itStrictComplianceMode,
     setItStrictComplianceMode,
@@ -76,7 +80,7 @@ export const DashboardRouter: React.FC<DashboardRouterProps> = ({
     case "project_implementation":
       return <HISImplementationDashboard {...componentProps} />;
     case "admin_dashboard":
-      return <AdminDashboard {...componentProps} />;
+      return <InpatientDashboard language={language} defaultModuleType="ward_im" />;
     case "document_center":
       return <DocumentCenter {...componentProps} />;
     case "his_settings":

@@ -77,7 +77,7 @@ export default function SupervisorRoundingAudit({ language, isAr }: RoundingAudi
       shift: "Morning",
       answers: {},
       generalNotes: "",
-      supervisorName: settings?.user_name || "المشرف الميداني",
+      supervisorName: (settings as any)?.user_name || "المشرف الميداني",
       type: "super_rounding_audit",
       timestamp: Date.now()
     });
@@ -228,7 +228,7 @@ export default function SupervisorRoundingAudit({ language, isAr }: RoundingAudi
               </h1>
               <div className="absolute top-0 right-0 flex items-center gap-1.5 border border-pink-200 bg-pink-50/25 px-2.5 py-1.5 rounded-lg">
                 <span className="font-mono font-black text-pink-700 text-[10px] tracking-wider border border-pink-300 px-1.5 py-0.5 rounded leading-none shrink-0">
-                  {settings.nameEn ? settings.nameEn.split(/\s+/).map((w: string) => w[0]).filter((c: string) => /^[a-zA-Z\u0600-\u06FF]$/.test(c)).slice(0, 2).join("").toUpperCase() : "BH"}
+                  {(settings as any).nameEn ? (settings as any).nameEn.split(/\s+/).map((w: string) => w[0]).filter((c: string) => /^[a-zA-Z\u0600-\u06FF]$/.test(c)).slice(0, 2).join("").toUpperCase() : "BH"}
                 </span>
                 <span className="font-sans font-black text-slate-800 text-[10px] leading-none">
                   {isAr ? (settings.institutionNameAr || "مؤسسة المستشفى") : (settings.institutionNameEn || "Hospital Foundation")}

@@ -1,208 +1,254 @@
-import React, { useState } from 'react';
-import { Settings, Save, Shield, Bell, Key, Users, Globe, Database, Monitor, Network, Plus, Trash2, Edit } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState, useMemo } from "react";
+import { 
+  Settings, Save, Shield, Bell, Key, Users, Globe, Database, Monitor, 
+  Network, Plus, Trash2, Edit, LayoutDashboard, ListTodo, FileSearch,
+  ChevronRight, ArrowLeft, ArrowRight, Zap, Eye, FileOutput, Printer,
+  History, ShieldCheck, Share2, Server, Cpu, HardDrive, Lock, MoreVertical
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useHIS } from "../context/HISContext";
 
-export default function GlobalSettings({ language }: { language: 'ar' | 'en' }) {
-  const isAr = language === 'ar';
+export default function GlobalSettings({ language }: { language: "ar" | "en" }) {
+  const isAr = language === "ar";
+  const { currentUser } = useHIS();
   
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeMainTab, setActiveMainTab] = useState<string>("dashboard");
+  const [selectedConfigId, setSelectedConfigId] = useState<string | null>(null);
 
-  const tabs = [
-    { id: 'general', icon: Globe, labelEn: 'General Settings', labelAr: 'الإعدادات العامة' },
-    { id: 'permissions', icon: Shield, labelEn: 'Roles & Permissions', labelAr: 'الصلاحيات والوصول' },
-    { id: 'users', icon: Users, labelEn: 'User Management', labelAr: 'إدارة المستخدمين' },
-    { id: 'integrations', icon: Network, labelEn: 'Integrations (HIS/ERP)', labelAr: 'الربط الخارجي' },
-    { id: 'database', icon: Database, labelEn: 'Database & Backup', labelAr: 'قاعدة البيانات والنسخ الاحتياطي' },
-    { id: 'display', icon: Monitor, labelEn: 'Display & UI', labelAr: 'العرض وواجهة المستخدم' },
+  const mainTabs = [
+    { id: "dashboard", icon: LayoutDashboard, en: "Control Panel", ar: "لوحة التحكم" },
+    { id: "general", icon: Globe, en: "Core Config", ar: "الإعدادات الأساسية" },
+    { id: "iam", icon: Shield, en: "IAM & Roles", ar: "الهوية والصلاحيات" },
+    { id: "integrations", icon: Network, en: "Enterprise Link", ar: "الربط المؤسسي" },
+    { id: "infra", icon: Server, en: "Infrastructure", ar: "البنية التحتية" },
+    { id: "security", icon: Lock, en: "Security & Audit", ar: "الأمن والتدقيق" },
   ];
 
-  const handleSave = () => {
-    window.dispatchEvent(new CustomEvent("openGenericModal", { detail: { titleEn: "System settings saved successfully", titleAr: "تم حفظ إعدادات النظام بنجاح", type: "form" } }));
-  };
-
-  const handleAction = (action: string) => {
-    window.dispatchEvent(new CustomEvent("openGenericModal", {
-      detail: {
-        titleEn: action,
-        titleAr: action,
-        type: "form"
-      }
-    }));
-  };
+  const systemStats = [
+    { label: isAr ? "حالة النظام" : "System Status", value: "Optimal", change: "99.9%", icon: Cpu, color: "emerald" },
+    { label: isAr ? "اتصالات نشطة" : "Active Sessions", value: "248", change: "+12", icon: Users, color: "blue" },
+    { label: isAr ? "تحديثات معلقة" : "Pending Patches", value: "0", change: "Stable", icon: Zap, color: "indigo" },
+    { label: isAr ? "صحة التخزين" : "Storage Health", value: "Healthy", change: "1.2TB Free", icon: HardDrive, color: "cyan" },
+  ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-full font-sans" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-            <Settings className="w-6 h-6 text-slate-600" />
-            {isAr ? 'إعدادات النظام الشاملة' : 'Global System Settings'}
-          </h2>
-          <p className="text-slate-500 mt-1 font-bold">
-            {isAr 
-              ? 'إدارة تكوينات البرنامج بالكامل، الصلاحيات، الربط، والمستخدمين من لوحة تحكم واحدة.' 
-              : 'Manage complete application configurations, permissions, integrations, and users.'}
-          </p>
-        </div>
-        <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition">
-          <Save className="w-4 h-4" />
-          {isAr ? "حفظ التغييرات الشاملة" : "Save All Changes"}
-        </button>
-      </div>
-
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row min-h-[600px]">
-        
-        {/* Settings Sidebar */}
-        <div className="md:w-72 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-4 shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                activeTab === tab.id 
-                  ? 'bg-indigo-600 text-white shadow-md' 
-                  : 'text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-white' : 'text-slate-400'}`} />
-              {isAr ? tab.labelAr : tab.labelEn}
-            </button>
-          ))}
-        </div>
-
-        {/* Settings Content */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 p-6 sm:p-8 overflow-y-auto">
-            {activeTab === 'general' && (
-              <div className="space-y-6 max-w-2xl">
-                <h3 className="text-xl font-black text-slate-800 mb-6 border-b pb-2">{isAr ? "الإعدادات العامة" : "General Settings"}</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isAr ? "اسم المستشفى/المنشأة" : "Hospital/Facility Name"}</label>
-                    <input type="text" defaultValue="مستشفى الأمل التخصصي" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isAr ? "البريد الإلكتروني الرسمي" : "Official Email"}</label>
-                    <input type="email" defaultValue="admin@hospital.com" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">{isAr ? "العملة" : "Currency"}</label>
-                      <select className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option>EGP (جنيه مصري)</option>
-                        <option>SAR (ريال سعودي)</option>
-                        <option>USD ($)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">{isAr ? "المنطقة الزمنية" : "Timezone"}</label>
-                      <select className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option>Africa/Cairo (GMT+2)</option>
-                        <option>Asia/Riyadh (GMT+3)</option>
-                        <option>UTC (GMT+0)</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="pt-4">
-                    <button onClick={() => handleAction('Update General Config')} className="px-4 py-2 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 transition">
-                      {isAr ? "تحديث التكوين الأساسي" : "Update Core Config"}
-                    </button>
-                  </div>
-                </div>
+    <div className="flex flex-col h-full bg-[#f8fafc]" dir={isAr ? "rtl" : "ltr"}>
+      {/* Global Settings Module Header */}
+      <div className="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between shadow-sm z-30">
+        <div className="flex items-center gap-5">
+          <div className="w-14 h-14 bg-slate-800 rounded-[22px] flex items-center justify-center shadow-xl shadow-slate-200 border-2 border-slate-700">
+            <Settings className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                {isAr ? "مركز إدارة النظام الشامل" : "Global System Administration"}
+              </h1>
+              <span className="px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-black rounded-full border border-slate-200 uppercase tracking-widest">
+                Enterprise Core v12.4
+              </span>
+            </div>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-sm font-bold text-slate-400">{isAr ? "تكوين البنية التحتية، الصلاحيات، والربط المؤسسي" : "Infrastructure, IAM, Integration & Security Control Center"}</span>
+              <div className="w-1 h-1 bg-slate-300 rounded-full" />
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                  {isAr ? "النظام يعمل بكفاءة" : "Core Systems Online"}
+                </span>
               </div>
-            )}
-
-            {activeTab === 'permissions' && (
-              <div className="space-y-6">
-                <h3 className="text-xl font-black text-slate-800 mb-6 border-b pb-2">{isAr ? "إدارة الصلاحيات (RBAC)" : "Roles & Permissions (RBAC)"}</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {["System Administrator", "Head Nurse", "Doctor", "Receptionist", "IT Support"].map((role, idx) => (
-                    <div key={idx} className="p-4 border border-slate-200 rounded-xl flex items-center justify-between hover:border-indigo-300 transition">
-                      <div className="flex items-center gap-3">
-                        <Shield className="w-5 h-5 text-indigo-500" />
-                        <span className="font-bold text-slate-700">{role}</span>
-                      </div>
-                      <button onClick={() => handleAction(`Edit ${role}`)} className="text-indigo-600 hover:text-indigo-800 text-sm font-bold">
-                        {isAr ? "تعديل الصلاحيات" : "Edit Perms"}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'users' && (
-              <div className="space-y-6">
-                 <div className="flex justify-between items-center mb-6 border-b pb-2">
-                    <h3 className="text-xl font-black text-slate-800">{isAr ? "المستخدمين النشطين" : "Active Users"}</h3>
-                    <button onClick={() => handleAction('Add User')} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 font-bold rounded-lg hover:bg-indigo-100 transition">
-                      <Plus className="w-4 h-4" /> {isAr ? "إضافة" : "Add"}
-                    </button>
-                 </div>
-                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center text-slate-500 font-bold">
-                    <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    {isAr ? "جدول إدارة المستخدمين مدمج في قائمة الهوية والصلاحيات (IAM)." : "User management table is integrated in the IAM Dashboard."}
-                 </div>
-              </div>
-            )}
-
-            {activeTab === 'integrations' && (
-              <div className="space-y-6">
-                 <h3 className="text-xl font-black text-slate-800 mb-6 border-b pb-2">{isAr ? "محرك الربط (HL7 / FHIR)" : "Integration Engine (HL7 / FHIR)"}</h3>
-                 
-                 <div className="space-y-4">
-                    <div className="p-5 border border-slate-200 rounded-xl bg-slate-50">
-                       <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-black text-slate-800">ERP System (Odoo / SAP)</h4>
-                          <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">Connected</span>
-                       </div>
-                       <p className="text-sm text-slate-500 mb-3">{isAr ? "مزامنة الفواتير والموارد البشرية" : "Syncing Billing and HR Data"}</p>
-                       <button onClick={() => handleAction('Sync ERP')} className="text-sm font-bold text-indigo-600">Test Connection</button>
-                    </div>
-                    <div className="p-5 border border-slate-200 rounded-xl bg-slate-50">
-                       <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-black text-slate-800">National Insurance Portal</h4>
-                          <span className="px-2 py-1 bg-rose-100 text-rose-700 text-xs font-bold rounded">Disconnected</span>
-                       </div>
-                       <p className="text-sm text-slate-500 mb-3">{isAr ? "بوابة المطالبات الحكومية والتأمين" : "Government Claims & Insurance Portal"}</p>
-                       <button onClick={() => handleAction('Connect Insurance')} className="text-sm font-bold text-indigo-600">Configure API Keys</button>
-                    </div>
-                 </div>
-              </div>
-            )}
-
-            {activeTab === 'database' && (
-              <div className="space-y-6 text-center py-10">
-                 <Database className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                 <h3 className="text-xl font-black text-slate-800 mb-2">{isAr ? "النسخ الاحتياطي لقاعدة البيانات" : "Database Backups"}</h3>
-                 <p className="text-slate-500 max-w-md mx-auto mb-6">
-                    {isAr ? "النسخ الاحتياطي التلقائي يعمل يومياً الساعة 00:00. يمكنك أخذ لقطة فورية الآن." : "Automated daily backups run at 00:00. You can trigger an instant snapshot now."}
-                 </p>
-                 <button onClick={() => handleAction('Snapshot DB')} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700">
-                    {isAr ? "أخذ نسخة احتياطية الآن" : "Trigger Snapshot"}
-                 </button>
-              </div>
-            )}
-
-            {activeTab === 'display' && (
-              <div className="space-y-6">
-                 <h3 className="text-xl font-black text-slate-800 mb-6 border-b pb-2">{isAr ? "واجهة المستخدم والمظهر" : "UI & Display Preferences"}</h3>
-                 
-                 <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500" defaultChecked />
-                      <span className="font-bold text-slate-700">{isAr ? "تفعيل الوضع الليلي (Dark Mode) التلقائي" : "Enable Auto Dark Mode"}</span>
-                    </label>
-                    <p className="text-sm text-slate-500 mt-2 mr-8 ml-8">
-                      {isAr ? "سيقوم النظام بتبديل الألوان حسب توقيت جهاز المستخدم (أو توقيت الورديات)." : "System will adjust colors based on user's device time or shift time."}
-                    </p>
-                 </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
+
+        <div className="flex items-center gap-4">
+           <button className="p-3 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 rounded-2xl transition-all shadow-sm">
+             <Bell className="w-6 h-6" />
+           </button>
+           <button className="px-6 py-3 bg-slate-900 text-white rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95">
+             <Save className="w-5 h-5 text-slate-400" />
+             <span className="hidden lg:block">{isAr ? "حفظ التغييرات" : "Commit Changes"}</span>
+           </button>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-20">
+         <div className="flex gap-1">
+            {mainTabs.map(tab => (
+              <button 
+                key={tab.id}
+                onClick={() => {
+                  setActiveMainTab(tab.id);
+                  setSelectedConfigId(null);
+                }}
+                className={`flex items-center gap-2 px-6 py-5 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative whitespace-nowrap ${
+                  activeMainTab === tab.id ? "text-slate-900 border-b-2 border-slate-900" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
+                }`}
+              >
+                <tab.icon className={`w-4 h-4 ${activeMainTab === tab.id ? "text-slate-900" : ""}`} />
+                {isAr ? tab.ar : tab.en}
+              </button>
+            ))}
+         </div>
+      </div>
+
+      {/* Workspace Area */}
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {selectedConfigId ? (
+             <motion.div 
+               key="config-details"
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: 10 }}
+               className="h-full flex flex-col"
+             >
+                <div className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm z-10">
+                   <div className="flex items-center gap-4">
+                      <button onClick={() => setSelectedConfigId(null)} className="p-3 hover:bg-slate-100 rounded-2xl transition-all text-slate-500">
+                        <ArrowLeft className={`w-6 h-6 ${isAr ? 'rotate-180' : ''}`} />
+                      </button>
+                      <div className="w-[1px] h-8 bg-slate-200" />
+                      <div>
+                         <h3 className="text-lg font-black text-slate-800 tracking-tight">{isAr ? "محرر التكوين المتقدم" : "Advanced Configuration Editor"}</h3>
+                         <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{isAr ? "المفتاح: " + selectedConfigId : "Config Key: " + selectedConfigId}</p>
+                      </div>
+                   </div>
+                   <div className="flex gap-3">
+                      <button className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-[14px] text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all">
+                        {isAr ? "استعادة الافتراضي" : "Reset Default"}
+                      </button>
+                      <button className="px-6 py-2.5 bg-slate-900 text-white rounded-[14px] text-xs font-black uppercase tracking-widest shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all">
+                        {isAr ? "حفظ وتطبيق" : "Apply Config"}
+                      </button>
+                   </div>
+                </div>
+                <div className="flex-1 p-8 overflow-y-auto no-scrollbar">
+                   <div className="max-w-5xl mx-auto space-y-6">
+                      <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm text-center py-20">
+                         <Cpu className="w-16 h-16 text-slate-200 mx-auto mb-6" />
+                         <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{isAr ? "تحميل معلمات النظام" : "Loading System Parameters"}</h2>
+                         <p className="text-slate-400 font-bold max-w-md mx-auto mt-4 uppercase tracking-widest text-sm leading-relaxed">
+                           {isAr ? "يتم الآن جلب مفاتيح التكوين من طبقة الأمان المركزية" : "Fetching encrypted configuration keys from the central security mesh"}
+                         </p>
+                      </div>
+                   </div>
+                </div>
+             </motion.div>
+          ) : (
+            <div className="h-full overflow-y-auto no-scrollbar p-8">
+               {activeMainTab === "dashboard" && (
+                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                       {systemStats.map((stat, i) => (
+                         <div key={i} className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                            <div className="flex justify-between items-start mb-4">
+                               <div className={`p-4 bg-${stat.color}-50 rounded-2xl border border-${stat.color}-100`}>
+                                  <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
+                               </div>
+                               <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${stat.change.includes('%') || stat.change.includes('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
+                                 {stat.change}
+                               </span>
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{stat.label}</p>
+                               <h3 className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{stat.value}</h3>
+                            </div>
+                         </div>
+                       ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                       <div className="lg:col-span-2 bg-white rounded-[40px] border border-slate-200 shadow-sm p-10">
+                          <div className="flex justify-between items-center mb-10">
+                             <div>
+                                <h3 className="text-xl font-black text-slate-900 tracking-tight">{isAr ? "الخدمات المركزية" : "Core Managed Services"}</h3>
+                                <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-widest">{isAr ? "حالة الربط والأداء للخدمات الأساسية" : "Integration status and performance for backbone services"}</p>
+                             </div>
+                             <button className="p-3 bg-slate-50 text-slate-400 hover:text-slate-600 rounded-2xl transition-all"><MoreVertical className="w-6 h-6" /></button>
+                          </div>
+                          <div className="space-y-4">
+                             {[
+                               { id: "SRV-1", name: "FHIR/HL7 Interface", status: "Active", load: "low" },
+                               { id: "SRV-2", name: "ERP Bridge (Odoo)", status: "Active", load: "med" },
+                               { id: "SRV-3", name: "PACMS/DICOM Mesh", status: "Active", load: "low" },
+                             ].map((srv, i) => (
+                               <div key={srv.id} className="group p-5 bg-slate-50 rounded-[28px] border border-slate-100 hover:bg-white hover:shadow-xl hover:border-slate-300 transition-all flex items-center justify-between cursor-pointer" onClick={() => setSelectedConfigId(srv.id)}>
+                                  <div className="flex items-center gap-5">
+                                     <div className="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center font-black text-lg border border-slate-200">
+                                        <Network className="w-6 h-6" />
+                                     </div>
+                                     <div>
+                                        <h4 className="font-black text-slate-800 text-base leading-tight">{srv.name}</h4>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{srv.id} • Latency: 12ms</p>
+                                     </div>
+                                  </div>
+                                  <div className="flex items-center gap-6">
+                                     <span className="text-[9px] font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg uppercase tracking-widest">
+                                       {srv.status}
+                                     </span>
+                                     <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-slate-900 group-hover:translate-x-1 transition-all" />
+                                  </div>
+                               </div>
+                             ))}
+                          </div>
+                       </div>
+
+                       <div className="bg-slate-900 rounded-[40px] p-10 text-white relative overflow-hidden flex flex-col justify-between shadow-2xl border border-slate-800">
+                          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.05),transparent)] pointer-events-none" />
+                          <div>
+                             <div className="flex justify-between items-start mb-10">
+                                <h3 className="text-2xl font-black tracking-tight leading-tight uppercase">{isAr ? "سجل التدقيق" : "Security Audit"}</h3>
+                                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+                                   <ShieldCheck className="w-6 h-6 text-slate-400" />
+                                </div>
+                             </div>
+                             <div className="space-y-6">
+                                {[
+                                  { msg: "Root Access Detected", time: "2m ago", type: "alert" },
+                                  { msg: "Backup Sync Complete", time: "1h ago", type: "info" },
+                                  { msg: "DB Maintenance Scheduled", time: "Tonight", type: "info" },
+                                ].map((n, i) => (
+                                  <div key={i} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                     <div>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{n.time}</p>
+                                        <p className="font-black text-sm">{n.msg}</p>
+                                     </div>
+                                     <div className={`w-2 h-2 rounded-full ${n.type === 'alert' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+                                  </div>
+                                ))}
+                             </div>
+                          </div>
+                          <button className="w-full py-4 bg-slate-100 hover:bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg active:scale-95 mt-10">
+                             {isAr ? "تصدير سجل الأمان" : "Export Audit Log"}
+                          </button>
+                       </div>
+                    </div>
+                 </motion.div>
+               )}
+
+               {["general", "iam", "integrations", "infra", "security"].includes(activeMainTab) && (
+                 <div className="flex-1 flex flex-col items-center justify-center p-20 text-center space-y-8">
+                    <div className="w-32 h-32 bg-slate-100 rounded-[48px] flex items-center justify-center shadow-inner border border-slate-200">
+                       {mainTabs.find(t => t.id === activeMainTab)?.icon && React.createElement(mainTabs.find(t => t.id === activeMainTab)!.icon, { className: "w-16 h-16 text-slate-400" })}
+                    </div>
+                    <div>
+                       <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight">{isAr ? "مزامنة النظام" : "System Core Sync"}</h2>
+                       <p className="text-slate-400 font-bold max-w-md mx-auto mt-4 leading-relaxed uppercase tracking-widest text-sm">
+                         {isAr ? "يتم الآن ربط موديول " + activeMainTab + " ضمن نواة النظام الموحدة" : "Linking " + activeMainTab + " data layer into the unified system core"}
+                       </p>
+                    </div>
+                    <div className="flex gap-2">
+                       <div className="w-2 h-2 bg-slate-900 rounded-full animate-bounce" />
+                       <div className="w-2 h-2 bg-slate-600 rounded-full animate-bounce [animation-delay:0.2s]" />
+                       <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]" />
+                    </div>
+                 </div>
+               )}
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

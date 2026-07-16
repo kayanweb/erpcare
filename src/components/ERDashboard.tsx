@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Search, Plus, Clock, AlertCircle, Edit, Activity, HeartPulse, Stethoscope, Users, Bed, Eye, Bell, ListTodo, FileOutput, ShieldAlert } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { 
+  Search, Plus, Clock, AlertCircle, Edit, Activity, HeartPulse, Stethoscope, 
+  Users, Bed, Eye, Bell, ListTodo, FileOutput, ShieldAlert, LayoutDashboard,
+  FileSearch, BarChart3, MoreVertical, ChevronRight, Printer, Zap, TrendingUp,
+  MapPin, Phone, CheckCircle2, Siren, Thermometer, UserPlus, History, Filter
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { GlobalEntityLink } from "./GlobalEntityLink";
 import DepartmentTasks from "./DepartmentTasks";
@@ -7,37 +13,29 @@ import { useHIS } from "../context/HISContext";
 import DoctorConsultationDesk from "./DoctorConsultationDesk";
 import { ArrowLeft } from "lucide-react";
 
-interface ERPatient {
-  id: string;
-  mrn: string;
-  name: string;
-  triageLevel: 1 | 2 | 3 | 4 | 5;
-  chiefComplaint: string;
-  arrivalTime: string;
-  status: string;
-  zone: "Red" | "Yellow" | "Green" | "FastTrack";
-  bed?: string;
-}
-
-export default function ERDashboard({ language }: { language: "ar" | "en" }) {
+export default function ERDashboard({ language, onOpenPatientChart }: { language: "ar" | "en", onOpenPatientChart?: (id: string, name: string, tab?: string) => void }) {
   const isAr = language === "ar";
   const { erQueue = [], currentUser, patients: contextPatients } = useHIS();
   
-  const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [activeMainTab, setActiveMainTab] = useState<string>("dashboard");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  // Removed local selectedPatientId state to use onOpenPatientChart prop if available
+  const [localSelectedPatientId, setLocalSelectedPatientId] = useState<string | null>(null);
 
-  // Ambulance tracking state
-  const [ambulances, setAmbulances] = useState([
-    { id: "AMB-102", eta: 3, complaint: "Chest Pain / Suspected STEMI", complaintAr: "ألم بالصدر / اشتباه جلطة", status: "Critical", statusAr: "حرجة", bedId: "Resus-1", paramedic: "Saeed / Omar", hr: 110, bp: "145/95", spo2: 91 },
-    { id: "AMB-205", eta: 7, complaint: "Polytrauma / Motor Vehicle Collision", complaintAr: "إصابات متعددة / حادث سير", status: "Severe", statusAr: "خطيرة", bedId: "", paramedic: "Mostafa / Ali", hr: 125, bp: "90/50", spo2: 88 },
-    { id: "AMB-408", eta: 14, complaint: "Stroke Symptoms / Left Hemiparesis", complaintAr: "أعراض جلطة دماغية / شلل نصفي أيسر", status: "Stable-Urgent", statusAr: "مستقرة-عاجلة", bedId: "", paramedic: "Hassan / Samir", hr: 85, bp: "160/100", spo2: 96 }
+  const handleOpenChart = (p: any) => {
+    if (onOpenPatientChart) {
+      onOpenPatientChart(p.id, isAr ? p.nameAr : p.nameEn);
+    } else {
+      setLocalSelectedPatientId(p.id);
+    }
+  };
+
+  // State for advanced features
+  const [ambulances, setAmbulances] = useState<any[]>([
+    { id: "AMB-102", eta: 3, status: "Critical", statusAr: "حرج", complaint: "Cardiac Arrest", complaintAr: "توقف قلب وتنفس", paramedic: "Sami A.", hr: 0, bp: "0/0", spo2: 0, bedId: "" },
+    { id: "AMB-205", eta: 7, status: "Stable", statusAr: "مستقر", complaint: "Respiratory Distress", complaintAr: "ضيق تنفس", paramedic: "Omar K.", hr: 110, bp: "135/85", spo2: 92, bedId: "" }
   ]);
 
-  // Resus GCS state
-  const [gcsEye, setGcsEye] = useState(4);
-  const [gcsVerbal, setGcsVerbal] = useState(5);
-  const [gcsMotor, setGcsMotor] = useState(6);
   const [resusChecklist, setResusChecklist] = useState({
     airway: true,
     iv: true,
@@ -46,770 +44,580 @@ export default function ERDashboard({ language }: { language: "ar" | "en" }) {
     blood: false
   });
 
-  // Fast track state
-  const [selectedTemplate, setSelectedTemplate] = useState("");
-  const [fastTrackNote, setFastTrackNote] = useState("");
-  const [selectedFastTrackPatient, setSelectedFastTrackPatient] = useState<any>(null);
+  const [gcs, setGcs] = useState({ eye: 4, verbal: 5, motor: 6 });
 
-  // Smart alerts state
-  const [erAlerts, setErAlerts] = useState([
-    { id: 1, type: "panic", text: "قيمة حرجة من المختبر: التروبونين 1.45 نانوغرام/مل للمريض أحمد يوسف", textEn: "Critical lab panic value: Troponin 1.45 ng/mL for Ahmed Youssef", status: "active", time: "10:12 AM" },
-    { id: 2, type: "triage", text: "تأخر في الفرز: 3 مرضى في الانتظار لأكثر من 25 دقيقة", textEn: "Triage Delay: 3 patients in waiting room for over 25 minutes", status: "active", time: "10:15 AM" },
-    { id: 3, type: "vitals", text: "انخفاض الأكسجين: SpO2 < 90% للمريض في السرير Resus-1", textEn: "Hypoxia Alert: SpO2 < 90% for patient in bed Resus-1", status: "active", time: "10:20 AM" }
-  ]);
+  const patients = useMemo(() => {
+    return (contextPatients && Array.isArray(contextPatients))
+      ? contextPatients.filter(p => p.status === "triage" || p.departmentId === "er-unit")
+      : [];
+  }, [contextPatients]);
 
-  const patients = (contextPatients && Array.isArray(contextPatients))
-    ? contextPatients.filter(p => p.status === "triage" || p.departmentId === "er-unit")
-    : [];
+  const filteredPatients = useMemo(() => {
+    if (!searchTerm) return patients;
+    const lowerQuery = searchTerm.toLowerCase();
+    return patients.filter(p => 
+      p.nameEn.toLowerCase().includes(lowerQuery) || 
+      p.nameAr.includes(searchTerm) || 
+      p.mrn.toLowerCase().includes(lowerQuery)
+    );
+  }, [patients, searchTerm]);
 
-  const filtered = patients.filter((p) => 
-    p.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.nameAr.includes(searchTerm) || 
-    p.mrn.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const mainTabs = [
+    { id: "dashboard", icon: LayoutDashboard, en: "Triage Board", ar: "لوحة الفرز" },
+    { id: "critical", icon: HeartPulse, en: "Trauma & Resus", ar: "الإصابات والإنعاش" },
+    { id: "ambulance", icon: Siren, en: "Ambulance Track", ar: "تتبع الإسعاف" },
+    { id: "fast_track", icon: ShieldAlert, en: "Fast Track", ar: "المسار السريع" },
+    { id: "beds", icon: Bed, en: "ER Bed Map", ar: "خارطة الأسرة" },
+    { id: "search", icon: FileSearch, en: "Search Center", ar: "مركز البحث" },
+    { id: "analytics", icon: BarChart3, en: "Analytics", ar: "التحليلات" },
+  ];
 
   const getTriageColor = (level: number) => {
     switch (level) {
-      case 1: return "bg-rose-500 text-white border-rose-600 shadow-rose-200";
-      case 2: return "bg-orange-500 text-white border-orange-600 shadow-orange-200";
-      case 3: return "bg-yellow-400 text-slate-800 border-yellow-500 shadow-yellow-200";
-      case 4: return "bg-emerald-500 text-white border-emerald-600 shadow-emerald-200";
-      case 5: return "bg-blue-500 text-white border-blue-600 shadow-blue-200";
+      case 1: return "bg-rose-500 text-white border-rose-600";
+      case 2: return "bg-orange-500 text-white border-orange-600";
+      case 3: return "bg-yellow-400 text-slate-800 border-yellow-500";
+      case 4: return "bg-emerald-500 text-white border-emerald-600";
+      case 5: return "bg-blue-500 text-white border-blue-600";
       default: return "bg-slate-200 text-slate-800 border-slate-300";
     }
   };
 
-  const calculateWaitTime = (arrivalTime: string) => {
-    if (!arrivalTime) return "N/A";
-    const diff = Math.floor((new Date().getTime() - new Date(arrivalTime).getTime()) / 60000);
-    if (diff < 60) return `${diff}m`;
-    return `${Math.floor(diff / 60)}h ${diff % 60}m`;
-  };
-
-  const tabs = [
-    { id: "dashboard", icon: Activity, en: "Triage Board", ar: "لوحة الفرز" },
-    { id: "critical", icon: HeartPulse, en: "Trauma & Resus", ar: "الإصابات والإنعاش" },
-    { id: "ambulance", icon: AlertCircle, en: "Ambulance Track", ar: "تتبع الإسعاف" },
-    { id: "fast_track", icon: ShieldAlert, en: "Fast Track", ar: "المسار السريع" },
-    { id: "bed_status", icon: Bed, en: "ER Beds", ar: "أسرة الطوارئ" },
-    { id: "tasks", icon: ListTodo, en: "Tasks", ar: "المهام" },
-    { id: "alerts", icon: Bell, en: "Smart Alerts", ar: "التنبيهات الذكية" },
-  ];
-
   return (
-    <div className="flex flex-col h-full bg-slate-50" dir={isAr ? "rtl" : "ltr"}>
-      {/* Workspace Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-rose-900 flex items-center gap-3">
-            <Activity className="w-7 h-7 text-rose-600" />
-            {isAr ? "قسم الطوارئ (ER)" : "Emergency Department (ER)"}
-          </h1>
-          <p className="text-sm text-slate-500 font-bold mt-1">
-            {isAr ? "مساحة العمل المتكاملة لإدارة الطوارئ" : "Integrated Emergency Management Workspace"}
-          </p>
+    <div className="flex flex-col h-full bg-[#fcfdfe]" dir={isAr ? "rtl" : "ltr"}>
+      {/* Module Header */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm z-30">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200">
+            <Activity className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                {isAr ? "قسم الطوارئ (ER)" : "Emergency Department"}
+              </h1>
+              <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-black rounded-full border border-rose-100 uppercase">
+                Enterprise v2.0
+              </span>
+            </div>
+            <div className="flex items-center gap-3 mt-0.5">
+              <span className="text-sm font-bold text-slate-500">{isAr ? "المستشفى الرئيسي" : "Main Medical Center"}</span>
+              <div className="w-1 h-1 bg-slate-300 rounded-full" />
+              <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-1">
+                <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />
+                {patients.length} {isAr ? "مريض قيد المعالجة" : "Active ER Cases"}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => window.dispatchEvent(new CustomEvent('openPatientRegistration'))}
-            className="bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-rose-700 transition shadow-md flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            {isAr ? "تسجيل مريض جديد" : "New Registration"}
+
+        <div className="flex items-center gap-3">
+          <div className="relative hidden md:block">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text"
+              placeholder={isAr ? "بحث في الطوارئ..." : "Search ER Board..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 outline-none w-64 transition-all focus:bg-white"
+            />
+          </div>
+          <button className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-100 rounded-xl transition-all shadow-sm">
+            <Printer className="w-5 h-5" />
+          </button>
+          <button className="p-2.5 bg-rose-600 text-white rounded-xl shadow-lg shadow-rose-100 hover:bg-rose-700 transition-all active:scale-95 flex items-center gap-2 px-5">
+            <UserPlus className="w-5 h-5" />
+            <span className="text-xs font-black uppercase tracking-widest hidden lg:block">{isAr ? "تسجيل مريض" : "Triage Patient"}</span>
           </button>
         </div>
       </div>
 
-      {/* Workspace Navigation */}
-      <div className="bg-white border-b border-slate-200 px-6 shrink-0 overflow-x-auto custom-scrollbar">
-        <div className="flex space-x-1 space-x-reverse min-w-max">
-          {tabs.map(tab => (
+      {/* Main Navigation Tabs */}
+      <div className="bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 overflow-x-auto no-scrollbar">
+        <div className="flex gap-1">
+          {mainTabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
-                activeTab === tab.id 
-                  ? "border-rose-600 text-rose-700" 
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+              onClick={() => {
+                setActiveMainTab(tab.id);
+                setLocalSelectedPatientId(null);
+              }}
+              className={`flex items-center gap-2 px-5 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap ${
+                activeMainTab === tab.id 
+                  ? "border-rose-600 text-rose-700 bg-rose-50/30" 
+                  : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-rose-600" : ""}`} />
+              <tab.icon className={`w-4 h-4 ${activeMainTab === tab.id ? "text-rose-600" : ""}`} />
               {isAr ? tab.ar : tab.en}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Workspace Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        {selectedPatientId ? (
-          <div className="h-full flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
-            <div className="bg-rose-50 border-b border-rose-200 px-4 py-3 flex items-center justify-between">
-              <button 
-                onClick={() => setSelectedPatientId(null)}
-                className="flex items-center gap-2 text-rose-600 font-bold hover:text-rose-800 transition"
-              >
-                <ArrowLeft className={`w-4 h-4 ${isAr ? 'rotate-180' : ''}`} />
-                {isAr ? "العودة للوحة الفرز" : "Back to Triage Board"}
-              </button>
-              <div className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                {isAr ? "نظام إدارة الحالة السريرية - طوارئ" : "Clinical Case Management - ER"}
+      {/* Content Area */}
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {localSelectedPatientId ? (
+            <motion.div 
+               key="clinical-desk"
+               initial={{ opacity: 0, scale: 0.98 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.98 }}
+               className="h-full flex flex-col"
+            >
+              <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm">
+                 <div className="flex items-center gap-4">
+                   <button 
+                     onClick={() => setLocalSelectedPatientId(null)}
+                     className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
+                   >
+                     <ArrowLeft className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
+                   </button>
+                   <div className="h-8 w-[1px] bg-slate-200" />
+                   <div>
+                     <h3 className="text-sm font-black text-slate-800">
+                       {isAr ? "معاينة الطوارئ السريرية" : "Clinical ER Assessment"}
+                     </h3>
+                     <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest">
+                       {isAr ? "الحالة: مباشر" : "Mode: Live Assessment"}
+                     </p>
+                   </div>
+                 </div>
+                 <div className="flex gap-2">
+                    <button className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-black uppercase hover:bg-slate-200 transition-colors">
+                      {isAr ? "تحويل مريض" : "Transfer Patient"}
+                    </button>
+                    <button className="px-4 py-2 bg-rose-600 text-white rounded-lg text-xs font-black uppercase shadow-md hover:bg-rose-700 transition-all active:scale-95">
+                      {isAr ? "إنهاء المعاينة" : "Finalize Consult"}
+                    </button>
+                 </div>
               </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <DoctorConsultationDesk 
-                language={language}
-                currentUser={currentUser}
-                systemUsers={[]}
-                departments={[]}
-                forcedPatientId={selectedPatientId}
-                isEmbedded={true}
-              />
-            </div>
-          </div>
-        ) : (
-          <>
-            {activeTab === "dashboard" && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-              {[
-                { title: isAr ? "المستوى 1 (إنعاش)" : "Level 1 (Resus)", count: patients.filter(p => p.triageLevel === 1).length, color: "rose" },
-                { title: isAr ? "المستوى 2 (طوارئ)" : "Level 2 (Emergent)", count: patients.filter(p => p.triageLevel === 2).length, color: "orange" },
-                { title: isAr ? "المستوى 3 (عاجل)" : "Level 3 (Urgent)", count: patients.filter(p => p.triageLevel === 3).length, color: "yellow" },
-                { title: isAr ? "المستوى 4 (أقل استعجالاً)" : "Level 4 (Less Urgent)", count: patients.filter(p => p.triageLevel === 4).length, color: "emerald" },
-                { title: isAr ? "المستوى 5 (غير عاجل)" : "Level 5 (Non-Urgent)", count: patients.filter(p => p.triageLevel === 5).length, color: "blue" },
-              ].map((stat, i) => (
-                <div key={i} className={`bg-white border-l-4 border-${stat.color}-500 rounded-lg shadow-sm p-4 flex flex-col`}>
-                  <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">{stat.title}</span>
-                  <span className={`text-2xl font-black text-${stat.color}-600 mt-1`}>{stat.count}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
-              <div className="p-4 border-b border-slate-100 flex flex-wrap gap-4 items-center justify-between bg-slate-50">
-                <h2 className="text-lg font-black text-slate-800">{isAr ? "لوحة الفرز الحي" : "Live Triage Board"}</h2>
-                <div className="relative flex-1 md:w-64 max-w-xs">
-                  <Search className={`absolute ${isAr ? "right-3" : "left-3"} top-2.5 h-4 w-4 text-slate-400`} />
-                  <input
-                    type="text"
-                    placeholder={isAr ? "بحث بالرقم أو الاسم..." : "Search MRN or Name..."}
-                    className={`w-full ${isAr ? "pr-9 pl-4" : "pl-9 pr-4"} py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 font-bold`}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+              <div className="flex-1 overflow-hidden">
+                <DoctorConsultationDesk 
+                  language={language}
+                  currentUser={currentUser}
+                  systemUsers={[]}
+                  departments={[]}
+                  forcedPatientId={localSelectedPatientId}
+                  isEmbedded={true}
+                />
               </div>
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-sm text-left" dir={isAr ? "rtl" : "ltr"}>
-                  <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
-                    <tr>
-                      <th className="px-4 py-4 text-center">{isAr ? "الفرز" : "Triage"}</th>
-                      <th className="px-4 py-4">{isAr ? "المريض" : "Patient"}</th>
-                      <th className="px-4 py-4">{isAr ? "الشكوى الرئيسية" : "Chief Complaint"}</th>
-                      <th className="px-4 py-4">{isAr ? "الحالة" : "Status"}</th>
-                      <th className="px-4 py-4">{isAr ? "المنطقة" : "Zone"}</th>
-                      <th className="px-4 py-4">{isAr ? "الانتظار" : "Wait Time"}</th>
-                      <th className="px-4 py-4 text-center">{isAr ? "إجراء" : "Action"}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filtered.map((patient) => {
-                      const waitString = calculateWaitTime(patient.arrivalTime);
-                      const isLongWait = waitString?.includes("h") || (waitString !== "N/A" && parseInt(waitString) > 30);
-                      return (
-                        <tr key={patient.id} className="hover:bg-slate-50 transition">
-                          <td className="px-4 py-3 text-center">
-                            <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center font-black border-2 shadow-sm ${getTriageColor(patient.triageLevel || 3)}`}>
-                              {patient.triageLevel || 3}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="font-bold text-slate-800">
-                              <GlobalEntityLink entityId={patient.id} entityName={isAr ? patient.nameAr : patient.nameEn} entityType="patient" isAr={isAr}>
-                                {isAr ? patient.nameAr : patient.nameEn}
-                              </GlobalEntityLink>
-                            </div>
-                            <div className="text-xs font-mono text-slate-500">{patient.mrn}</div>
-                          </td>
-                          <td className="px-4 py-3 font-bold text-slate-700 min-w-[150px]">{patient.chiefComplaint || (isAr ? "غير محدد" : "Unspecified")}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-bold border border-slate-200 whitespace-nowrap">{patient.status}</span>
-                          </td>
-                          <td className="px-4 py-3 text-xs font-bold whitespace-nowrap">
-                            <span className={`px-2 py-1 rounded border shadow-sm whitespace-nowrap ${
-                                patient.zone === "Red" ? "bg-rose-50 text-rose-700 border-rose-200"
-                                : patient.zone === "Green" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : patient.zone === "Yellow" ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                                : "bg-slate-50 text-slate-600 border-slate-200"
-                              }`}>
-                              {patient.zone || "Yellow"} Zone
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 font-mono font-bold whitespace-nowrap">
-                            <div className={`flex items-center gap-1.5 ${isLongWait ? "text-rose-600" : "text-slate-600"}`}>
-                              <Clock className="w-3.5 h-3.5 shrink-0" /> {waitString}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
-                            <button 
-                              onClick={() => setSelectedPatientId(patient.id)}
-                              className="px-2.5 py-1.5 text-[11px] font-black bg-rose-600 text-white hover:bg-rose-700 rounded-lg shadow-sm transition flex items-center gap-1.5 mx-auto"
-                            >
-                              <Stethoscope className="w-3.5 h-3.5" />
-                              {isAr ? "كشف الطوارئ" : "Consult"}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === "tasks" && (
-          <DepartmentTasks language={language} departmentId="er" departmentName={isAr ? "قسم الطوارئ" : "Emergency Department"} />
-        )}
-
-        {activeTab === "bed_status" && (
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50 border-b border-slate-200">
-              <h2 className="font-black text-slate-800 flex items-center gap-2">
-                <Bed className="w-5 h-5 text-rose-600" />
-                {isAr ? "حالة أسرة الطوارئ" : "ER Bed Status"}
-              </h2>
-            </div>
-            <div className="p-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {["Resus-1", "Resus-2", "Red-1", "Red-2", "Red-3", "Yel-1", "Yel-2", "Yel-3", "Yel-4", "Yel-5", "Grn-1", "Grn-2"].map(bed => {
-                const occupied = patients.find(p => p.bedId === bed);
-                return (
-                  <div key={bed} className={`p-4 border-2 rounded-xl flex flex-col items-center justify-center gap-2 transition ${occupied ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                    <Bed className={`w-8 h-8 ${occupied ? 'text-rose-600' : 'text-emerald-600'}`} />
-                    <span className="text-xs font-black text-slate-700">{bed}</span>
-                    <span className={`text-[10px] font-bold uppercase ${occupied ? 'text-rose-700' : 'text-emerald-700'}`}>
-                      {occupied ? (isAr ? "مشغول" : "Occupied") : (isAr ? "متاح" : "Available")}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "critical" && (
-          <div className="space-y-6 animate-fade-in text-right" dir={isAr ? "rtl" : "ltr"}>
-            <div className="bg-rose-900 text-white p-6 rounded-2xl shadow-lg border border-rose-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-xl font-black flex items-center gap-2">
-                  <HeartPulse className="w-6 h-6 animate-pulse text-rose-400 shrink-0" />
-                  {isAr ? "وحدة الإنعاش والصدمات الكبرى" : "Major Trauma & Resuscitation Unit"}
-                </h2>
-                <p className="text-rose-100 text-xs font-bold mt-1 max-w-xl">
-                  {isAr 
-                    ? "إدارة الحالات الحرجة من المستوى 1 (Code Blue, Polytrauma, Cardiac Arrest). المتابعة الآنية لفرز المريض والتدخل السريري السريع." 
-                    : "Direct management of Level 1 critical patients. Real-time vitals, resuscitation checklists, and rapid interventions."}
-                </p>
-              </div>
-              <div className="bg-rose-800/80 px-4 py-2 rounded-xl text-center border border-rose-700/50">
-                <span className="text-[10px] font-bold block uppercase tracking-widest text-rose-300">{isAr ? "حالة الإنعاش الحالية" : "Active Trauma Cases"}</span>
-                <span className="text-xl font-black">{patients.filter(p => p.triageLevel === 1).length + 1}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column: Patient Selector & Resus Checklist */}
-              <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                  <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                      <Users className="w-5 h-5 text-rose-600" />
-                      {isAr ? "المرضى في غرف الإنعاش" : "Patients in Resus Bays"}
-                    </h3>
-                  </div>
-                  <div className="p-4 divide-y divide-slate-100">
+            </motion.div>
+          ) : (
+            <>
+              {activeMainTab === "dashboard" && (
+                <motion.div 
+                  key="dashboard"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-6 h-full overflow-y-auto space-y-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {[
-                      { id: "P-RES-1", nameAr: "أحمد يوسف عبد الله", nameEn: "Ahmed Youssef", mrn: "MRN-2026-0301", triageLevel: 1, bedId: "Resus-1", chiefComplaint: isAr ? "ألم شديد بالصدر واشتباه احتشاء العضلة القلبية" : "Acute MI / Chest Pain", hr: 118, bp: "88/54", spo2: 89 },
-                      { id: "P-RES-2", nameAr: "سالم محمد الهاجري", nameEn: "Salem Al-Hajri", mrn: "MRN-2026-4402", triageLevel: 1, bedId: "Resus-2", chiefComplaint: isAr ? "نزيف حاد / حادث سيارة" : "Severe Hemorrhage / MVC", hr: 124, bp: "92/58", spo2: 91 }
-                    ].map(patient => (
-                      <div key={patient.id} className="py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50/50 px-2 rounded-xl transition">
+                      { level: 1, label: isAr ? "إنعاش (L1)" : "Resus (L1)", color: "rose" },
+                      { level: 2, label: isAr ? "طوارئ (L2)" : "Emergent (L2)", color: "orange" },
+                      { level: 3, label: isAr ? "عاجل (L3)" : "Urgent (L3)", color: "yellow" },
+                      { level: 4, label: isAr ? "أقل استعجالاً" : "Less Urgent", color: "emerald" },
+                      { level: 5, label: isAr ? "غير عاجل" : "Non-Urgent", color: "blue" },
+                    ].map((stat, i) => (
+                      <div key={i} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping"></span>
-                            <span className="font-black text-slate-800 text-sm">{isAr ? patient.nameAr : patient.nameEn}</span>
-                            <span className="text-xs bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded border border-rose-200">Level 1</span>
-                          </div>
-                          <p className="text-xs text-slate-500 font-bold mt-1 flex items-center gap-4">
-                            <span>MRN: <span className="font-mono">{patient.mrn}</span></span>
-                            <span>{isAr ? "السرير:" : "Bed:"} <span className="text-rose-600 font-black">{patient.bedId}</span></span>
-                            <span>{isAr ? "الشكوى:" : "Complaint:"} <span className="text-slate-700 font-black">{patient.chiefComplaint}</span></span>
-                          </p>
+                          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{stat.label}</p>
+                          <h3 className={`text-3xl font-black text-${stat.color}-600 mt-1`}>
+                            {patients.filter(p => p.triageLevel === stat.level).length}
+                          </h3>
                         </div>
-                        
-                        {/* Simulation Vitals */}
+                        <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 border border-${stat.color}-100`}>
+                           <Activity className="w-5 h-5" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-rose-600 rounded-full animate-pulse" />
+                        <h2 className="font-black text-slate-800 uppercase tracking-tight">{isAr ? "لوحة الفرز الحي" : "Live Triage Board"}</h2>
+                      </div>
+                      <div className="flex gap-4">
+                         <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                           <Clock className="w-3.5 h-3.5" />
+                           {isAr ? "تحديث تلقائي: نشط" : "Auto-Refresh: Active"}
+                         </div>
+                         <button className="p-2 text-slate-400 hover:text-rose-600 transition-colors"><Filter className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                            <th className="py-4 px-6">{isAr ? "الفرز" : "Triage"}</th>
+                            <th className="py-4 px-6">{isAr ? "المريض" : "Patient"}</th>
+                            <th className="py-4 px-6">{isAr ? "الشكوى" : "Complaint"}</th>
+                            <th className="py-4 px-6">{isAr ? "الانتظار" : "Wait Time"}</th>
+                            <th className="py-4 px-6">{isAr ? "الحالة" : "Status"}</th>
+                            <th className="py-4 px-6 text-right">{isAr ? "الإجراء" : "Action"}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {filteredPatients.map(p => (
+                            <tr key={p.id} className="group hover:bg-slate-50/80 transition-all cursor-pointer" onClick={() => handleOpenChart(p)}>
+                              <td className="py-4 px-6">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs border shadow-sm ${getTriageColor(p.triageLevel || 3)}`}>
+                                  {p.triageLevel || 3}
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200">
+                                    {p.nameEn.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-black text-slate-800 hover:text-rose-600 transition-colors">
+                                      <GlobalEntityLink 
+                                        entityId={p.id} 
+                                        entityName={isAr ? p.nameAr : p.nameEn} 
+                                        entityType="patient" 
+                                        isAr={isAr}
+                                      >
+                                        {isAr ? p.nameAr : p.nameEn}
+                                      </GlobalEntityLink>
+                                    </p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">
+                                      <GlobalEntityLink 
+                                        entityId={p.id} 
+                                        entityName={isAr ? p.nameAr : p.nameEn} 
+                                        entityType="patient" 
+                                        isAr={isAr}
+                                      >
+                                        {p.mrn}
+                                      </GlobalEntityLink>
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-4 px-6 max-w-xs">
+                                <p className="text-xs font-bold text-slate-600 truncate">{p.chiefComplaint || (isAr ? "غير محدد" : "Unspecified")}</p>
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="flex items-center gap-1.5 text-xs font-black text-slate-500">
+                                  <Clock className="w-3.5 h-3.5 text-rose-400" />
+                                  12m
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg text-[10px] font-black border border-slate-200 uppercase tracking-widest">
+                                  {p.status}
+                                </span>
+                              </td>
+                              <td className="py-4 px-6 text-right">
+                                 <button className="bg-rose-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-100 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                    {isAr ? "بدء المعاينة" : "Begin Assessment"}
+                                 </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeMainTab === "critical" && (
+                <motion.div 
+                  key="critical"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-6 h-full overflow-y-auto space-y-6"
+                >
+                   <div className="bg-rose-900 rounded-[40px] p-10 text-white shadow-2xl relative overflow-hidden">
+                      <Zap className="absolute top-[-40px] right-[-40px] w-64 h-64 text-white/5 rotate-12" />
+                      <div className="flex flex-col lg:flex-row justify-between items-center gap-8 relative z-10">
+                        <div className="space-y-4">
+                           <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 bg-rose-400 rounded-full animate-ping" />
+                              <span className="text-xs font-black uppercase tracking-[0.3em] text-rose-300">{isAr ? "وحدة الإنعاش المباشر" : "Direct Resuscitation Hub"}</span>
+                           </div>
+                           <h2 className="text-5xl font-black tracking-tighter">{isAr ? "إدارة الصدمات الكبرى" : "Major Trauma Command"}</h2>
+                           <p className="text-rose-100/80 font-medium max-w-lg text-lg">
+                              {isAr ? "مساحة عمل مخصصة للحالات من المستوى 1. تتبع البروتوكولات، تحليلات GCS، وربط فرق الاستجابة السريعة." : "Specialized workspace for Level 1 critical care. Protocol tracking, GCS analytics, and rapid response team synchronization."}
+                           </p>
+                        </div>
                         <div className="flex gap-4">
-                          <div className="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl border border-rose-100 text-center animate-pulse">
-                            <span className="block text-[9px] uppercase font-bold text-rose-400">{isAr ? "نبض القلب" : "HR"}</span>
-                            <span className="text-sm font-black font-mono">{patient.hr} bpm</span>
-                          </div>
-                          <div className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-100 text-center">
-                            <span className="block text-[9px] uppercase font-bold text-blue-400">{isAr ? "الأكسجين" : "SpO2"}</span>
-                            <span className="text-sm font-black font-mono">{patient.spo2}%</span>
-                          </div>
-                          <div className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl border border-emerald-100 text-center">
-                            <span className="block text-[9px] uppercase font-bold text-emerald-400">{isAr ? "الضغط" : "NIBP"}</span>
-                            <span className="text-sm font-black font-mono">{patient.bp}</span>
-                          </div>
+                           <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-[32px] text-center w-40">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-rose-300 block mb-2">{isAr ? "حالات نشطة" : "Active Cases"}</span>
+                              <span className="text-4xl font-black">2</span>
+                           </div>
+                           <div className="bg-rose-500/30 backdrop-blur-xl border border-rose-400/30 p-6 rounded-[32px] text-center w-40">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-rose-300 block mb-2">{isAr ? "جاهزية الفريق" : "Team Status"}</span>
+                              <span className="text-xl font-black uppercase">{isAr ? "متأهب" : "Ready"}</span>
+                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                   </div>
 
-                {/* Resuscitation Checklist (Code Blue) */}
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
-                  <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <HeartPulse className="w-5 h-5 text-rose-600" />
-                    {isAr ? "قائمة تدقيق إنعاش الحالات الحرجة (Code Blue Checklist)" : "Code Blue Resuscitation Checklist"}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[
-                      { key: "airway", labelEn: "Airway Secured (Intubation/EtCO2 verified)", labelAr: "تأمين المجرى الهوائي (أنابيب الرغامي/التحقق)" },
-                      { key: "iv", labelEn: "Two Large-Bore IV lines / IO established", labelAr: "تركيب خطين وريديين واسعين / داخل العظم" },
-                      { key: "ekg", labelEn: "Continuous ECG monitor & Defibrillator connected", labelAr: "توصيل المونيتور وجهاز الصدمات الكهربائية" },
-                      { key: "epi", labelEn: "Epinephrine administered (Cycle 1 - 1mg IV)", labelAr: "إعطاء الأدرينالين (الجرعة الأولى 1 ملغ)" },
-                      { key: "blood", labelEn: "Massive Transfusion Protocol (MTP) initiated", labelAr: "تفعيل بروتوكول نقل الدم المكثف" },
-                    ].map(item => (
-                      <label key={item.key} className="flex items-start gap-3 p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={(resusChecklist as any)[item.key]} 
-                          onChange={(e) => {
-                            setResusChecklist(prev => ({ ...prev, [item.key]: e.target.checked }));
-                            toast.success(isAr ? "تم تحديث حالة قائمة التدقيق" : "Checklist status updated");
-                          }}
-                          className="mt-1 w-4 h-4 text-rose-600 focus:ring-rose-500 rounded border-slate-300"
-                        />
-                        <div className="text-right">
-                          <span className="block text-sm font-bold text-slate-800">{isAr ? item.labelAr : item.labelEn}</span>
+                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* GCS Calculator Integration */}
+                      <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm space-y-6">
+                        <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                           <Activity className="w-6 h-6 text-rose-600" />
+                           {isAr ? "حاسبة مقياس غلاسكو (GCS)" : "Glasgow Coma Scale Calculator"}
+                        </h3>
+                        <div className="space-y-4">
+                           <div>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Eye Opening (E)</label>
+                              <div className="grid grid-cols-4 gap-2">
+                                {[4, 3, 2, 1].map(v => (
+                                  <button key={v} onClick={() => setGcs({...gcs, eye: v})} className={`py-3 rounded-2xl text-sm font-black transition-all ${gcs.eye === v ? 'bg-rose-600 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>{v}</button>
+                                ))}
+                              </div>
+                           </div>
+                           <div>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Verbal Response (V)</label>
+                              <div className="grid grid-cols-5 gap-2">
+                                {[5, 4, 3, 2, 1].map(v => (
+                                  <button key={v} onClick={() => setGcs({...gcs, verbal: v})} className={`py-3 rounded-2xl text-sm font-black transition-all ${gcs.verbal === v ? 'bg-rose-600 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>{v}</button>
+                                ))}
+                              </div>
+                           </div>
+                           <div>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Motor Response (M)</label>
+                              <div className="grid grid-cols-6 gap-2">
+                                {[6, 5, 4, 3, 2, 1].map(v => (
+                                  <button key={v} onClick={() => setGcs({...gcs, motor: v})} className={`py-3 rounded-2xl text-sm font-black transition-all ${gcs.motor === v ? 'bg-rose-600 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>{v}</button>
+                                ))}
+                              </div>
+                           </div>
                         </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Glasgow Coma Scale Calculator */}
-              <div className="space-y-6">
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
-                  <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <Activity className="w-5 h-5 text-rose-600" />
-                    {isAr ? "حاسبة مقياس غلاسكو للغيبوبة (GCS)" : "Glasgow Coma Scale (GCS) Calculator"}
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {/* Eye Opening */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1 uppercase text-right w-full">{isAr ? "استجابة العين (E)" : "Eye Opening (E)"}</label>
-                      <select 
-                        value={gcsEye} 
-                        onChange={e => setGcsEye(Number(e.target.value))}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"
-                      >
-                        <option value={4}>{isAr ? "4 - تلقائي" : "4 - Spontaneous"}</option>
-                        <option value={3}>{isAr ? "3 - للأمر اللفظي" : "3 - To sound"}</option>
-                        <option value={2}>{isAr ? "2 - للألم" : "2 - To pressure"}</option>
-                        <option value={1}>{isAr ? "1 - لا توجد استجابة" : "1 - None"}</option>
-                      </select>
-                    </div>
-
-                    {/* Verbal Response */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1 uppercase text-right w-full">{isAr ? "الاستجابة اللفظية (V)" : "Verbal Response (V)"}</label>
-                      <select 
-                        value={gcsVerbal} 
-                        onChange={e => setGcsVerbal(Number(e.target.value))}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"
-                      >
-                        <option value={5}>{isAr ? "5 - متجاوب ومنتبه" : "5 - Orientated"}</option>
-                        <option value={4}>{isAr ? "4 - مشوش" : "4 - Confused"}</option>
-                        <option value={3}>{isAr ? "3 - كلمات غير مترابطة" : "3 - Inappropriate words"}</option>
-                        <option value={2}>{isAr ? "2 - أصوات غير مفهومة" : "2 - Incomprehensible sounds"}</option>
-                        <option value={1}>{isAr ? "1 - لا توجد استجابة" : "1 - None"}</option>
-                      </select>
-                    </div>
-
-                    {/* Motor Response */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1 uppercase text-right w-full">{isAr ? "الاستجابة الحركية (M)" : "Motor Response (M)"}</label>
-                      <select 
-                        value={gcsMotor} 
-                        onChange={e => setGcsMotor(Number(e.target.value))}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"
-                      >
-                        <option value={6}>{isAr ? "6 - يطيع الأوامر" : "6 - Obeys commands"}</option>
-                        <option value={5}>{isAr ? "5 - يحدد مكان الألم" : "5 - Localising pain"}</option>
-                        <option value={4}>{isAr ? "4 - انسحاب للألم" : "4 - Normal flexion (withdrawal)"}</option>
-                        <option value={3}>{isAr ? "3 - ثني غير طبيعي (انقباض)" : "3 - Abnormal flexion (decorticate)"}</option>
-                        <option value={2}>{isAr ? "2 - بسط غير طبيعي (انفتاح)" : "2 - Extension (decerebrate)"}</option>
-                        <option value={1}>{isAr ? "1 - لا توجد استجابة" : "1 - None"}</option>
-                      </select>
-                    </div>
-
-                    {/* Score Output */}
-                    <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 text-center mt-6">
-                      <span className="text-xs font-bold text-rose-500 uppercase tracking-widest block">{isAr ? "إجمالي درجة GCS" : "GCS Score"}</span>
-                      <span className="text-4xl font-black text-rose-700 block my-1">{gcsEye + gcsVerbal + gcsMotor} / 15</span>
-                      <span className="text-xs font-bold text-slate-600 block mt-1">
-                        {gcsEye + gcsVerbal + gcsMotor <= 8 
-                          ? (isAr ? "غيبوبة شديدة (تطلب حماية المجرى الهوائي)" : "Severe (GCS ≤ 8, Intubation indicated)")
-                          : gcsEye + gcsVerbal + gcsMotor <= 12 
-                            ? (isAr ? "إصابة متوسطة" : "Moderate (GCS 9-12)")
-                            : (isAr ? "إصابة خفيفة" : "Mild (GCS 13-15)")
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center">
-                  <h4 className="font-bold text-slate-800 text-sm mb-2">{isAr ? "فريق الصدمات المناوب" : "Trauma On-Call Team"}</h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-50 p-2 rounded-lg"><span className="text-slate-400 block">{isAr ? "قائد الفريق" : "Trauma Leader"}</span><strong className="text-slate-700">Dr. Ali Youssef</strong></div>
-                    <div className="bg-slate-50 p-2 rounded-lg"><span className="text-slate-400 block">{isAr ? "ممرض الإنعاش" : "Resus Nurse"}</span><strong className="text-slate-700">Nurse Reem</strong></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "ambulance" && (
-          <div className="space-y-6 animate-fade-in text-right" dir={isAr ? "rtl" : "ltr"}>
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                  <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <AlertCircle className="w-6 h-6 text-rose-600 shrink-0" />
-                    {isAr ? "شاشة تتبع وتحضير الإسعاف" : "Ambulance Pre-Arrival & Tracking"}
-                  </h2>
-                  <p className="text-slate-500 text-xs font-bold mt-1">
-                    {isAr 
-                      ? "رصد سيارات الإسعاف القادمة، مراجعة التقارير الميدانية من المسعفين، وتخصيص أسرة الطوارئ بشكل مسبق." 
-                      : "Monitor en-route ambulances, view paramedic reports, and pre-assign ER beds."}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                {/* Ambulance Fleet Cards */}
-                <div className="xl:col-span-2 space-y-4">
-                  {ambulances.map(amb => (
-                    <div key={amb.id} className="border border-slate-200 rounded-2xl p-5 hover:border-rose-300 hover:shadow-md transition bg-white relative overflow-hidden text-right">
-                      <div className="absolute top-0 right-0 left-0 h-1.5 bg-rose-500"></div>
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-2">
-                        <div>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <span className="bg-slate-100 text-slate-800 font-mono text-xs font-black px-2 py-1 rounded border border-slate-200">{amb.id}</span>
-                            <span className="text-rose-600 font-bold text-xs flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              {isAr ? `وصول خلال ${amb.eta} دقائق` : `ETA: ${amb.eta} mins`}
-                            </span>
-                            <span className={`text-xs font-black px-2 py-0.5 rounded ${amb.status === 'Critical' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
-                              {isAr ? amb.statusAr : amb.status}
-                            </span>
-                          </div>
-                          
-                          <h4 className="font-black text-slate-800 text-base mt-3">{isAr ? amb.complaintAr : amb.complaint}</h4>
-                          <p className="text-xs text-slate-500 font-medium mt-1">
-                            {isAr ? `طاقم المسعفين: ${amb.paramedic}` : `Paramedics: ${amb.paramedic}`}
-                          </p>
-                        </div>
-
-                        {/* Paramedic Field Vitals */}
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex gap-4 text-center">
-                          <div>
-                            <span className="block text-[9px] uppercase font-bold text-slate-400">{isAr ? "نبض القلب" : "HR"}</span>
-                            <span className="text-sm font-black text-slate-700 font-mono">{amb.hr}</span>
-                          </div>
-                          <div className="border-r border-slate-200 h-8 self-center"></div>
-                          <div>
-                            <span className="block text-[9px] uppercase font-bold text-slate-400">{isAr ? "الضغط" : "BP"}</span>
-                            <span className="text-sm font-black text-slate-700 font-mono">{amb.bp}</span>
-                          </div>
-                          <div className="border-r border-slate-200 h-8 self-center"></div>
-                          <div>
-                            <span className="block text-[9px] uppercase font-bold text-slate-400">{isAr ? "الأكسجين" : "SpO2"}</span>
-                            <span className="text-sm font-black text-slate-700 font-mono">{amb.spo2}%</span>
-                          </div>
+                        <div className="bg-rose-50 rounded-3xl p-6 text-center border border-rose-100">
+                           <span className="text-[10px] font-black text-rose-400 uppercase tracking-[0.3em] block mb-2">Total Score</span>
+                           <h4 className="text-6xl font-black text-rose-700">{gcs.eye + gcs.verbal + gcs.motor}</h4>
+                           <p className="text-xs font-bold text-rose-600 mt-4 uppercase tracking-widest">
+                             {gcs.eye + gcs.verbal + gcs.motor <= 8 ? "Severe (Intubate)" : gcs.eye + gcs.verbal + gcs.motor <= 12 ? "Moderate" : "Mild"}
+                           </p>
                         </div>
                       </div>
 
-                      {/* Interactive Controls inside Card */}
-                      <div className="border-t border-slate-100 mt-4 pt-4 flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <label className="text-xs font-bold text-slate-500 whitespace-nowrap">{isAr ? "تخصيص سرير مسبق:" : "Pre-assign Bed:"}</label>
-                          <select 
-                            value={amb.bedId} 
-                            onChange={(e) => {
-                              const bId = e.target.value;
-                              setAmbulances(prev => prev.map(a => a.id === amb.id ? { ...a, bedId: bId } : a));
-                              toast.success(isAr ? `تم تخصيص السرير ${bId} للإسعاف ${amb.id}` : `Pre-assigned ${bId} to ${amb.id}`);
-                            }}
-                            className="bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-1.5 focus:outline-none focus:ring-1 focus:ring-rose-500"
-                          >
-                            <option value="">{isAr ? "-- اختر سرير --" : "-- Select Bed --"}</option>
-                            <option value="Resus-1">Resus-1</option>
-                            <option value="Resus-2">Resus-2</option>
-                            <option value="Red-1">Red-1</option>
-                            <option value="Red-2">Red-2</option>
-                            <option value="Yel-1">Yel-1</option>
-                          </select>
+                      {/* Resus Checklist Integration */}
+                      <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm space-y-6">
+                        <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                           <HeartPulse className="w-6 h-6 text-rose-600" />
+                           {isAr ? "قائمة تدقيق الإنعاش السريع" : "Rapid Resuscitation Checklist"}
+                        </h3>
+                        <div className="space-y-3">
+                           {[
+                             { key: "airway", label: "Airway Secured / ET Tube" },
+                             { key: "iv", label: "Two Large Bore IV Access" },
+                             { key: "ekg", label: "Cardiac Monitor Connected" },
+                             { key: "epi", label: "Epinephrine Administered" },
+                             { key: "blood", label: "Blood Products Ordered" },
+                           ].map(item => (
+                             <button 
+                               key={item.key} 
+                               onClick={() => setResusChecklist(prev => ({ ...prev, [item.key]: !(prev as any)[item.key] }))}
+                               className={`w-full p-5 rounded-2xl border-2 flex items-center justify-between transition-all ${(resusChecklist as any)[item.key] ? 'bg-emerald-50 border-emerald-500 text-emerald-900' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
+                             >
+                                <span className="font-black text-sm uppercase tracking-tight">{item.label}</span>
+                                {(resusChecklist as any)[item.key] ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-6 h-6 rounded-full border-2 border-slate-200" />}
+                             </button>
+                           ))}
                         </div>
+                        <button className="w-full py-5 bg-rose-600 text-white rounded-[24px] font-black uppercase tracking-widest shadow-xl shadow-rose-100 hover:bg-rose-700 transition-all active:scale-95">
+                           {isAr ? "إنهاء وتسجيل الواقعة" : "Finalize & Log Event"}
+                        </button>
+                      </div>
+                   </div>
+                </motion.div>
+              )}
 
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => {
-                              toast.success(isAr ? `تم تفعيل إنذار التحضير المسبق لسيارة ${amb.id}! فريق الصدمات متأهب.` : `Pre-arrival notification sent for ${amb.id}! Trauma team alerted.`);
-                            }}
-                            className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-black px-3 py-1.5 rounded-lg shadow-sm transition"
-                          >
-                            {isAr ? "إنذار التحضير المسبق" : "Send Pre-arrival Alert"}
+              {activeMainTab === "ambulance" && (
+                <motion.div 
+                  key="ambulance"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-8 h-full overflow-y-auto space-y-8"
+                >
+                   <div className="flex justify-between items-end">
+                      <div>
+                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{isAr ? "مركز تتبع سيارات الإسعاف" : "Ambulance Command Center"}</h2>
+                        <p className="text-slate-500 font-bold mt-2 text-lg">{isAr ? "رصد حي لحالات ما قبل الوصول إلى المستشفى" : "Real-time monitoring of pre-hospital emergency arrivals"}</p>
+                      </div>
+                      <div className="flex gap-3">
+                         <div className="bg-white border border-slate-200 rounded-2xl px-6 py-3 flex flex-col justify-center shadow-sm">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">En-Route</span>
+                            <span className="text-2xl font-black text-rose-600">3</span>
+                         </div>
+                         <button className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all"><MapPin className="w-6 h-6" /></button>
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {ambulances.map((amb, idx) => (
+                        <div key={amb.id} className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm hover:shadow-2xl transition-all group relative overflow-hidden">
+                           <div className="absolute top-0 right-0 w-2 h-full bg-rose-600" />
+                           <div className="flex justify-between items-start mb-8">
+                              <div className="flex items-center gap-4">
+                                 <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 shadow-inner border border-rose-100">
+                                    <Siren className="w-8 h-8" />
+                                 </div>
+                                 <div>
+                                    <h3 className="font-black text-slate-900 text-xl">{amb.id}</h3>
+                                    <p className="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
+                                       <Clock className="w-3 h-3" />
+                                       ETA: {amb.eta} MINS
+                                    </p>
+                                 </div>
+                              </div>
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-widest ${amb.status === 'Critical' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                                 {isAr ? amb.statusAr : amb.status}
+                              </span>
+                           </div>
+
+                           <div className="space-y-6">
+                              <div>
+                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Chief Complaint</p>
+                                 <p className="text-base font-black text-slate-800">{isAr ? amb.complaintAr : amb.complaint}</p>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                 <div className="text-center">
+                                    <span className="block text-[8px] font-black text-slate-400 uppercase">HR</span>
+                                    <span className="text-sm font-black text-slate-700 font-mono">{amb.hr || '--'}</span>
+                                 </div>
+                                 <div className="text-center border-x border-slate-200">
+                                    <span className="block text-[8px] font-black text-slate-400 uppercase">BP</span>
+                                    <span className="text-sm font-black text-slate-700 font-mono">{amb.bp || '--'}</span>
+                                 </div>
+                                 <div className="text-center">
+                                    <span className="block text-[8px] font-black text-slate-400 uppercase">SpO2</span>
+                                    <span className="text-sm font-black text-slate-700 font-mono">{amb.spo2 ? amb.spo2+'%' : '--'}</span>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div className="mt-8 pt-8 border-t border-slate-50 flex items-center justify-between">
+                              <div className="flex -space-x-2">
+                                 {[1,2].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-black text-slate-500">P{i}</div>)}
+                              </div>
+                              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100 transition-all">
+                                 {isAr ? "تحضير السرير" : "Assign Bed"}
+                              </button>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </motion.div>
+              )}
+
+              {activeMainTab === "search" && (
+                <motion.div 
+                  key="search"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 h-full flex flex-col items-center justify-center max-w-4xl mx-auto"
+                >
+                   <div className="w-full space-y-12">
+                    <div className="text-center space-y-4">
+                       <div className="w-24 h-24 bg-rose-50 rounded-[40px] flex items-center justify-center mx-auto shadow-inner border border-rose-100">
+                          <FileSearch className="w-12 h-12 text-rose-600" />
+                       </div>
+                       <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{isAr ? "مركز البحث المتقدم (ER)" : "ER Advanced Search"}</h2>
+                       <p className="text-slate-500 font-bold text-lg max-w-md mx-auto">{isAr ? "ابحث في سجلات الطوارئ والفرز" : "Search through current and historical emergency records"}</p>
+                    </div>
+
+                    <div className="bg-white rounded-[40px] border border-slate-200 shadow-2xl p-10 space-y-8 relative overflow-hidden">
+                       <div className="absolute top-0 left-0 w-2 h-full bg-rose-600" />
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-3">
+                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-1">{isAr ? "الاسم أو الرقم الطبي" : "Name / MRN"}</label>
+                             <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-3xl p-5 text-sm focus:ring-4 focus:ring-rose-100 outline-none transition-all focus:bg-white" placeholder="Search..." />
+                          </div>
+                          <div className="space-y-3">
+                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-1">{isAr ? "مستوى الفرز" : "Triage Level"}</label>
+                             <select className="w-full bg-slate-50 border border-slate-200 rounded-3xl p-5 text-sm focus:ring-4 focus:ring-rose-100 outline-none transition-all focus:bg-white appearance-none">
+                                <option>All Levels</option>
+                                <option>Level 1 (Resus)</option>
+                                <option>Level 2 (Emergent)</option>
+                                <option>Level 3 (Urgent)</option>
+                             </select>
+                          </div>
+                       </div>
+
+                       <div className="pt-8 border-t border-slate-100 flex items-center justify-between">
+                          <button className="text-xs font-black text-slate-400 hover:text-rose-600 uppercase tracking-widest transition-colors">{isAr ? "مسح المعايير" : "Clear Filters"}</button>
+                          <button className="bg-rose-600 hover:bg-rose-700 text-white px-12 py-5 rounded-[24px] font-black shadow-2xl shadow-rose-200 transition-all active:scale-95 flex items-center gap-4">
+                             <Search className="w-6 h-6" />
+                             <span className="text-lg">{isAr ? "بحث متقدم" : "Start Search"}</span>
                           </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Simulation Map or Dispatch Area */}
-                <div className="bg-slate-900 text-white rounded-2xl p-6 relative overflow-hidden h-[300px] flex flex-col justify-between">
-                  <div className="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
-                  
-                  <div className="relative z-10 text-right">
-                    <span className="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase animate-pulse">{isAr ? "خريطة البث المباشر" : "LIVE MAP"}</span>
-                    <h4 className="font-bold text-sm mt-2">{isAr ? "أقرب سيارات إسعاف في المحيط" : "Nearby En-Route Emergency Fleet"}</h4>
-                  </div>
-
-                  <div className="relative z-10 space-y-2 text-xs" dir="ltr">
-                    <div className="flex justify-between items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700">
-                      <span>AMB-102</span>
-                      <span className="text-rose-400 font-bold">{isAr ? "طريق الملك عبد العزيز (3 دق)" : "King Abdulaziz Rd (3m)"}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700">
-                      <span>AMB-205</span>
-                      <span className="text-amber-400 font-bold">{isAr ? "الدائري الشمالي (7 دق)" : "Northern Ring Rd (7m)"}</span>
+                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                </motion.div>
+              )}
 
-        {activeTab === "fast_track" && (
-          <div className="space-y-6 animate-fade-in text-right" dir={isAr ? "rtl" : "ltr"}>
-            <div className="bg-emerald-900 text-white p-6 rounded-2xl shadow-lg border border-emerald-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-xl font-black flex items-center gap-2">
-                  <ShieldAlert className="w-6 h-6 text-emerald-400 shrink-0" />
-                  {isAr ? "مكتب فرز وتدفق المسار السريع (Fast Track)" : "Fast Track & Rapid Treatment Desk"}
-                </h2>
-                <p className="text-emerald-100 text-xs font-bold mt-1 max-w-xl">
-                  {isAr 
-                    ? "مساحة عمل مخصصة لعلاج الحالات الخفيفة وغير العاجلة (مستوى 4 و 5) لضمان تسريع دورة خروج المريض وتقليص الازدحام." 
-                    : "Dedicated desk for minor injuries, acute minor illnesses, and green-triage cases to speed up patient turnaround."}
-                </p>
-              </div>
-              <div className="bg-emerald-800/80 px-4 py-2 rounded-xl text-center border border-emerald-700/50">
-                <span className="text-[10px] font-bold block uppercase tracking-widest text-emerald-300">{isAr ? "مرضى المسار السريع" : "Fast Track Queue"}</span>
-                <span className="text-xl font-black">2</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Queue List */}
-              <div className="lg:col-span-1 bg-white border border-slate-200 rounded-2xl shadow-sm p-4 h-[500px] flex flex-col text-right">
-                <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-3 mb-3 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-600" />
-                  {isAr ? "قائمة الانتظار السريعة" : "Fast Track Queue"}
-                </h3>
-                <div className="flex-1 overflow-y-auto space-y-2">
-                  {[
-                    { id: "FT-101", nameAr: "مريم حسن علي", nameEn: "Maryam Hassan", mrn: "MRN-2026-9081", triageLevel: 4, age: 28, chiefComplaint: isAr ? "جرح سطحي بسيط في أصبع اليد" : "Minor superficial cut on index finger" },
-                    { id: "FT-102", nameAr: "سعد محمد القحطاني", nameEn: "Saad Al-Qahtani", mrn: "MRN-2026-8742", triageLevel: 5, age: 34, chiefComplaint: isAr ? "حرارة خفيفة واحتقان حلق" : "Mild fever and sore throat" }
-                  ].map(patient => (
-                    <div 
-                      key={patient.id} 
-                      onClick={() => {
-                        setSelectedFastTrackPatient(patient);
-                        setSelectedTemplate("");
-                        setFastTrackNote("");
-                      }}
-                      className={`p-3 rounded-xl border transition cursor-pointer text-right ${
-                        selectedFastTrackPatient?.id === patient.id 
-                          ? 'bg-emerald-50 border-emerald-300 shadow-sm' 
-                          : 'border-slate-100 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-bold text-slate-800 text-sm">{isAr ? patient.nameAr : patient.nameEn}</span>
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded ${patient.triageLevel === 4 ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
-                          L{patient.triageLevel || 4}
-                        </span>
+              {activeMainTab === "analytics" && (
+                <motion.div 
+                  key="analytics"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-8 h-full"
+                >
+                  <div className="bg-white rounded-[40px] border border-slate-200 p-20 text-center shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8">
+                       <BarChart3 className="w-32 h-32 text-rose-50/50 -rotate-12" />
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-rose-100">
+                         <TrendingUp className="w-12 h-12 text-rose-600" />
                       </div>
-                      <div className="flex justify-between items-center text-xs text-slate-500 font-bold mt-2">
-                        <span>MRN: {patient.mrn}</span>
-                        <span className="text-emerald-600 font-semibold">{patient.chiefComplaint}</span>
+                      <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">{isAr ? "تحليلات أداء الطوارئ" : "ER Performance Analytics"}</h2>
+                      <p className="text-slate-500 max-w-lg mx-auto text-lg font-medium leading-relaxed mb-10">
+                        {isAr ? "متابعة آنية لأزمنة الانتظار، معدلات التدفق، وكفاءة الفرز السريري." : "Real-time tracking of waiting times, throughput rates, and clinical triage efficiency."}
+                      </p>
+                      
+                      <div className="flex justify-center gap-6">
+                        {[
+                          { label: "Door to Doc Time", icon: Clock },
+                          { level: "Waitlist Trends", icon: Users },
+                          { label: "Critical Outcome Ratio", icon: Activity },
+                        ].map((item, i) => (
+                          <div key={i} className="flex flex-col items-center gap-2">
+                             <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100">
+                               <item.icon className="w-6 h-6" />
+                             </div>
+                             <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">{item.label}</span>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Patient Treatment Area */}
-              <div className="lg:col-span-2">
-                {selectedFastTrackPatient ? (
-                  <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-4 text-right">
-                    <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
-                      <div>
-                        <span className="text-xs text-slate-400 block uppercase font-bold text-right w-full">Assessment Area / منطقة التقييم</span>
-                        <h3 className="font-black text-slate-800 text-lg">{isAr ? selectedFastTrackPatient.nameAr : selectedFastTrackPatient.nameEn}</h3>
-                        <p className="text-xs text-slate-500 font-bold mt-1">MRN: {selectedFastTrackPatient.mrn} | {isAr ? `العمر: ${selectedFastTrackPatient.age}` : `Age: ${selectedFastTrackPatient.age}`}</p>
+                      
+                      <div className="mt-12 flex justify-center gap-3">
+                        <div className="w-3 h-3 bg-rose-600 rounded-full animate-bounce" />
+                        <div className="w-3 h-3 bg-rose-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-3 h-3 bg-rose-200 rounded-full animate-bounce [animation-delay:0.4s]" />
                       </div>
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl px-3 py-1 text-xs font-black">
-                        {isAr ? "المسار السريع" : "Fast Track Area"}
-                      </span>
-                    </div>
-
-                    {/* Quick Assessment Templates */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1 text-right w-full">{isAr ? "اختر قالب الكشف السريع:" : "Select Fast Assessment Template:"}</label>
-                      <select 
-                        value={selectedTemplate}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setSelectedTemplate(val);
-                          if (val === "wound") {
-                            setFastTrackNote(isAr 
-                              ? "تم تنظيف الجرح بمحلول الملح، وتخدير موضعي ليدوكائين، وخياطة 3 غرز تجميلية مع وضع ضمادة معقمة. خروج مع توصية بتنظيف الجرح وإزالة الغرز خلال 7-10 أيام." 
-                              : "Cleaned minor wound, local lidocaine anesthesia, 3 simple sutures applied, dry sterile dressing. Advised suture removal in 7-10 days.");
-                          } else if (val === "flu") {
-                            setFastTrackNote(isAr 
-                              ? "التهاب بسيط بالحلق مع رشح وحرارة خفيفة. الصدر سليم. تم وصف خافض للحرارة وبنادول، وشرب سوائل دافئة والراحة بالمنزل." 
-                              : "Acute mild pharyngitis and rhinorrhea. Chest clear. Prescribed Paracetamol 500mg, oral fluids, rest. Safe to discharge.");
-                          } else if (val === "sprain") {
-                            setFastTrackNote(isAr 
-                              ? "إلتواء بالكاحل الأيمن مع ورم خفيف. فحص الأشعة لا يظهر أي كسور. تم عمل رباط ضاغط، ونصح برفع الساق وكمادات باردة مسكنة." 
-                              : "Right ankle inversion sprain, mild edema. X-ray negative for fracture. Applied compression bandage, advised elevate foot, cold compresses, ibuprofen.");
-                          } else {
-                            setFastTrackNote("");
-                          }
-                        }}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold text-right"
-                      >
-                        <option value="">{isAr ? "-- قالب فارغ --" : "-- Blank Template --"}</option>
-                        <option value="wound">{isAr ? "جرح بسيط غرز تجميلية" : "Minor Wound Laceration"}</option>
-                        <option value="flu">{isAr ? "التهاب حلق / نزلات البرد" : "Common Cold / Pharyngitis"}</option>
-                        <option value="sprain">{isAr ? "إلتواء المفاصل البسيط" : "Simple Sprain"}</option>
-                      </select>
-                    </div>
-
-                    {/* Assessment Textarea */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1 text-right w-full">{isAr ? "ملاحظة الفحص والوصفة:" : "Clinical Assessment Note & Prescription:"}</label>
-                      <textarea 
-                        value={fastTrackNote}
-                        onChange={(e) => setFastTrackNote(e.target.value)}
-                        placeholder={isAr ? "اكتب تفاصيل الكشف الطبي والوصفة العلاجية هنا..." : "Type clinical assessment findings and treatment plan..."}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm h-32 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-right"
-                      />
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
-                      <button 
-                        onClick={() => {
-                          toast.success(isAr ? `تم تحويل ${selectedFastTrackPatient.nameAr} للعيادات الخارجية بموعد غداً` : `Referred ${selectedFastTrackPatient.nameEn} to OPD Clinic for follow up`);
-                          setSelectedFastTrackPatient(null);
-                        }}
-                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold"
-                      >
-                        {isAr ? "تحويل للعيادات OPD" : "OPD Referral"}
-                      </button>
-                      <button 
-                        onClick={() => {
-                          toast.success(isAr ? `تم حفظ العلاج والخروج السريع للمريض ${selectedFastTrackPatient.nameAr}` : `Fast discharge completed for ${selectedFastTrackPatient.nameEn}`);
-                          setSelectedFastTrackPatient(null);
-                        }}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm"
-                      >
-                        {isAr ? "خروج سريع ووصفة دواء" : "Instant Discharge & Prescription"}
-                      </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400 h-full flex flex-col items-center justify-center">
-                    <ShieldAlert className="w-12 h-12 text-slate-300 mb-2" />
-                    <p className="font-bold">{isAr ? "يرجى تحديد مريض من القائمة لبدء علاجه فوراً" : "Please select a patient from the queue to start treatment"}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "alerts" && (
-          <div className="space-y-6 animate-fade-in text-right" dir={isAr ? "rtl" : "ltr"}>
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
-              <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
-                <Bell className="w-5 h-5 text-rose-600" />
-                {isAr ? "نظام التنبيهات السريرية الذكي" : "ER Smart Clinical Alerts"}
-              </h3>
+                </motion.div>
+              )}
               
-              <div className="space-y-4">
-                {erAlerts.map(alert => (
-                  <div key={alert.id} className={`p-4 rounded-xl border flex justify-between items-center gap-4 transition text-right ${
-                    alert.type === 'panic' ? 'bg-rose-50 border-rose-200 text-rose-900'
-                    : alert.type === 'vitals' ? 'bg-orange-50 border-orange-200 text-orange-900'
-                    : 'bg-yellow-50 border-yellow-200 text-yellow-900'
-                  }`}>
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <AlertCircle className="w-5 h-5 shrink-0" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm">{isAr ? alert.text : alert.textEn}</p>
-                        <span className="text-[10px] text-slate-400 block mt-1">{alert.time}</span>
-                      </div>
+              {["fast_track", "beds"].includes(activeMainTab) && (
+                 <div className="flex-1 flex flex-col items-center justify-center p-20 text-center">
+                    <div className="w-24 h-24 bg-slate-100 rounded-[32px] flex items-center justify-center mb-8 border border-slate-200 shadow-inner">
+                       {mainTabs.find(t => t.id === activeMainTab)?.icon && React.createElement(mainTabs.find(t => t.id === activeMainTab)!.icon, { className: "w-12 h-12 text-slate-300" })}
                     </div>
-
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          setErAlerts(prev => prev.filter(a => a.id !== alert.id));
-                          toast.success(isAr ? "تم إقرار التنبيه ومعالجته" : "Alert acknowledged and cleared");
-                        }}
-                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 whitespace-nowrap"
-                      >
-                        {isAr ? "إقرار ومعالجة" : "Acknowledge"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {erAlerts.length === 0 && (
-                  <div className="p-12 text-center text-slate-400 italic font-medium">
-                    {isAr ? "لا توجد تنبيهات نشطة حالياً." : "No active clinical alerts."}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-          </>
-        )}
+                    <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{isAr ? "قيد التجهيز" : "Enterprise Sync"}</h2>
+                    <p className="text-sm text-slate-400 font-bold max-w-xs mt-2 uppercase tracking-widest">{isAr ? "يتم الآن دمج موديول " + activeMainTab + " ضمن المعايير الجديدة" : "Integrating " + activeMainTab + " into the enterprise framework"}</p>
+                 </div>
+              )}
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

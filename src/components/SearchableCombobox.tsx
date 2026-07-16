@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
 
-interface Option {
+interface ComboboxOption {
   value: string;
   ar: string;
   en: string;
@@ -13,9 +13,9 @@ interface Option {
 }
 
 interface Props {
-  options: Option[];
+  options: ComboboxOption[];
   value: string;
-  onChange: (val: string, option?: Option) => void;
+  onChange: (val: string, option?: ComboboxOption) => void;
   placeholder?: string;
   isAr?: boolean;
 }

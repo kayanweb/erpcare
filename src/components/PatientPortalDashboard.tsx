@@ -1,26 +1,35 @@
 import React, { useState } from "react";
-import { User, Activity, FileText, Pill, CreditCard, Calendar, Search, Filter, ArrowRight, Download, FileDigit } from "lucide-react";
+import { User, Activity, FileText, Pill, CreditCard, Calendar, Search, Filter, ArrowRight, Download, FileDigit, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
-export default function PatientPortalDashboard({ language }: Props) {
+export default function PatientPortalDashboard({ language, onClose }: Props) {
   const isAr = language === "ar";
   const [activeTab, setActiveTab] = useState<"appointments" | "prescriptions" | "reports" | "billing">("appointments");
 
   return (
     <div className="p-4 md:p-6 bg-slate-50 min-h-full font-sans animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-            <User className="w-8 h-8 text-teal-600 bg-teal-100 p-1.5 rounded-xl" />
-            {isAr ? "بوابة المريض (Patient Portal)" : "Patient Portal"}
-          </h2>
-          <p className="text-sm text-slate-500 mt-1 font-medium">
-            {isAr ? "استعراض ملف المريض، المواعيد، النتائج، والوصفات الطبية" : "View patient profile, appointments, results, and prescriptions"}
-          </p>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div>
+            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2 leading-tight">
+              <User className="w-8 h-8 text-teal-600 bg-teal-100 p-1.5 rounded-xl" />
+              {isAr ? "بوابة المريض (Patient Portal)" : "Patient Portal"}
+            </h2>
+            <p className="text-sm text-slate-500 mt-1 font-medium">
+              {isAr ? "استعراض ملف المريض، المواعيد، النتائج، والوصفات الطبية" : "View patient profile, appointments, results, and prescriptions"}
+            </p>
+          </div>
         </div>
       </div>
 

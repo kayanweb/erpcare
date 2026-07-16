@@ -1,0 +1,51 @@
+src/components/HospitalInformationSystem.tsx(2029,8): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2274,14): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2336,20): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2353,24): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2363,51): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/HospitalInformationSystem.tsx(2388,33): error TS1136: Property assignment expected.
+src/components/HospitalInformationSystem.tsx(2388,34): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2403,24): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2406,18): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2478,27): error TS1109: Expression expected.
+src/components/HospitalInformationSystem.tsx(2478,28): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2480,24): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2527,16): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2637,24): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2875,16): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2890,20): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2905,24): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2915,48): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/HospitalInformationSystem.tsx(2929,33): error TS1136: Property assignment expected.
+src/components/HospitalInformationSystem.tsx(2929,34): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2937,24): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(2962,18): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3021,20): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3080,16): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3121,17): error TS1005: '}' expected.
+src/components/HospitalInformationSystem.tsx(3136,46): error TS1005: '}' expected.
+src/components/HospitalInformationSystem.tsx(3148,20): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3488,78): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/HospitalInformationSystem.tsx(3524,27): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3524,29): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3528,20): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3530,16): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3657,29): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3679,29): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3800,29): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(3947,25): error TS1109: Expression expected.
+src/components/HospitalInformationSystem.tsx(3948,32): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/HospitalInformationSystem.tsx(3952,34): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/HospitalInformationSystem.tsx(4052,35): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4057,23): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4057,25): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4059,22): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4068,19): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4101,21): error TS1109: Expression expected.
+src/components/HospitalInformationSystem.tsx(4101,22): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4139,23): error TS1109: Expression expected.
+src/components/HospitalInformationSystem.tsx(4139,24): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4142,18): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4182,10): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/HospitalInformationSystem.tsx(4186,15): error TS1005: ')' expected.
+src/components/HospitalInformationSystem.tsx(4205,8): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?

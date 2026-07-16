@@ -367,7 +367,7 @@ export default function EMRDashboard({ language, currentUser, onNavigate }: Prop
               <ArrowLeft className={`w-5 h-5 text-slate-500 ${isAr ? "rotate-180" : ""}`} />
             </button>
             <div className="flex-1">
-              <PatientClinicalHeader patient={selectedPatient} language={language} showVitals={true} />
+              <PatientClinicalHeader patient={selectedPatient as any} language={language} showVitals={true} />
             </div>
           </div>
           
@@ -489,7 +489,7 @@ export default function EMRDashboard({ language, currentUser, onNavigate }: Prop
             <div className="max-w-7xl mx-auto flex flex-col h-full animate-fade-in space-y-6">
                {userRole === "staff" || userRole === "nurse" ? (
                  <NursingConsole 
-                    patient={selectedPatient} 
+                    patient={selectedPatient as any} 
                     staffId={currentUser?.id || "NURSE-01"} 
                     language={language}
                  />

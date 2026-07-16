@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useHIS } from '../context/HISContext';
-import { BedDouble, CheckCircle2, AlertCircle, RefreshCcw, Search, Filter, ArrowRightLeft, UserCircle, MapPin, Activity, ShieldAlert, Wind, Building, Layers, Hotel, DoorOpen, Users, Key, HeartPulse, ClipboardList, Info } from 'lucide-react';
+import { BedDouble, CheckCircle2, AlertCircle, RefreshCcw, Search, Filter, ArrowRightLeft, UserCircle, MapPin, Activity, ShieldAlert, Wind, Building, Layers, Hotel, DoorOpen, Users, Key, HeartPulse, ClipboardList, Info, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
   language?: "ar" | "en";
   forceDepartmentId?: string;
+  onClose?: () => void;
 }
 
-export default function BedManagementDashboard({ language: propLanguage, forceDepartmentId }: Props = {}) {
+export default function BedManagementDashboard({ language: propLanguage, forceDepartmentId, onClose }: Props = {}) {
   const { language: contextLanguage, admissionRequests, setAdmissionRequests, patients, updatePatientStatus, bedMap, setBedMap } = useHIS();
   const language = propLanguage || contextLanguage;
   const isAr = language === 'ar';
@@ -55,6 +56,42 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
           { id: "ICU-04", status: "occupied", patient: "Samir Nour", features: ["ventilator", "continuous_monitoring"] }
         ]}
       ]
+    },
+    {
+      id: "nicu",
+      name: "Neonatal Intensive Care Unit (NICU)",
+      nameAr: "العناية المركزة لحديثي الولادة",
+      rooms: [
+        { id: "room-nicu-1", name: "NICU Bay 1", type: "critical", gender: "Any", beds: [
+          { id: "NICU-01", status: "occupied", patient: "Baby Boy A", features: ["incubator"] },
+          { id: "NICU-02", status: "available", patient: null, features: ["incubator"] }
+        ]},
+        { id: "room-nicu-2", name: "NICU Bay 2", type: "critical", gender: "Any", beds: [
+          { id: "NICU-03", status: "available", patient: null, features: ["incubator"] },
+          { id: "NICU-04", status: "occupied", patient: "Baby Girl B", features: ["incubator"] }
+        ]}
+      ]
+    },
+    {
+      id: "er",
+      name: "Emergency Room (ER)",
+      nameAr: "الطوارئ",
+      rooms: [
+        { id: "room-er-1", name: "ER Triage", type: "ward", gender: "Any", beds: [
+          { id: "ER-01", status: "available", patient: null, features: [] },
+          { id: "ER-02", status: "available", patient: null, features: [] }
+        ]}
+      ]
+    },
+    {
+      id: "pacu",
+      name: "Post Anesthesia Care Unit (PACU)",
+      nameAr: "الإفاقة",
+      rooms: [
+        { id: "room-pacu-1", name: "PACU Ward", type: "ward", gender: "Any", beds: [
+          { id: "PACU-01", status: "available", patient: null, features: [] }
+        ]}
+      ]
     }
   ];
 
@@ -88,12 +125,20 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
   return (
     <div className="p-4 md:p-6 space-y-6 bg-slate-50 h-full" dir={isAr ? "rtl" : "ltr"}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-indigo-600">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-            <Building className="w-6 h-6 text-indigo-600" />
-            {isAr ? "إدارة شؤون المرضى والأسرة (Bed Management)" : "Enterprise Bed Management"}
-          </h2>
-          <p className="text-slate-500 text-sm mt-1 font-medium">{isAr ? "هيكلية المستشفى، التحكم في الإشغال، وطلبات النقل السريري" : "Hospital hierarchy, occupancy control, and clinical transfer workflows"}</p>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div>
+            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <Building className="w-6 h-6 text-indigo-600" />
+              {isAr ? "إدارة شؤون المرضى والأسرة (Bed Management)" : "Enterprise Bed Management"}
+            </h2>
+            <p className="text-slate-500 text-sm mt-1 font-medium">{isAr ? "هيكلية المستشفى، التحكم في الإشغال، وطلبات النقل السريري" : "Hospital hierarchy, occupancy control, and clinical transfer workflows"}</p>
+          </div>
         </div>
         {!forceDepartmentId && (
           <div className="flex bg-slate-100 p-1.5 rounded-xl gap-1">
@@ -345,8 +390,8 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
                           <div key={bed.id} 
                             onClick={() => {
                                if (bed.status === 'occupied' && bed.patient) {
-                                  window.dispatchEvent(new CustomEvent("openGenericModal", {
-                                     detail: { entityId: `MRN-${bed.id}`, titleEn: bed.patient, titleAr: bed.patient, type: "patient" }
+                                  window.dispatchEvent(new CustomEvent("openPatientChart", {
+                                     detail: { patientId: `MRN-${bed.id}`, patientName: bed.patient }
                                   }));
                                }
                             }}
@@ -355,8 +400,8 @@ export default function BedManagementDashboard({ language: propLanguage, forceDe
                               <h5 className="font-black text-sm">{bed.id}</h5>
                               {bed.features.length > 0 && (
                                 <div className="flex gap-0.5">
-                                  {bed.features?.includes("ventilator") && <Wind className="w-3.5 h-3.5 opacity-60" title="Ventilator Support" />}
-                                  {bed.features?.includes("contact_isolation") && <ShieldAlert className="w-3.5 h-3.5 opacity-60 text-purple-700" title="Isolation" />}
+                                  {bed.features?.includes("ventilator") && <Wind className="w-3.5 h-3.5 opacity-60" />}
+                                  {bed.features?.includes("contact_isolation") && <ShieldAlert className="w-3.5 h-3.5 opacity-60 text-purple-700" />}
                                 </div>
                               )}
                             </div>

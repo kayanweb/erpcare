@@ -97,9 +97,10 @@ interface ReplenishmentRequest {
 
 interface Props {
   language: "ar" | "en";
+  onClose?: () => void;
 }
 
-export default function PharmacyInventory({ language }: Props) {
+export default function PharmacyInventory({ language, onClose }: Props) {
   const isAr = language === "ar";
   const { prescriptions, updatePrescriptionStatus, patients, cpoeOrders, setCpoeOrders } = useHIS();
 
@@ -689,17 +690,25 @@ export default function PharmacyInventory({ language }: Props) {
       
       {/* HEADER BAR */}
       <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 border-r-4 border-r-teal-500 mb-6 shadow-xl">
-        <div className="text-right w-full md:w-auto">
-          <span className="bg-teal-500/10 text-teal-400 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">
-            {isAr ? "محرك الإمداد الطبي الموحد Enterprise v4.5" : "Unified Supply Chain Engine Enterprise v4.5"}
-          </span>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2 justify-start">
-            <Pill className="h-7 w-7 text-teal-400" />
-            {isAr ? "الإدارة الدوائية والإمداد الطبي المتكامل" : "Drug Management & Medical Supply Chain"}
-          </h1>
-          <p className="text-xs text-slate-400 mt-1 font-medium text-start">
-            {isAr ? "إدارة الأدوية والمستلزمات الطبية، توزيع الحصص، تتبع الصلاحية، تحويلات الأقسام وسير العمل المعتمد." : "Unified management of drugs, supplies, ward stock, replenishment workflows, and FEFO expiry tracking."}
-          </p>
+        <div className="flex items-center gap-6 w-full md:w-auto">
+          <button 
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-800 transition-all shadow-sm group shrink-0"
+          >
+             <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+          </button>
+          <div className="text-right">
+            <span className="bg-teal-500/10 text-teal-400 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">
+              {isAr ? "محرك الإمداد الطبي الموحد Enterprise v4.5" : "Unified Supply Chain Engine Enterprise v4.5"}
+            </span>
+            <h1 className="text-2xl font-black text-white flex items-center gap-2 justify-start">
+              <Pill className="h-7 w-7 text-teal-400" />
+              {isAr ? "الإدارة الدوائية والإمداد الطبي المتكامل" : "Drug Management & Medical Supply Chain"}
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 font-medium text-start">
+              {isAr ? "إدارة الأدوية والمستلزمات الطبية، توزيع الحصص، تتبع الصلاحية، تحويلات الأقسام وسير العمل المعتمد." : "Unified management of drugs, supplies, ward stock, replenishment workflows, and FEFO expiry tracking."}
+            </p>
+          </div>
         </div>
         
         {/* Navigation Tabs */}
@@ -1288,8 +1297,8 @@ export default function PharmacyInventory({ language }: Props) {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <span className="font-bold text-white text-xs block font-mono">MRN: {rx.mrn}</span>
-                      <span className="text-[11px] text-slate-400 font-semibold">{rx.doctorName}</span>
+                      <span className="font-bold text-white text-xs block font-mono">MRN: {(rx as any).mrn}</span>
+                      <span className="text-[11px] text-slate-400 font-semibold">{(rx as any).doctorName}</span>
                     </div>
                     <span className="text-[9px] bg-amber-500/10 text-amber-400 font-bold px-1.5 py-0.5 rounded border border-amber-500/20">
                       {isAr ? "قيد التدقيق" : "Pending"}
@@ -1315,8 +1324,8 @@ export default function PharmacyInventory({ language }: Props) {
             <div className="p-6 flex-1 space-y-4 overflow-y-auto">
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div>
-                  <p className="font-mono text-xs font-bold text-teal-400">MRN: {selectedRx?.mrn || "N/A"}</p>
-                  <p className="font-black text-white text-sm mt-0.5">{rxPatient ? (isAr ? rxPatient.nameAr : rxPatient.nameEn) : (selectedRx?.patientName || "Unknown Patient")}</p>
+                  <p className="font-mono text-xs font-bold text-teal-400">MRN: {(selectedRx as any)?.mrn || "N/A"}</p>
+                  <p className="font-black text-white text-sm mt-0.5">{rxPatient ? (isAr ? rxPatient.nameAr : rxPatient.nameEn) : ((selectedRx as any)?.patientName || "Unknown Patient")}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-500 uppercase">{isAr ? "جهة التغطية المالية" : "Financial Coverage"}</p>
@@ -1335,7 +1344,7 @@ export default function PharmacyInventory({ language }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedRx ? (selectedRx.medications || [{ name: selectedRx.medication, dose: selectedRx.dose, freq: "", duration: "1 Dispense" }]).map((med: any, idx: number) => (
+                  {selectedRx ? (selectedRx.medication ? [{ name: selectedRx.medication, dose: selectedRx.dose, freq: "", duration: "1 Dispense" }] : []).map((med: any, idx: number) => (
                     <tr key={idx} className="border-b border-slate-900 hover:bg-slate-900/30">
                       <td className="py-3 px-3 font-extrabold text-white">{med.name}</td>
                       <td className="py-3 px-3 text-slate-300 font-medium">{med.dose} {med.freq}</td>
@@ -1374,14 +1383,14 @@ export default function PharmacyInventory({ language }: Props) {
                   onClick={async () => {
                     if (!selectedRx) return;
                     
-                    if (selectedRx.isCpoe && setCpoeOrders) {
+                    if ('isCpoe' in selectedRx && (selectedRx as any).isCpoe && setCpoeOrders) {
                       setCpoeOrders(prev => prev.map(o => o.id === selectedRx.id ? { ...o, status: "Completed" } : o));
                     } else {
                       await updatePrescriptionStatus(selectedRx.id, "dispensed");
                     }
                     
                     // Deduct medication from local stock for visual realism
-                    const medName = selectedRx.medication || selectedRx.medications?.[0]?.name;
+                    const medName = selectedRx.medication;
                     if (medName) {
                       setInventoryItems(prev => prev.map(item => {
                         if (medName?.toLowerCase()?.includes(item.nameEn.split(" ")[0]?.toLowerCase())) {

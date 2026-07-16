@@ -130,7 +130,7 @@ export const DynamicProfessionalLogo: React.FC<Props> = ({
           <div className="flex items-center gap-1.5 mt-1 sm:mt-1.5 opacity-80">
             <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isDark ? "bg-teal-400" : "bg-teal-600"}`}></span>
             <span className={`font-medium tracking-wide uppercase max-w-[200px] sm:max-w-xs truncate
-              ${size === 'sm' ? 'text-[7px]' : 
+              ${
                 size === 'md' ? 'text-[8.5px]' : 
                 size === 'lg' || size === 'xl' ? 'text-[10px]' : 'text-[8px]'}
               ${isDark ? "text-slate-300" : "text-slate-500"}
