@@ -96,6 +96,7 @@ import EMRDashboard from "./EMRDashboard";
 import OutpatientClinicsDashboard from "./OutpatientClinicsDashboard";
 import DepartmentWorkspace from "./DepartmentWorkspace";
 import InpatientDashboard from "./InpatientDashboard";
+import InpatientWorkflowManager from "./InpatientWorkflowManager";
 import PhysicianWardDashboard from "./PhysicianWardDashboard";
 import PsychiatryDashboard from "./PsychiatryDashboard";
 import OncologyDashboard from "./OncologyDashboard";
@@ -129,7 +130,22 @@ import NursingSupervisorDashboard from "./NursingSupervisorDashboard";
 import HeadNurseDashboard from "./HeadNurseDashboard";
 import InfectionControlHub from "./InfectionControlHub";
 import ERDashboard from "./ERDashboard";
+import ERWorkflowManager from "./ERWorkflowManager";
 import ICUDashboard from "./ICUDashboard";
+import ICUWorkflowManager from "./ICUWorkflowManager";
+import OTWorkflowManager from "./OTWorkflowManager";
+import ClinicWorkflowManager from "./ClinicWorkflowManager";
+import ReceptionWorkflowManager from "./ReceptionWorkflowManager";
+import DiagnosticsHub from "./DiagnosticsHub";
+import PharmacyHub from "./PharmacyHub";
+import AdvancedInventoryManager from "./AdvancedInventoryManager";
+import IntegrationCenter from "./IntegrationCenter";
+import BackupCenter from "./BackupCenter";
+import AdvancedAuditCenter from "./AdvancedAuditCenter";
+import PatientJourneyTracker from "./PatientJourneyTracker";
+import PatientSummaryDashboard from "./PatientSummaryDashboard";
+import WorkflowDesigner from "./WorkflowDesigner";
+import EnterprisePermissionManager from "./EnterprisePermissionManager";
 import EnterpriseInventoryEngine from "./EnterpriseInventoryEngine";
 import PurchasingPO from "./PurchasingPO";
 import CashierPointOfSale from "./CashierPointOfSale";
@@ -170,6 +186,7 @@ import AIClinicalDecisionSupport from "./AIClinicalDecisionSupport";
 import CyberSecurityHub from "./CyberSecurityHub";
 import NationalIntegrationHub from "./NationalIntegrationHub";
 import CalendarToDoDashboard from "./CalendarToDoDashboard";
+import CPOEDashboard from "./CPOEDashboard";
 
 
 
@@ -549,6 +566,41 @@ export default function HospitalInformationSystem({
 
   const systemModules = [
     {
+      id: "clinical_workflows",
+      labelAr: "مسارات العمل والتشغيل",
+      labelEn: "Clinical Workflows",
+      icon: Workflow,
+      hasChildren: true,
+      subItems: [
+        { id: "wf_reception", labelAr: "مسار الاستقبال والتسجيل", labelEn: "Reception Workflow" },
+        { id: "wf_er", labelAr: "مسار الطوارئ (ER)", labelEn: "ER Workflow" },
+        { id: "wf_clinic", labelAr: "مسار العيادات الخارجية", labelEn: "Outpatient Workflow" },
+        { id: "wf_inpatient", labelAr: "مسار الأقسام الداخلية", labelEn: "Inpatient Workflow" },
+        { id: "wf_ot", labelAr: "مسار العمليات (OT)", labelEn: "OT Workflow" },
+        { id: "wf_icu", labelAr: "مسار العناية المركزة (ICU)", labelEn: "ICU Workflow" },
+        { id: "wf_diagnostics", labelAr: "مسار المختبر والأشعة", labelEn: "Diagnostics Hub" },
+        { id: "wf_pharmacy", labelAr: "مسار الصيدلية", labelEn: "Pharmacy Hub" },
+        { id: "wf_inventory", labelAr: "مسار المخازن", labelEn: "Inventory Hub" },
+        { id: "wf_cpoe", labelAr: "مسار الطلبات الطبية (CPOE)", labelEn: "CPOE Flow" },
+        { id: "transport", labelAr: "حركة ونقل المرضى (MOVE)", labelEn: "Patient Transport" },
+      ],
+    },
+    {
+      id: "system_management",
+      labelAr: "إدارة وحوكمة النظام",
+      labelEn: "System Management",
+      icon: Database,
+      hasChildren: true,
+      subItems: [
+        { id: "master_data", labelAr: "حوكمة البيانات الأساسية", labelEn: "Master Data Gov" },
+        { id: "audit_center", labelAr: "مركز سجلات التدقيق (Audit)", labelEn: "Audit Center" },
+        { id: "integration_center", labelAr: "مركز التكامل والربط", labelEn: "Integration Center" },
+        { id: "backup_center", labelAr: "النسخ الاحتياطي والأرشفة", labelEn: "Backup & Recovery" },
+        { id: "permissions_matrix", labelAr: "مصفوفة الصلاحيات المتقدمة", labelEn: "Permissions Matrix" },
+        { id: "workflow_designer", labelAr: "مصمم مسارات العمل", labelEn: "Workflow Designer" },
+      ],
+    },
+    {
       id: "clinical_front",
       labelAr: "العيادات والطوارئ",
       labelEn: "Outpatient & ER",
@@ -738,9 +790,8 @@ export default function HospitalInformationSystem({
 
   const handleSmartNavigate = (tab: string, subTab?: string) => {
     const wsdTabs = [
-      "hr", "quality", "billing", "reception", "nursing_toolbox", "bed_management", 
-      "patient_tracking", "transport", "duty", "mr_dashboard", "document_center", 
-      "manage_templates", "editor", "distribution", "form_builder", "dynamic_forms", 
+      "hr", "nursing_toolbox", "bed_management", 
+      "patient_tracking", "duty", "editor", "distribution", 
       "infection", "roster", "roster_config", "meals", "evaluations", 
       "enterprise_command", "ai_cdss", "cybersecurity", "national_integration", "admin_dashboard"
     ];
@@ -3049,6 +3100,58 @@ export default function HospitalInformationSystem({
                     <ICUDashboard language={language} />
                   )}
                   {activeSubTab === "er" && <ERDashboard language={language} />}
+                  
+                  {/* WSD Migrated Workflows */}
+                  {activeSubTab === "wf_reception" && <ReceptionWorkflowManager language={language} />}
+                  {activeSubTab === "wf_er" && <ERWorkflowManager language={language} />}
+                  {activeSubTab === "wf_clinic" && <ClinicWorkflowManager language={language} />}
+                  {activeSubTab === "wf_inpatient" && <InpatientWorkflowManager language={language} />}
+                  {activeSubTab === "wf_ot" && <OTWorkflowManager language={language} />}
+                  {activeSubTab === "wf_icu" && <ICUWorkflowManager language={language} />}
+                  {activeSubTab === "wf_diagnostics" && <DiagnosticsHub language={language} />}
+                  {activeSubTab === "wf_pharmacy" && <PharmacyHub language={language} />}
+                  {activeSubTab === "wf_inventory" && <AdvancedInventoryManager language={language} />}
+                  {activeSubTab === "wf_cpoe" && <CPOEDashboard language={language} />}
+                  {activeSubTab === "transport" && <PatientTransportLog language={language} />}
+                  
+                  {/* System Management */}
+                  {activeSubTab === "master_data" && <MasterDataDashboard language={language} />}
+                  {activeSubTab === "audit_center" && <AdvancedAuditCenter language={language} />}
+                  {activeSubTab === "integration_center" && <IntegrationCenter language={language} />}
+                  {activeSubTab === "backup_center" && <BackupCenter language={language} />}
+                  {activeSubTab === "permissions_matrix" && <EnterprisePermissionManager language={language} />}
+                  {activeSubTab === "workflow_designer" && <WorkflowDesigner language={language} />}
+
+                  {/* Analytics & Summary */}
+                  {activeSubTab === "analytics" && (
+                    <QualityAnalyticsHub 
+                      language={language} 
+                      records={records}
+                      allAvailableTemplates={allAvailableTemplates}
+                      currentUser={currentUser}
+                      resolvedGaps={resolvedGaps}
+                      handleToggleGapState={handleToggleGapState}
+                      editingGapKey={editingGapKey}
+                      setEditingGapKey={setEditingGapKey}
+                      gapResolutionNote={gapResolutionNote}
+                      setGapResolutionNote={setGapResolutionNote}
+                      handleSaveGapResolution={handleSaveGapResolution}
+                      addSystemLog={addSystemLog}
+                      systemUsers={systemUsers || []}
+                    />
+                  )}
+                  {activeSubTab === "patient_journey" && <PatientJourneyTracker language={language} />}
+                  {activeSubTab === "patient_summary" && <PatientSummaryDashboard language={language} />}
+                  {activeSubTab === "history" && (
+                    <MedicalRecordsDashboard 
+                    />
+                  )}
+                  {activeSubTab === "medical_tools" && <AdvancedMedicalCalculators language={language} currentUser={currentUser} />}
+                  {activeSubTab === "messaging" && <MessagingDashboard language={language} currentUser={currentUser} />}
+                  {activeSubTab === "document_center" && <DocumentCenter language={language} currentUser={currentUser} systemUsers={systemUsers || []} />}
+                  {activeSubTab === "billing" && <BillingInsurance language={language} />}
+                  {activeSubTab === "manage_templates" && <SmartFormBuilder language={language} />}
+
                   {activeSubTab === "obs_gyn" && <OutpatientClinicsDashboard language={language} forceDepartmentId="clinic-obgyn" />}
                   {activeSubTab === "nicu" && <InpatientDashboard language={language} defaultModuleType="nicu" />}
                   {activeSubTab === "live_consultation" && <LiveConsultationDashboard language={language} />}

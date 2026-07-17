@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'production';
 import pkg from '../dist/server.cjs';
 const { startServer } = pkg;
 

@@ -8353,17 +8353,6 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
               {language === "ar" ? "أنظمة الإدارة والتشغيل (WSD)" : "Management & Operations (WSD)"}
             </div>
 
-            {/* 0. الصفحة الرئيسية (اللوحة الرئيسية) */}
-            <button
-              onClick={() => setActiveTab("home")}
-              className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                activeTab === "home" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <LayoutGrid className="h-4 w-4 shrink-0 text-blue-400" />
-              <span className="flex-1 text-right">{language === "ar" ? "الصفحة الرئيسية" : "Main Dashboard"}</span>
-            </button>
-
             {/* 1. مكتب الطبيب المتكامل (العمليات) [NEW badge] */}
             <button
               onClick={() => setActiveTab("clinical_desktop")}
@@ -8498,65 +8487,6 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
             )}
 
             {/* 9. شيت وجبات المرضى والموظفين [MEALS badge] */}
-            {checkPermission("mod_meals") && (
-              <button
-                onClick={() => setActiveTab("meals")}
-                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                  activeTab === "meals" ? "bg-blue-600 text-white font-bold shadow-md" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Coffee className="h-4 w-4 shrink-0 text-orange-500" />
-                <span className="flex-1 text-right">{language === "ar" ? "شيت وجبات المرضى والموظفين" : "Meals & Nutrition Log"}</span>
-                <span className="bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
-                  MEALS
-                </span>
-              </button>
-            )}
-
-            {/* 10. حركة نقل المرضى [MOVE badge] */}
-            {checkPermission("mod_transport") && (
-              <button
-                onClick={() => setActiveTab("transport")}
-                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                  activeTab === "transport" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Layers className="h-4 w-4 shrink-0 text-indigo-400" />
-                <span className="flex-1 text-right">{language === "ar" ? "حركة ونقل المرضى" : "Patient Transport"}</span>
-                <span className="bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
-                  MOVE
-                </span>
-              </button>
-            )}
-
-            {/* 11. لوحة الجودة والتحليلات البصرية [CQI badge] */}
-            {checkPermission("mod_quality") && (
-              <button
-                onClick={() => setActiveTab("analytics")}
-                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                  activeTab === "analytics" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <TrendingUp className="h-4 w-4 shrink-0 text-orange-400" />
-                <span className="flex-1 text-right">{language === "ar" ? "لوحة الجودة والتحليلات البصرية" : "Quality Analytics Hub"}</span>
-                <span className="bg-fuchsia-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
-                  CQI
-                </span>
-              </button>
-            )}
-
-            {/* 12. سجلات الأرشيف المحفوظة */}
-            {checkPermission("mod_archives") && (
-              <button
-                onClick={() => setActiveTab("history")}
-                className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                  activeTab === "history" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Database className="h-4 w-4 shrink-0 text-blue-400" />
-                <span className="flex-1 text-right">{language === "ar" ? "سجلات الأرشيف المحفوظة" : "Saved Records Store"}</span>
-              </button>
-            )}
           </div>
 
           {/* Group 2: WSD Console Area */}
@@ -8596,132 +8526,6 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                   <span className="flex-1 text-right">{language === "ar" ? "المساعد الذكي (AI)" : "Smart AI Assistant"}</span>
                 </button>
                 
-                {/* 13.0.0. رحلة المريض (Patient Journey) */}
-                <button
-                  onClick={() => setActiveTab("patient_journey")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "patient_journey" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <MapIcon className="h-4 w-4 shrink-0 text-indigo-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "تتبع رحلة المريض" : "Track Journey"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("patient_summary")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "patient_summary" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <BarChart3 className="h-4 w-4 shrink-0 text-indigo-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "الملخص العام للمرضى" : "General Summary"}</span>
-                </button>
-
-                {/* 13.0.1. مسارات العمل السريرية (Clinical Workflows) */}
-                <div className="mt-6 px-4 mb-2">
-                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{language === "ar" ? "مسارات العمل (Workflow)" : "Workflow Center"}</p>
-                </div>
-
-                <button
-                  onClick={() => setActiveTab("wf_reception")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_reception" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Building className="h-4 w-4 shrink-0 text-indigo-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "الاستقبال والتسجيل" : "Reception & Registration"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_er")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_er" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Zap className="h-4 w-4 shrink-0 text-rose-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "الطوارئ (ER)" : "Emergency Dept"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_clinic")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_clinic" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Stethoscope className="h-4 w-4 shrink-0 text-amber-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "العيادات الخارجية" : "Outpatient Clinics"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_inpatient")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_inpatient" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Building2 className="h-4 w-4 shrink-0 text-blue-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "الأقسام الداخلية" : "Inpatient Wards"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_ot")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_ot" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Scissors className="h-4 w-4 shrink-0 text-indigo-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "العمليات (OT)" : "Operating Theater"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_icu")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_icu" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Activity className="h-4 w-4 shrink-0 text-rose-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "العناية المركزة (ICU)" : "Intensive Care"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_diagnostics")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_diagnostics" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Microscope className="h-4 w-4 shrink-0 text-emerald-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "المختبر والأشعة" : "Diagnostics Center"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_pharmacy")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_pharmacy" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Pill className="h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="flex-1 text-right">{language === "ar" ? "الصيدلية" : "Pharmacy Hub"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_cpoe")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_cpoe" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <FileText className="h-4 w-4 shrink-0 text-indigo-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "إدارة الطلبات الطبية (CPOE)" : "CPOE Order Entry"}</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("wf_inventory")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "wf_inventory" ? "bg-indigo-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Package className="h-4 w-4 shrink-0 text-slate-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "المخازن" : "Inventory Center"}</span>
-                </button>
-
                 {/* 13.0. الهيكل التنظيمي للمنشأة */}
                 <button
                   onClick={() => setActiveTab("org_structure")}
@@ -8731,83 +8535,6 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                 >
                   <Building2 className="h-4 w-4 shrink-0 text-blue-400" />
                   <span className="flex-1 text-right">{language === "ar" ? "إدارة الهيكل التنظيمي للمنشأة" : "Enterprise Org Structure"}</span>
-                </button>
-
-                {/* 13.1. حوكمة البيانات الأساسية */}
-                <button
-                  onClick={() => setActiveTab("master_data")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "master_data" ? "bg-amber-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Database className="h-4 w-4 shrink-0 text-amber-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "حوكمة البيانات الأساسية" : "Master Data Governance"}</span>
-                </button>
-
-                {/* 13.2. إعدادات الموارد البشرية المركزية */}
-                <button
-                  onClick={() => setActiveTab("hr_master")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "hr_master" ? "bg-emerald-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Briefcase className="h-4 w-4 shrink-0 text-emerald-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "إعدادات الموارد البشرية المركزية" : "Central HR Master Data"}</span>
-                </button>
-
-                {/* 13.3. مصمم مسارات العمل */}
-                <button
-                  onClick={() => setActiveTab("workflow_designer")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "workflow_designer" ? "bg-purple-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <GitBranch className="h-4 w-4 shrink-0 text-purple-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "مصمم مسارات العمل الذكي" : "Smart Workflow Designer"}</span>
-                </button>
-
-                {/* 13.4. مصفوفة الصلاحيات المتقدمة */}
-                <button
-                  onClick={() => setActiveTab("permissions_matrix")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "permissions_matrix" ? "bg-rose-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <ShieldCheck className="h-4 w-4 shrink-0 text-rose-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "مصفوفة الصلاحيات المتقدمة" : "Advanced Access Matrix"}</span>
-                </button>
-
-                {/* 13.4.1 مركز سجلات التدقيق */}
-                <button
-                  onClick={() => setActiveTab("audit_center")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "audit_center" ? "bg-slate-700 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <HistoryIcon className="h-4 w-4 shrink-0 text-slate-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "مركز سجلات التدقيق (Audit)" : "Audit Trail Center"}</span>
-                </button>
-
-                {/* 13.4.2 مركز التكامل والربط */}
-                <button
-                  onClick={() => setActiveTab("integration_center")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "integration_center" ? "bg-indigo-700 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Share2 className="h-4 w-4 shrink-0 text-indigo-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "مركز التكامل والربط" : "Integration Gateway"}</span>
-                </button>
-
-                {/* 13.4.3 النسخ الاحتياطي والأرشفة */}
-                <button
-                  onClick={() => setActiveTab("backup_center")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "backup_center" ? "bg-emerald-700 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <HardDrive className="h-4 w-4 shrink-0 text-emerald-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "النسخ الاحتياطي والأرشفة" : "Disaster Recovery & Backup"}</span>
                 </button>
 
                 {/* 13.5. لوحة الإدارة والبرمجة الأكاديمية */}
@@ -8836,39 +8563,6 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                   <span className="flex-1 text-right">{language === "ar" ? "الصفحة الشخصية" : "User Profile View"}</span>
                 </button>
 
-                {/* 15. الأدوات والآلات الحسابية */}
-                <button
-                  onClick={() => setActiveTab("medical_tools")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "medical_tools" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Activity className="h-4 w-4 shrink-0 text-rose-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "أدوات طبية متقدمة" : "Advanced Medical Tools"}</span>
-                </button>
-
-                {/* 16. تعديل وتصميم النماذج السريرية */}
-                <button
-                  onClick={() => setActiveTab("form_builder")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "form_builder" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Settings className="h-4 w-4 shrink-0 text-amber-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "تعديل وتصميم النماذج السريرية" : "Form Builder & Design"}</span>
-                </button>
-
-                {/* 17. المراسلات والطلبات */}
-                <button
-                  onClick={() => setActiveTab("messaging")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "messaging" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <MessageSquare className="h-4 w-4 shrink-0 text-teal-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "نظام الرسائل والإشعارات" : "Messaging & Notifications"}</span>
-                </button>
-
                 {/* 18. تقييم الموظفين */}
                 <button
                   onClick={() => setActiveTab("evaluations")}
@@ -8891,26 +8585,6 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                   <span className="flex-1 text-right">{language === "ar" ? "تتبع مشروع HIS" : "HIS Project Tracking"}</span>
                 </button>
 
-                {/* 19.1. مركز المستندات */}
-                <button
-                  onClick={() => setActiveTab("document_center")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "document_center" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <FileText className="h-4 w-4 shrink-0 text-cyan-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "مركز المستندات" : "Document Center"}</span>
-                </button>
-                {/* 19.2. الفواتير والتأمين */}
-                <button
-                  onClick={() => setActiveTab("billing")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "billing" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Database className="h-4 w-4 shrink-0 text-green-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "الفواتير والتأمين" : "Billing & Insurance"}</span>
-                </button>
                 {/* 20. لوحة الإدارة والدعم */}
                 <button
                   onClick={() => setActiveTab("admin_dashboard")}
@@ -8923,15 +8597,6 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
                 </button>
 
                 {/* 21. النماذج والشيتات */}
-                <button
-                  onClick={() => setActiveTab("manage_templates")}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-right text-xs font-semibold transition-all rounded-lg ${
-                    activeTab === "manage_templates" ? "bg-blue-600 text-white font-bold shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <FileText className="h-4 w-4 shrink-0 text-pink-400" />
-                  <span className="flex-1 text-right">{language === "ar" ? "النماذج والشيتات" : "Templates & Forms"}</span>
-                </button>
               </div>
             </div>
           )}
