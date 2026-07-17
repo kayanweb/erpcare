@@ -35,7 +35,6 @@ module.exports = __toCommonJS(server_exports);
 var import_supabase_js = require("@supabase/supabase-js");
 var import_express = __toESM(require("express"), 1);
 var import_path2 = __toESM(require("path"), 1);
-var import_vite = require("vite");
 var import_genai = require("@google/genai");
 var import_dotenv = __toESM(require("dotenv"), 1);
 var import_fs2 = __toESM(require("fs"), 1);
@@ -136,7 +135,7 @@ var client = (0, import_postgres.default)(connectionString || "postgres://localh
   ssl: connectionString ? "require" : false,
   max: 20,
   idle_timeout: 30,
-  connect_timeout: 30,
+  connect_timeout: 5,
   onparameter: (key, val) => {
   }
 });
@@ -146,7 +145,7 @@ var db = (0, import_postgres_js.drizzle)(client, { schema: schema_exports });
 var import_drizzle_orm = require("drizzle-orm");
 var import_fs = __toESM(require("fs"), 1);
 var import_path = __toESM(require("path"), 1);
-var LOCAL_DB_PATH = import_path.default.join(process.cwd(), "local_database.json");
+var LOCAL_DB_PATH = process.env.VERCEL ? import_path.default.join("/tmp", "local_database.json") : import_path.default.join(process.cwd(), "local_database.json");
 function readLocalDb() {
   try {
     if (import_fs.default.existsSync(LOCAL_DB_PATH)) {
@@ -1722,19 +1721,27 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
     }
   });
   if (process.env.NODE_ENV !== "production") {
-    const vite = await (0, import_vite.createServer)({
+    const { createServer: createViteServer } = await import("vite");
+    const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa"
     });
     app.use(vite.middlewares);
     console.log("Vite dev middleware loaded.");
   } else {
-    const distPath = import_path2.default.join(process.cwd(), "dist");
-    app.use(import_express.default.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(import_path2.default.join(distPath, "index.html"));
-    });
-    console.log("Serving static files from dist.");
+    const distPath = process.env.VERCEL ? import_path2.default.join(process.cwd(), "dist") : import_path2.default.join(process.cwd(), "dist");
+    if (import_fs2.default.existsSync(distPath)) {
+      app.use(import_express.default.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(import_path2.default.join(distPath, "index.html"));
+      });
+      console.log(`Serving static files from ${distPath}`);
+    } else {
+      console.warn(`Warning: dist folder not found at ${distPath}`);
+      app.get("*", (req, res) => {
+        res.status(404).send("Application dist folder not found. Please run build first.");
+      });
+    }
   }
   try {
     console.log("Checking if PostgreSQL database needs seeding...");
