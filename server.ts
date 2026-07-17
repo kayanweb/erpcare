@@ -1542,11 +1542,25 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
     console.error("Auto-seeding warning (non-fatal):", seedError);
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://0.0.0.0:${PORT}`);
+    });
+  }
+  return app;
+}
+
+export { startServer };
+
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  startServer().then(app => {
+    if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
+        app.listen(3000, "0.0.0.0", () => {
+            console.log(`Server running on http://0.0.0.0:3000`);
+        });
+    }
+  }).catch((err) => {
+    console.error("Failed to start server:", err);
   });
 }
 
-startServer().catch((err) => {
-  console.error("Failed to start server:", err);
-});
