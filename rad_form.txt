@@ -1,0 +1,75 @@
+  if (showOrderRadForm) {
+    return (
+      <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 animate-fade-in" dir={isAr ? "rtl" : "ltr"}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden flex flex-col">
+          <div className="bg-slate-900 text-white p-4 flex items-center justify-between shrink-0">
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <Activity className="w-5 h-5 text-amber-500" />
+              {isAr ? "طلب فحص تصوير أشعة جديد" : "New Radiology Order"}
+            </h2>
+            <button onClick={() => setShowOrderRadForm(false)} className="hover:bg-slate-700 p-2 rounded-lg transition text-white cursor-pointer">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block mb-1">{isAr ? "اختر نوع الأشعة المطلوب" : "Select Radiology Procedure"}</label>
+              <select 
+                value={quickRadName}
+                onChange={(e) => setQuickRadName(e.target.value)}
+                className="w-full border-slate-300 rounded-lg text-sm bg-slate-50 p-2.5 focus:border-amber-500 outline-none font-bold"
+              >
+                <option value="Chest X-Ray Portable (أشعة صدر متنقلة)">Chest X-Ray Portable (أشعة صدر متنقلة)</option>
+                <option value="CT Brain W/O Contrast (أشعة مقطعية للمخ بدون صبغة)">CT Brain W/O Contrast (أشعة مقطعية للمخ بدون صبغة)</option>
+                <option value="CT Abdomen & Pelvis (أشعة مقطعية للبطن والحوض)">CT Abdomen & Pelvis (أشعة مقطعية للبطن والحوض)</option>
+                <option value="MRI Brain W/ Contrast (رنين مغناطيسي على المخ بالصبغة)">MRI Brain W/ Contrast (رنين مغناطيسي على المخ بالصبغة)</option>
+                <option value="Ultrasound Abdomen (أشعة تلفزيونية للبطن)">Ultrasound Abdomen (أشعة تلفزيونية للبطن)</option>
+              </select>
+            </div>
+            <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 p-3 rounded-lg font-semibold font-sans leading-relaxed">
+              {isAr ? "سيتم تسجيل الطلب في نظام إدارة قسم الأشعة (RIS) وإشعار فني الأشعة المناوب فوراً." : "This order will be filed in the Radiology Information System (RIS) and dispatch alerts sent to the on-duty imaging tech."}
+            </div>
+          </div>
+          <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+            <button onClick={() => setShowOrderRadForm(false)} className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+              {isAr ? "إلغاء" : "Cancel"}
+            </button>
+            <button 
+              onClick={() => {
+                const currentOrders = currentPatient.orders || [];
+                const newOrder = {
+                  id: "ord-" + Date.now(),
+                  type: "RAD",
+                  name: quickRadName,
+                  status: "Ordered",
+                  date: new Date().toLocaleDateString()
+                };
+                updatePatient(currentPatient.id, { orders: [newOrder, ...currentOrders] });
+                setCpoeOrders((prev: any[]) => [
+                  {
+                    id: newOrder.id,
+                    patientName: currentPatient.nameEn || currentPatient.nameAr,
+                    mrn: currentPatient.mrn,
+                    orderType: "Radiology",
+                    orderName: quickRadName,
+                    priority: "Routine",
+                    status: "Pending",
+                    timestamp: new Date().toISOString()
+                  },
+                  ...(prev || [])
+                ]);
+                setShowOrderRadForm(false);
+                setActiveTab("orders");
+                toast.success(isAr ? `تم إرسال طلب أشعة (${quickRadName}) بنجاح.` : `Radiology order for (${quickRadName}) registered successfully in RIS.`);
+              }}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold shadow-md transition cursor-pointer"
+            >
+              {isAr ? "تأكيد وإرسال الطلب" : "Sign & Dispatch RIS Order"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showPrescribeForm) {
