@@ -132,8 +132,8 @@ var connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   console.warn("\u26A0\uFE0F Warning: DATABASE_URL environment variable is not defined!");
 }
-var client = (0, import_postgres.default)(connectionString || "", {
-  ssl: "require",
+var client = (0, import_postgres.default)(connectionString || "postgres://localhost:5432/placeholder", {
+  ssl: connectionString ? "require" : false,
   max: 20,
   idle_timeout: 30,
   connect_timeout: 30,
