@@ -24,8 +24,14 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // server.ts
+var server_exports = {};
+__export(server_exports, {
+  startServer: () => startServer
+});
+module.exports = __toCommonJS(server_exports);
 var import_supabase_js = require("@supabase/supabase-js");
 var import_express = __toESM(require("express"), 1);
 var import_path2 = __toESM(require("path"), 1);
@@ -1838,11 +1844,26 @@ Live AI analysis model is currently undergoing automatic maintenance. Please rev
   } catch (seedError) {
     console.error("Auto-seeding warning (non-fatal):", seedError);
   }
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://0.0.0.0:${PORT}`);
+    });
+  }
+  return app;
+}
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  startServer().then((app) => {
+    if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
+      app.listen(3e3, "0.0.0.0", () => {
+        console.log(`Server running on http://0.0.0.0:3000`);
+      });
+    }
+  }).catch((err) => {
+    console.error("Failed to start server:", err);
   });
 }
-startServer().catch((err) => {
-  console.error("Failed to start server:", err);
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  startServer
 });
 //# sourceMappingURL=server.cjs.map
