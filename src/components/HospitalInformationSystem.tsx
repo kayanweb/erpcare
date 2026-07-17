@@ -2017,7 +2017,7 @@ export default function HospitalInformationSystem({
 
               {/* restored */}
       <div
-        className={`fixed md:static inset-y-0 ${isAr ? "right-0" : "left-0"} z-50 w-[280px] md:w-72 text-white flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out border-${isAr ? "l" : "r"} border-slate-800 shadow-2xl md:shadow-[4px_0_24px_rgba(0,0,0,0.05)] ${isSidebarOpen ? "translate-x-0" : isAr ? "translate-x-full md:translate-x-0" : "-translate-x-full md:translate-x-0"} ${!isSidebarOpen && "md:w-[88px]"}`}
+        className={`fixed md:static inset-y-0 ${isAr ? "right-0" : "left-0"} z-50 w-[280px] lg:w-72 text-white flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out border-${isAr ? "l" : "r"} border-slate-800 shadow-2xl lg:shadow-[4px_0_24px_rgba(0,0,0,0.05)] ${isSidebarOpen ? "translate-x-0" : isAr ? "translate-x-full lg:translate-x-0" : "-translate-x-full lg:translate-x-0"} ${!isSidebarOpen && "lg:w-[88px]"}`}
         style={{
           backgroundColor: "#0f172a", // Darker enterprise slate theme
           backgroundImage: "linear-gradient(to bottom, #0f172a, #1e293b)"
@@ -2119,16 +2119,16 @@ export default function HospitalInformationSystem({
               {/* restored */}
       <div className="flex-1 flex flex-col overflow-hidden">
               {/* restored */}
-        <div className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0 z-20 gap-4 shadow-[0_4px_20px_-15px_rgba(0,0,0,0.05)] sticky top-0">
+        <div className="h-16 sm:h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0 z-20 gap-2 sm:gap-4 shadow-[0_4px_20px_-15px_rgba(0,0,0,0.05)] sticky top-0">
               {/* removed */}
           <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-slate-500 hover:text-slate-800"
+              className="p-2 -ml-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 sm:w-6 h-6" />
             </button>
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full max-w-md hidden sm:block">
               <Search
                 className={`absolute ${isAr ? "right-2.5 sm:right-3" : "left-2.5 sm:left-3"} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400`}
               />
@@ -2278,10 +2278,10 @@ export default function HospitalInformationSystem({
               </div>
             </form>
 
-            <div className="flex items-center gap-4 sm:gap-5 text-slate-500">
+            <div className="flex items-center gap-2 sm:gap-5 text-slate-500">
               <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('openPatientRegistration'))}
-                className="hidden md:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors font-bold text-sm border border-emerald-100 shadow-sm"
+                className="hidden xl:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors font-bold text-sm border border-emerald-100 shadow-sm"
               >
                 <UserPlus className="w-4 h-4" />
                 {isAr ? "تسجيل مريض جديد" : "Register Patient"}
@@ -2289,7 +2289,7 @@ export default function HospitalInformationSystem({
 
               <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('openVisitRegistration'))}
-                className="hidden md:flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors font-bold text-sm border border-indigo-100 shadow-sm"
+                className="hidden xl:flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors font-bold text-sm border border-indigo-100 shadow-sm"
               >
                 <FileText className="w-4 h-4" />
                 {isAr ? "تسجيل زيارة" : "Register Visit"}
@@ -2299,13 +2299,13 @@ export default function HospitalInformationSystem({
                 onClick={() => window.dispatchEvent(new CustomEvent('toggleAICopilot'))}
                 className="hidden md:flex items-center gap-2 bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors font-bold text-sm border border-slate-200"
               >
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                {isAr ? "مساعد الذكاء الاصطناعي" : "AI Copilot"}
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                <span className="hidden sm:inline">{isAr ? "المساعد الذكي" : "AI Copilot"}</span>
               </button>
 
               <div className="relative">
                 <div
-                  className="relative cursor-pointer hover:text-slate-800 transition"
+                  className="relative cursor-pointer p-2 hover:bg-slate-100 rounded-lg transition"
                   onClick={() => {
                     setIsHISNotificationsOpen(!isHISNotificationsOpen);
                     setIsHISMessagesOpen(false);
@@ -2313,7 +2313,7 @@ export default function HospitalInformationSystem({
                 >
                   <Bell className="w-5 h-5 text-rose-500" />
                   {hisNotifications.length > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center border border-white">
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center border border-white">
                       {hisNotifications.length}
                     </span>
                   )}

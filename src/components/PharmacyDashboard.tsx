@@ -35,47 +35,47 @@ export default function PharmacyDashboard({ language }: { language: "ar" | "en" 
   return (
     <div className="flex flex-col h-full bg-[#f8fafc]" dir={isAr ? "rtl" : "ltr"}>
       {/* Pharmacy Module Header */}
-      <div className="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between shadow-sm z-30">
-        <div className="flex items-center gap-5">
-          <div className="w-14 h-14 bg-emerald-600 rounded-[22px] flex items-center justify-center shadow-xl shadow-emerald-100 border-2 border-emerald-50">
-            <Pill className="w-8 h-8 text-white" />
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 sm:py-5 flex flex-col lg:flex-row lg:items-center justify-between shadow-sm z-30 gap-6">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 bg-emerald-600 rounded-[18px] sm:rounded-[22px] flex items-center justify-center shadow-xl shadow-emerald-100 border-2 border-emerald-50">
+            <Pill className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight truncate">
                 {isAr ? "نظام إدارة الصيدلية (PIS)" : "Pharmacy Information System"}
               </h1>
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded-full border border-emerald-100 uppercase tracking-widest">
-                Enterprise Edition v6.0
+              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-black rounded-full border border-emerald-100 uppercase tracking-widest shrink-0">
+                v6.0
               </span>
             </div>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-sm font-bold text-slate-400">{isAr ? "إدارة الصرف، المخزون، والصيدلة السريرية" : "Dispensing, Inventory & Clinical Care"}</span>
-              <div className="w-1 h-1 bg-slate-300 rounded-full" />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-0.5 sm:mt-1">
+              <span className="text-xs sm:text-sm font-bold text-slate-400 truncate">{isAr ? "إدارة الصرف، المخزون، والصيدلة السريرية" : "Dispensing, Inventory & Clinical Care"}</span>
+              <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full" />
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-                  {isAr ? "متصل بنظام الصرف الآلي" : "Pyxis/Omnicell Linked"}
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full" />
+                <span className="text-[9px] sm:text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                  {isAr ? "نظام آلي" : "Pyxis/Omnicell Linked"}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-           <button className="p-3 bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 rounded-2xl transition-all shadow-sm">
-             <Bell className="w-6 h-6" />
+        <div className="flex items-center gap-3 sm:gap-4 w-full lg:w-auto">
+           <button className="flex-1 lg:flex-none p-3 bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 rounded-2xl transition-all shadow-sm flex items-center justify-center">
+             <Bell className="w-5 h-5 sm:w-6 h-6" />
            </button>
-           <button className="px-6 py-3 bg-emerald-600 text-white rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 active:scale-95">
-             <Zap className="w-5 h-5 text-emerald-200" />
-             <span className="hidden lg:block">{isAr ? "صرف سريع" : "Rapid Dispense"}</span>
+           <button className="flex-[3] lg:flex-none px-4 sm:px-6 py-3 bg-emerald-600 text-white rounded-[16px] sm:rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs">
+             <Zap className="w-4 h-4 sm:w-5 h-5 text-emerald-200" />
+             <span>{isAr ? "صرف سريع" : "Rapid Dispense"}</span>
            </button>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-20">
-         <div className="flex gap-1">
+      <div className="bg-white border-b border-slate-200 overflow-x-auto no-scrollbar sticky top-0 z-20">
+         <div className="flex px-4 sm:px-8 min-w-max">
             {mainTabs.map(tab => (
               <button 
                 key={tab.id}

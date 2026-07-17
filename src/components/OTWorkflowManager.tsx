@@ -25,57 +25,57 @@ export default function OTWorkflowManager({ language, onClose }: { language: 'ar
   ];
 
   return (
-    <div className="space-y-6" dir={isAr ? 'rtl' : 'ltr'}>
+    <div className="space-y-4 sm:space-y-6" dir={isAr ? 'rtl' : 'ltr'}>
        {/* Stage Navigation */}
-       <div className="flex overflow-x-auto gap-4 pb-2 custom-scrollbar items-center justify-between">
-          <div className="flex gap-4">
+       <div className="flex overflow-x-auto gap-4 pb-2 no-scrollbar items-center justify-between">
+          <div className="flex gap-2 sm:gap-4 min-w-max">
             {otStages.map(stage => (
               <button
                 key={stage.id}
                 onClick={() => setActiveStage(stage.id as OTStage)}
-                className={`flex items-center gap-3 px-6 py-4 rounded-2xl border-2 transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl border-2 transition-all whitespace-nowrap ${
                   activeStage === stage.id 
                     ? `border-${stage.color}-200 bg-${stage.color}-50 text-${stage.color}-700 shadow-lg shadow-slate-100` 
                     : 'border-white bg-white text-slate-500 hover:border-slate-100'
                 }`}
               >
-                <div className={`p-2 rounded-xl bg-white shadow-sm border border-slate-100`}>
-                  <stage.icon className="w-5 h-5" />
+                <div className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-white shadow-sm border border-slate-100 shrink-0`}>
+                  <stage.icon className="w-4 h-4 sm:w-5 h-5" />
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest">{isAr ? stage.ar : stage.en}</span>
+                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest">{isAr ? stage.ar : stage.en}</span>
               </button>
             ))}
           </div>
           <button 
             onClick={onClose}
-            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+            className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group shrink-0 ml-2 rtl:ml-0 rtl:mr-2"
             title={isAr ? "إغلاق والعودة للرئيسية" : "Close & Return to Dashboard"}
           >
-            <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+            <Plus className="w-5 h-5 sm:w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
           </button>
        </div>
 
        {/* Main Canvas */}
-       <div className="bg-white border border-slate-200 rounded-[32px] overflow-hidden shadow-sm min-h-[600px] flex flex-col">
-          <div className="p-8 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
-             <div className="flex items-center gap-5">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-rose-600 text-white shadow-xl shadow-rose-100`}>
-                   <Scissors className="w-7 h-7" />
+       <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm min-h-[500px] sm:min-h-[600px] flex flex-col">
+          <div className="p-4 sm:p-8 border-b border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+             <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center bg-rose-600 text-white shadow-xl shadow-rose-100 shrink-0`}>
+                   <Scissors className="w-6 h-6 sm:w-7 h-7" />
                 </div>
                 <div>
-                   <h2 className="text-xl font-black text-slate-900 tracking-tight">{isAr ? "نظام إدارة غرف العمليات" : "Operating Theater Mgmt System"}</h2>
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{isAr ? "تحكم كامل بمسار الجراحة" : "End-to-end Surgical Workflow Control"}</p>
+                   <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">{isAr ? "نظام إدارة غرف العمليات" : "Operating Theater Mgmt System"}</h2>
+                   <p className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest">{isAr ? "تحكم كامل بمسار الجراحة" : "End-to-end Surgical Workflow Control"}</p>
                 </div>
              </div>
-             <div className="flex gap-3">
-                <button className="h-12 px-6 bg-slate-100 text-slate-600 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition">
-                   <Plus className="w-4 h-4" />
+             <div className="flex gap-2 w-full sm:w-auto">
+                <button className="flex-1 sm:flex-none h-10 sm:h-12 px-4 sm:px-6 bg-slate-100 text-slate-600 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-200 transition">
+                   <Plus className="w-3.5 h-3.5 sm:w-4 h-4" />
                    {isAr ? "حجز غرفة" : "Book Theatre"}
                 </button>
              </div>
           </div>
 
-          <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+          <div className="flex-1 p-4 sm:p-8 overflow-y-auto custom-scrollbar">
              <AnimatePresence mode="wait">
                 {activeStage === 'BOOKING' && (
                   <motion.div 

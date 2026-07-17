@@ -24,20 +24,20 @@ export default function MedicalRecordsDashboard() {
 
   return (
     <div className="p-6 space-y-6" dir={isAr ? "rtl" : "ltr"}>
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-800">{isAr ? "إدارة السجلات الطبية (HIM)" : "Health Information Management"}</h2>
-          <p className="text-slate-500 text-sm mt-1">{isAr ? "نظام متكامل لإدارة وأرشفة وترميز الملفات الطبية" : "Comprehensive system for managing, archiving, and coding medical records"}</p>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">{isAr ? "إدارة السجلات الطبية (HIM)" : "Health Information Management"}</h2>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">{isAr ? "نظام متكامل لإدارة وأرشفة وترميز الملفات الطبية" : "Comprehensive system for managing, archiving, and coding medical records"}</p>
         </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-indigo-700 transition">
+        <div className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-indigo-700 transition">
             <Search className="w-4 h-4" />
             {isAr ? "البحث في السجلات" : "Search Records"}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
           <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.bg} ${stat.color}`}>
@@ -52,14 +52,14 @@ export default function MedicalRecordsDashboard() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             <FileText className="w-5 h-5 text-indigo-600" />
             {isAr ? "أحدث السجلات الطبية" : "Recent Medical Records"}
           </h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left rtl:text-right">
+        <div className="overflow-x-auto responsive-table-container border-none shadow-none">
+          <table className="w-full text-sm text-left rtl:text-right min-w-[800px]">
             <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="px-6 py-4">{isAr ? "رقم السجل" : "Record ID"}</th>

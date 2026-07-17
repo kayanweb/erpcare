@@ -13,7 +13,7 @@ const client = postgres(connectionString || "postgres://localhost:5432/placehold
   ssl: connectionString ? "require" : false,
   max: 20,                 
   idle_timeout: 30,        
-  connect_timeout: 30,     
+  connect_timeout: 5,     
   onparameter: (key, val) => {
   }
 });

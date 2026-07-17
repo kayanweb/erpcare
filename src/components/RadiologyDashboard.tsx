@@ -37,53 +37,53 @@ export default function RadiologyDashboard({ language, onClose }: { language: "a
   return (
     <div className="flex flex-col h-full bg-[#f8fafc]" dir={isAr ? "rtl" : "ltr"}>
       {/* Radiology Module Header */}
-      <div className="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between shadow-sm z-30">
-        <div className="flex items-center gap-5">
-          <div className="w-14 h-14 bg-slate-900 rounded-[22px] flex items-center justify-center shadow-xl shadow-slate-100 border-2 border-slate-800">
-            <Bone className="w-8 h-8 text-cyan-400" />
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between shadow-sm z-30 gap-4">
+        <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-slate-900 rounded-xl sm:rounded-[22px] flex items-center justify-center shadow-xl shadow-slate-100 border-2 border-slate-800 shrink-0">
+            <Bone className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
           </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                {isAr ? "الأشعة والتصوير الطبي (RIS/PACS)" : "Radiology Information System"}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight truncate">
+                {isAr ? "الأشعة (RIS/PACS)" : "Radiology Information System"}
               </h1>
-              <span className="px-3 py-1 bg-cyan-50 text-cyan-700 text-[10px] font-black rounded-full border border-cyan-100 uppercase tracking-widest">
-                Enterprise Edition v5.0
+              <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-cyan-50 text-cyan-700 text-[8px] sm:text-[10px] font-black rounded-full border border-cyan-100 uppercase tracking-widest">
+                v5.0
               </span>
             </div>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-sm font-bold text-slate-400">{isAr ? "نظام الأرشفة والتقارير الموحد" : "Unified Archiving & Reporting"}</span>
+            <div className="flex items-center gap-2 sm:gap-3 mt-0.5 sm:mt-1">
+              <span className="text-xs sm:text-sm font-bold text-slate-400">{isAr ? "نظام الأرشفة" : "Archiving System"}</span>
               <div className="w-1 h-1 bg-slate-300 rounded-full" />
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-                  {isAr ? "الأجهزة متصلة" : "Modalities Linked"}
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full" />
+                <span className="text-[8px] sm:text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                  {isAr ? "متصل" : "Online"}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end sm:justify-start">
            <button 
              onClick={onClose}
-             className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm group shrink-0"
+             className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm group shrink-0"
            >
-              <Plus className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+              <Plus className="w-5 h-5 sm:w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
            </button>
-           <button className="p-3 bg-white border border-slate-200 text-slate-400 hover:text-cyan-600 rounded-2xl transition-all shadow-sm">
-             <Bell className="w-6 h-6" />
+           <button className="p-2 sm:p-3 bg-white border border-slate-200 text-slate-400 hover:text-cyan-600 rounded-xl sm:rounded-2xl transition-all shadow-sm shrink-0">
+             <Bell className="w-5 h-5 sm:w-6 h-6" />
            </button>
-           <button className="px-6 py-3 bg-slate-900 text-white rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-black transition-all flex items-center gap-2 active:scale-95 border border-slate-800">
-             <Upload className="w-5 h-5 text-cyan-400" />
-             <span className="hidden lg:block text-white">{isAr ? "تحميل دراسة" : "Upload Study"}</span>
+           <button className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-slate-900 text-white rounded-xl sm:rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95 border border-slate-800 text-xs sm:text-sm">
+             <Upload className="w-4 h-4 sm:w-5 h-5 text-cyan-400" />
+             <span>{isAr ? "تحميل دراسة" : "Upload Study"}</span>
            </button>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-20">
-         <div className="flex gap-1">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 overflow-x-auto no-scrollbar">
+         <div className="flex gap-1 min-w-max">
             {mainTabs.map(tab => (
               <button 
                 key={tab.id}
@@ -91,14 +91,17 @@ export default function RadiologyDashboard({ language, onClose }: { language: "a
                   setActiveMainTab(tab.id);
                   setSelectedStudyId(null);
                 }}
-                className={`flex items-center gap-2 px-6 py-5 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 sm:px-6 py-4 sm:py-5 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all relative whitespace-nowrap ${
                   activeMainTab === tab.id ? "text-cyan-600" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
                 }`}
               >
-                <tab.icon className={`w-4 h-4 ${activeMainTab === tab.id ? "text-cyan-600" : ""}`} />
+                <tab.icon className={`w-3.5 h-3.5 sm:w-4 h-4 ${activeMainTab === tab.id ? "text-cyan-600" : ""}`} />
                 {isAr ? tab.ar : tab.en}
                 {activeMainTab === tab.id && (
-                  <motion.div layoutId="rad-tab-active" className="absolute bottom-0 left-0 w-full h-1 bg-cyan-600 rounded-t-full" />
+                  <motion.div 
+                    layoutId="radActiveTab"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-cyan-600 rounded-t-full"
+                  />
                 )}
               </button>
             ))}

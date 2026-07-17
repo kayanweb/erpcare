@@ -86,27 +86,29 @@ export default function ERDashboard({ language, onOpenPatientChart }: { language
   return (
     <div className="flex flex-col h-full bg-[#fcfdfe]" dir={isAr ? "rtl" : "ltr"}>
       {/* Module Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm z-30">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-col lg:flex-row lg:items-center justify-between shadow-sm z-30 gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-rose-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200">
             <Activity className="w-7 h-7 text-white" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight truncate">
                 {isAr ? "قسم الطوارئ (ER)" : "Emergency Department"}
               </h1>
-              <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-black rounded-full border border-rose-100 uppercase">
-                Enterprise v2.0
+              <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[9px] font-black rounded-full border border-rose-100 uppercase shrink-0">
+                v2.0
               </span>
             </div>
-            <div className="flex items-center gap-3 mt-0.5">
-              <span className="text-sm font-bold text-slate-500">{isAr ? "المستشفى الرئيسي" : "Main Medical Center"}</span>
-              <div className="w-1 h-1 bg-slate-300 rounded-full" />
-              <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-3 mt-0.5">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-400 truncate">{isAr ? "المستشفى الرئيسي" : "Main Medical Center"}</span>
+              <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full" />
+              <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />
-                {patients.length} {isAr ? "مريض قيد المعالجة" : "Active ER Cases"}
-              </span>
+                <span className="text-[9px] sm:text-[10px] font-black text-rose-600 uppercase tracking-widest">
+                  {patients.length} {isAr ? "مريض قيد المعالجة" : "Active ER Cases"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -133,8 +135,8 @@ export default function ERDashboard({ language, onOpenPatientChart }: { language
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 overflow-x-auto no-scrollbar">
-        <div className="flex gap-1">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 overflow-x-auto no-scrollbar">
+         <div className="flex gap-1 min-w-max">
           {mainTabs.map(tab => (
             <button
               key={tab.id}

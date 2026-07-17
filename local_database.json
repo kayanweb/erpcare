@@ -7,118 +7,26 @@
   ],
   "settings": [
     {
-      "id": "his_master_data",
+      "id": "baheya_hospital_departments",
       "value": [
-        {
-          "id": "md-ins-1",
-          "category": "insurance",
-          "valueEn": "Cash",
-          "valueAr": "كاش",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-ins-2",
-          "category": "insurance",
-          "valueEn": "Bupa",
-          "valueAr": "بوبا",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-ins-3",
-          "category": "insurance",
-          "valueEn": "Tawuniya",
-          "valueAr": "التعاونية",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-ins-4",
-          "category": "insurance",
-          "valueEn": "MedNet",
-          "valueAr": "ميد نت",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-city-1",
-          "category": "city",
-          "valueEn": "Cairo",
-          "valueAr": "القاهرة",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-city-2",
-          "category": "city",
-          "valueEn": "Giza",
-          "valueAr": "الجيزة",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-city-3",
-          "category": "city",
-          "valueEn": "Alexandria",
-          "valueAr": "الإسكندرية",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-nat-1",
-          "category": "nationality",
-          "valueEn": "Egyptian",
-          "valueAr": "مصري",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        },
-        {
-          "id": "md-nat-2",
-          "category": "nationality",
-          "valueEn": "Saudi",
-          "valueAr": "سعودي",
-          "isOfficial": true,
-          "status": "approved",
-          "useCount": 0,
-          "createdBy": "System",
-          "date": "2026-01-01",
-          "time": "00:00:00"
-        }
+        "EMERGENCY UNIT",
+        "INTENSIVE CARE",
+        "OPERATING ROOM",
+        "CHEMOTHERAPY DAYCARE",
+        "RADIOLOGY UNIT",
+        "PHARMACY STORE",
+        "PEDIATRIC WARD",
+        "QUALITY CONTROL",
+        "LABORATORY DEPT",
+        "INFECTION CONTROL",
+        "CLINICAL NUTRITION",
+        "INPATIENT FLOORS",
+        "OUTPATIENT CLINICS",
+        "BIOMEDICAL ENGINEERING",
+        "DENTAL CLINIC",
+        "ONCOLOGY RESEARCH"
       ],
-      "updatedAt": "2026-07-17T03:51:51.342Z",
+      "updatedAt": "2026-07-17T09:02:55.060Z",
       "savedBy": "PostgreSQL_User",
       "hisNameAr": "نظام معلومات المستشفى الموحد (HIS)",
       "hisNameEn": "ERP Care HIS",
@@ -705,7 +613,7 @@
       "roleId": "staff",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.257Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -713,7 +621,7 @@
       "roleId": "head_nurse",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.258Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -721,7 +629,7 @@
       "roleId": "quality",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.260Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -729,7 +637,7 @@
       "roleId": "president",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.260Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -737,7 +645,7 @@
       "roleId": "admin",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.261Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -745,7 +653,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.262Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -753,7 +661,7 @@
       "roleId": "medical_director",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.263Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -761,7 +669,7 @@
       "roleId": "it",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.262Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -769,7 +677,7 @@
       "roleId": "infection_control",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.264Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -777,7 +685,7 @@
       "roleId": "consultant",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.264Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -785,7 +693,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.265Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -793,7 +701,7 @@
       "roleId": "hmo",
       "permissionId": "submitChecklist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.265Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -801,7 +709,7 @@
       "roleId": "head_nurse",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.268Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -809,7 +717,7 @@
       "roleId": "staff",
       "permissionId": "approveChecklist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.268Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -817,7 +725,7 @@
       "roleId": "audit_auditor",
       "permissionId": "submitChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.267Z",
+      "updatedAt": "2026-07-17T09:02:55.111Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -825,7 +733,7 @@
       "roleId": "president",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.270Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -833,7 +741,7 @@
       "roleId": "quality",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.269Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -841,7 +749,7 @@
       "roleId": "admin",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.270Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -849,7 +757,7 @@
       "roleId": "it",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.271Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -857,7 +765,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "approveChecklist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.271Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -865,7 +773,7 @@
       "roleId": "medical_director",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.272Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -873,7 +781,7 @@
       "roleId": "infection_control",
       "permissionId": "approveChecklist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.273Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -881,7 +789,7 @@
       "roleId": "consultant",
       "permissionId": "approveChecklist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.273Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -889,7 +797,7 @@
       "roleId": "hmo",
       "permissionId": "approveChecklist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.276Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -897,7 +805,7 @@
       "roleId": "audit_auditor",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.277Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -905,7 +813,7 @@
       "roleId": "staff",
       "permissionId": "manageDutyTasks",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.278Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -913,7 +821,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "approveChecklist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.276Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -921,7 +829,7 @@
       "roleId": "president",
       "permissionId": "manageDutyTasks",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.279Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -929,7 +837,7 @@
       "roleId": "head_nurse",
       "permissionId": "manageDutyTasks",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.278Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -937,7 +845,7 @@
       "roleId": "quality",
       "permissionId": "manageDutyTasks",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.279Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -945,7 +853,7 @@
       "roleId": "it",
       "permissionId": "manageDutyTasks",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.281Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -953,7 +861,7 @@
       "roleId": "admin",
       "permissionId": "manageDutyTasks",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.280Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -961,7 +869,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "manageDutyTasks",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.282Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -969,7 +877,7 @@
       "roleId": "medical_director",
       "permissionId": "manageDutyTasks",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.284Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -977,7 +885,7 @@
       "roleId": "hmo",
       "permissionId": "manageDutyTasks",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.286Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -985,7 +893,7 @@
       "roleId": "consultant",
       "permissionId": "manageDutyTasks",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.285Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -993,7 +901,7 @@
       "roleId": "infection_control",
       "permissionId": "manageDutyTasks",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.284Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1001,7 +909,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "manageDutyTasks",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.286Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1009,7 +917,7 @@
       "roleId": "staff",
       "permissionId": "editMasterTemplates",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.287Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1017,7 +925,7 @@
       "roleId": "audit_auditor",
       "permissionId": "manageDutyTasks",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.287Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1025,7 +933,7 @@
       "roleId": "quality",
       "permissionId": "editMasterTemplates",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.289Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1033,7 +941,7 @@
       "roleId": "head_nurse",
       "permissionId": "editMasterTemplates",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.288Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1041,7 +949,7 @@
       "roleId": "admin",
       "permissionId": "editMasterTemplates",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.290Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1049,7 +957,7 @@
       "roleId": "president",
       "permissionId": "editMasterTemplates",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.290Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1057,7 +965,7 @@
       "roleId": "hmo",
       "permissionId": "editMasterTemplates",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.294Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1065,7 +973,7 @@
       "roleId": "consultant",
       "permissionId": "editMasterTemplates",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.294Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1073,7 +981,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "editMasterTemplates",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.292Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1081,7 +989,7 @@
       "roleId": "staff",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.300Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1089,7 +997,7 @@
       "roleId": "it",
       "permissionId": "editMasterTemplates",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.291Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1097,7 +1005,7 @@
       "roleId": "infection_control",
       "permissionId": "editMasterTemplates",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.293Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1105,7 +1013,7 @@
       "roleId": "audit_auditor",
       "permissionId": "editMasterTemplates",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.295Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1113,7 +1021,7 @@
       "roleId": "medical_director",
       "permissionId": "editMasterTemplates",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.292Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1121,7 +1029,7 @@
       "roleId": "admin",
       "permissionId": "deleteLogs",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.305Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1129,7 +1037,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "editMasterTemplates",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.295Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1137,7 +1045,7 @@
       "roleId": "quality",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.302Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1145,7 +1053,7 @@
       "roleId": "head_nurse",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.301Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1153,7 +1061,7 @@
       "roleId": "president",
       "permissionId": "deleteLogs",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.302Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1161,7 +1069,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.309Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1169,7 +1077,7 @@
       "roleId": "it",
       "permissionId": "deleteLogs",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.306Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1177,7 +1085,7 @@
       "roleId": "head_nurse",
       "permissionId": "modifyRosterShifts",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.315Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1185,7 +1093,7 @@
       "roleId": "hmo",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.312Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1193,7 +1101,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.312Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1201,7 +1109,7 @@
       "roleId": "consultant",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.311Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1209,7 +1117,7 @@
       "roleId": "president",
       "permissionId": "modifyRosterShifts",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.316Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1217,7 +1125,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "modifyRosterShifts",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.320Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1225,7 +1133,7 @@
       "roleId": "hmo",
       "permissionId": "modifyRosterShifts",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.322Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1233,7 +1141,7 @@
       "roleId": "it",
       "permissionId": "modifyRosterShifts",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.318Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1241,7 +1149,7 @@
       "roleId": "infection_control",
       "permissionId": "modifyRosterShifts",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.321Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1249,7 +1157,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "modifyRosterShifts",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.323Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1257,7 +1165,7 @@
       "roleId": "admin",
       "permissionId": "modifyRosterShifts",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.318Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1265,7 +1173,7 @@
       "roleId": "staff",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.324Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1273,7 +1181,7 @@
       "roleId": "consultant",
       "permissionId": "modifyRosterShifts",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.322Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1281,7 +1189,7 @@
       "roleId": "head_nurse",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.325Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1289,7 +1197,7 @@
       "roleId": "quality",
       "permissionId": "modifyRosterShifts",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.315Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1297,7 +1205,7 @@
       "roleId": "medical_director",
       "permissionId": "modifyRosterShifts",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.321Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1305,7 +1213,7 @@
       "roleId": "it",
       "permissionId": "signoffRosterCno",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.329Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1313,7 +1221,7 @@
       "roleId": "admin",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.328Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1321,7 +1229,7 @@
       "roleId": "president",
       "permissionId": "signoffRosterCno",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.328Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1329,7 +1237,7 @@
       "roleId": "audit_auditor",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.313Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1337,7 +1245,7 @@
       "roleId": "staff",
       "permissionId": "modifyRosterShifts",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.314Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1345,7 +1253,7 @@
       "roleId": "medical_director",
       "permissionId": "deleteLogs",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.310Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1353,7 +1261,7 @@
       "roleId": "infection_control",
       "permissionId": "deleteLogs",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.311Z",
+      "updatedAt": "2026-07-17T09:02:55.112Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1361,7 +1269,7 @@
       "roleId": "audit_auditor",
       "permissionId": "modifyRosterShifts",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.324Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1369,7 +1277,7 @@
       "roleId": "quality",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.326Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1377,7 +1285,7 @@
       "roleId": "medical_director",
       "permissionId": "signoffRosterCno",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.330Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1385,7 +1293,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.330Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1393,7 +1301,7 @@
       "roleId": "infection_control",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.331Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1401,7 +1309,7 @@
       "roleId": "consultant",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.332Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1409,7 +1317,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "signoffRosterCno",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.333Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1417,7 +1325,7 @@
       "roleId": "hmo",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.332Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1425,7 +1333,7 @@
       "roleId": "audit_auditor",
       "permissionId": "signoffRosterCno",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.334Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1433,7 +1341,7 @@
       "roleId": "president",
       "permissionId": "addRemoveStaff",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.336Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1441,7 +1349,7 @@
       "roleId": "admin",
       "permissionId": "addRemoveStaff",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.336Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1449,7 +1357,7 @@
       "roleId": "staff",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.334Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1457,7 +1365,7 @@
       "roleId": "quality",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.335Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1465,7 +1373,7 @@
       "roleId": "it",
       "permissionId": "addRemoveStaff",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.337Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1473,7 +1381,7 @@
       "roleId": "head_nurse",
       "permissionId": "addRemoveStaff",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.335Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1481,7 +1389,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.337Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1489,7 +1397,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.340Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1497,7 +1405,7 @@
       "roleId": "audit_auditor",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.341Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1505,7 +1413,7 @@
       "roleId": "consultant",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.339Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1513,7 +1421,7 @@
       "roleId": "medical_director",
       "permissionId": "addRemoveStaff",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.338Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1521,7 +1429,7 @@
       "roleId": "hmo",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.339Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1529,7 +1437,7 @@
       "roleId": "staff",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.342Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1537,7 +1445,7 @@
       "roleId": "infection_control",
       "permissionId": "addRemoveStaff",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.338Z",
+      "updatedAt": "2026-07-17T09:02:55.113Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1545,7 +1453,7 @@
       "roleId": "head_nurse",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.342Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1553,7 +1461,7 @@
       "roleId": "quality",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.343Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1561,7 +1469,7 @@
       "roleId": "hmo",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.387Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1569,7 +1477,7 @@
       "roleId": "president",
       "permissionId": "editHospitalSettings",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.344Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1577,7 +1485,7 @@
       "roleId": "audit_auditor",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.389Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1585,7 +1493,7 @@
       "roleId": "staff",
       "permissionId": "manageNarcotics",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.390Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1593,7 +1501,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.388Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1601,7 +1509,7 @@
       "roleId": "admin",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.393Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1609,7 +1517,7 @@
       "roleId": "it",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.394Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1617,7 +1525,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "manageNarcotics",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.396Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1625,7 +1533,7 @@
       "roleId": "infection_control",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.397Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1633,7 +1541,7 @@
       "roleId": "hmo",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.399Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1641,7 +1549,7 @@
       "roleId": "it",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.406Z",
+      "updatedAt": "2026-07-17T09:02:55.096Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1649,7 +1557,7 @@
       "roleId": "consultant",
       "permissionId": "manageNarcotics",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.398Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1657,7 +1565,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "reportSentinel",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.407Z",
+      "updatedAt": "2026-07-17T09:02:55.096Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1665,7 +1573,7 @@
       "roleId": "medical_director",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.407Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1673,7 +1581,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.401Z",
+      "updatedAt": "2026-07-17T09:02:55.096Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1681,7 +1589,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.410Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1689,7 +1597,7 @@
       "roleId": "audit_auditor",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.410Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1697,7 +1605,7 @@
       "roleId": "staff",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.411Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1705,7 +1613,7 @@
       "roleId": "head_nurse",
       "permissionId": "overrideClinicalLimit",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.411Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1713,7 +1621,7 @@
       "roleId": "quality",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.412Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1721,7 +1629,7 @@
       "roleId": "president",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.412Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1729,7 +1637,7 @@
       "roleId": "admin",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.413Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1737,7 +1645,7 @@
       "roleId": "infection_control",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.416Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1745,7 +1653,7 @@
       "roleId": "consultant",
       "permissionId": "overrideClinicalLimit",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.417Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1753,7 +1661,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.418Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1761,7 +1669,7 @@
       "roleId": "audit_auditor",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.419Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1769,7 +1677,7 @@
       "roleId": "staff",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.419Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1777,7 +1685,7 @@
       "roleId": "head_nurse",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.421Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1785,7 +1693,7 @@
       "roleId": "quality",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.422Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1793,7 +1701,7 @@
       "roleId": "president",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.422Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1801,7 +1709,7 @@
       "roleId": "admin",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.423Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1809,7 +1717,7 @@
       "roleId": "quality",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.430Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1817,7 +1725,7 @@
       "roleId": "president",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.431Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1825,7 +1733,7 @@
       "roleId": "admin",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.431Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1833,7 +1741,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "accessPatientHpi",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.433Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1841,7 +1749,7 @@
       "roleId": "it",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.432Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1849,7 +1757,7 @@
       "roleId": "medical_director",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.434Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1857,7 +1765,7 @@
       "roleId": "infection_control",
       "permissionId": "accessPatientHpi",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.434Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1865,7 +1773,7 @@
       "roleId": "consultant",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.435Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1873,7 +1781,7 @@
       "roleId": "hmo",
       "permissionId": "accessPatientHpi",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.435Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1881,7 +1789,7 @@
       "roleId": "consultant",
       "permissionId": "mod_medication",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.460Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1889,7 +1797,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.459Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1897,7 +1805,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.461Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1905,7 +1813,7 @@
       "roleId": "hmo",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.461Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1913,7 +1821,7 @@
       "roleId": "it",
       "permissionId": "mod_forms_fill",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.465Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1921,7 +1829,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.466Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1929,7 +1837,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.467Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1937,7 +1845,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_forms_fill",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.469Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1945,7 +1853,7 @@
       "roleId": "quality",
       "permissionId": "mod_forms_dist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.471Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1953,7 +1861,7 @@
       "roleId": "staff",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.470Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1961,7 +1869,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_forms_dist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.471Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1969,7 +1877,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_forms_fill",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.470Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1977,7 +1885,7 @@
       "roleId": "quality",
       "permissionId": "mod_roster_view",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.480Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1985,7 +1893,7 @@
       "roleId": "staff",
       "permissionId": "mod_roster_view",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.479Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -1993,7 +1901,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_roster_view",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.479Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2001,7 +1909,7 @@
       "roleId": "president",
       "permissionId": "mod_roster_view",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.481Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2009,7 +1917,7 @@
       "roleId": "hmo",
       "permissionId": "mod_roster_view",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.485Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2017,7 +1925,7 @@
       "roleId": "staff",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.487Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2025,7 +1933,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_roster_view",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.486Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2033,7 +1941,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_roster_view",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.486Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2041,7 +1949,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_roster_config",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.487Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2049,7 +1957,7 @@
       "roleId": "quality",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.488Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2057,7 +1965,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.497Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2065,7 +1973,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.497Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2073,7 +1981,7 @@
       "roleId": "staff",
       "permissionId": "mod_meals",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.498Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2081,7 +1989,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_meals",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.498Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2089,7 +1997,7 @@
       "roleId": "quality",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.499Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2097,7 +2005,7 @@
       "roleId": "president",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.500Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2105,7 +2013,7 @@
       "roleId": "admin",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.501Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2113,7 +2021,7 @@
       "roleId": "it",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.502Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2121,7 +2029,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.502Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2129,7 +2037,7 @@
       "roleId": "admin",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.509Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2137,7 +2045,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.511Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2145,7 +2053,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.510Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2153,7 +2061,7 @@
       "roleId": "consultant",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.512Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2161,7 +2069,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.511Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2169,7 +2077,7 @@
       "roleId": "it",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.510Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2177,7 +2085,7 @@
       "roleId": "hmo",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.512Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2185,7 +2093,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.513Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2193,7 +2101,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.514Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2201,7 +2109,7 @@
       "roleId": "staff",
       "permissionId": "mod_quality",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.515Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2209,7 +2117,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.542Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2217,7 +2125,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.543Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2225,7 +2133,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.544Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2233,7 +2141,7 @@
       "roleId": "president",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.546Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2241,7 +2149,7 @@
       "roleId": "quality",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.545Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2249,7 +2157,7 @@
       "roleId": "staff",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.543Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2257,7 +2165,7 @@
       "roleId": "admin",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.546Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2265,7 +2173,7 @@
       "roleId": "it",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.547Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2273,7 +2181,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.548Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2281,7 +2189,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.548Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2289,7 +2197,7 @@
       "roleId": "hmo",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.572Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2297,7 +2205,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.572Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2305,7 +2213,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.573Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2313,7 +2221,7 @@
       "roleId": "staff",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.574Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2321,7 +2229,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_evaluations",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.575Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2329,7 +2237,7 @@
       "roleId": "admin",
       "permissionId": "mod_evaluations",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.577Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2337,7 +2245,7 @@
       "roleId": "quality",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.576Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2345,7 +2253,7 @@
       "roleId": "president",
       "permissionId": "mod_evaluations",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.576Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2353,7 +2261,7 @@
       "roleId": "staff",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.596Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2361,7 +2269,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.596Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2369,7 +2277,7 @@
       "roleId": "quality",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.597Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2377,7 +2285,7 @@
       "roleId": "president",
       "permissionId": "mod_his",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.597Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2385,7 +2293,7 @@
       "roleId": "admin",
       "permissionId": "mod_his",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.598Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2393,7 +2301,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_his",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.600Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2401,7 +2309,7 @@
       "roleId": "it",
       "permissionId": "mod_his",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.599Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2409,7 +2317,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.600Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2417,7 +2325,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.601Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2425,7 +2333,7 @@
       "roleId": "consultant",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.602Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2433,7 +2341,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.603Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2441,7 +2349,7 @@
       "roleId": "hmo",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.602Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2449,7 +2357,7 @@
       "roleId": "quality",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.615Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2457,7 +2365,7 @@
       "roleId": "president",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.615Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2465,7 +2373,7 @@
       "roleId": "admin",
       "permissionId": "mod_reception",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.616Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2473,7 +2381,7 @@
       "roleId": "it",
       "permissionId": "mod_reception",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.617Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2481,7 +2389,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.619Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2489,7 +2397,7 @@
       "roleId": "hmo",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.623Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2497,7 +2405,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.624Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2505,7 +2413,7 @@
       "roleId": "admin",
       "permissionId": "mod_emr",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.628Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2513,7 +2421,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.625Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2521,7 +2429,7 @@
       "roleId": "staff",
       "permissionId": "mod_emr",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.625Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2529,7 +2437,7 @@
       "roleId": "it",
       "permissionId": "mod_emr",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.628Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2537,7 +2445,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_emr",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.629Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2545,7 +2453,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_emr",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.630Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2553,7 +2461,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_emr",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.630Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2561,7 +2469,7 @@
       "roleId": "consultant",
       "permissionId": "mod_emr",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.631Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2569,7 +2477,7 @@
       "roleId": "hmo",
       "permissionId": "mod_emr",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.631Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2577,7 +2485,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_emr",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.632Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2585,7 +2493,7 @@
       "roleId": "staff",
       "permissionId": "mod_ward",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.633Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2593,7 +2501,7 @@
       "roleId": "quality",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.634Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2601,7 +2509,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_ward",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.634Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2609,7 +2517,7 @@
       "roleId": "president",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.635Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2617,7 +2525,7 @@
       "roleId": "admin",
       "permissionId": "mod_ward",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.636Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2625,7 +2533,7 @@
       "roleId": "it",
       "permissionId": "mod_ward",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.637Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2633,7 +2541,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.637Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2641,7 +2549,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.638Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2649,7 +2557,7 @@
       "roleId": "consultant",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.639Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2657,7 +2565,7 @@
       "roleId": "admin",
       "permissionId": "mod_ot",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.644Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2665,7 +2573,7 @@
       "roleId": "president",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.643Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2673,7 +2581,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.638Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2681,7 +2589,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.645Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2689,7 +2597,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.645Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2697,7 +2605,7 @@
       "roleId": "consultant",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.647Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2705,7 +2613,7 @@
       "roleId": "hmo",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.647Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2713,7 +2621,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.648Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2721,7 +2629,7 @@
       "roleId": "quality",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.650Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2729,7 +2637,7 @@
       "roleId": "staff",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.649Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2737,7 +2645,7 @@
       "roleId": "president",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.651Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2745,7 +2653,7 @@
       "roleId": "it",
       "permissionId": "mod_pharmacy",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.652Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2753,7 +2661,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.648Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2761,7 +2669,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_pharmacy",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.653Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2769,7 +2677,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.654Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2777,7 +2685,7 @@
       "roleId": "consultant",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.656Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2785,7 +2693,7 @@
       "roleId": "hmo",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.656Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2793,7 +2701,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.657Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2801,7 +2709,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.658Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2809,7 +2717,7 @@
       "roleId": "staff",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.658Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2817,7 +2725,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.659Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2825,7 +2733,7 @@
       "roleId": "quality",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.659Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2833,7 +2741,7 @@
       "roleId": "consultant",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.664Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2841,7 +2749,7 @@
       "roleId": "hmo",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.664Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2849,7 +2757,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.665Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2857,7 +2765,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.666Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2865,7 +2773,7 @@
       "roleId": "staff",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.666Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2873,7 +2781,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.667Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2881,7 +2789,7 @@
       "roleId": "quality",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.667Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2889,7 +2797,7 @@
       "roleId": "admin",
       "permissionId": "mod_ancillary",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.668Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2897,7 +2805,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.670Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2905,7 +2813,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.671Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2913,7 +2821,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_ancillary",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.670Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2921,7 +2829,7 @@
       "roleId": "consultant",
       "permissionId": "mod_ancillary",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.671Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2929,7 +2837,7 @@
       "roleId": "president",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.668Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2937,7 +2845,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.675Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2945,7 +2853,7 @@
       "roleId": "admin",
       "permissionId": "editHospitalSettings",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.344Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2953,7 +2861,7 @@
       "roleId": "it",
       "permissionId": "editHospitalSettings",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.345Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2961,7 +2869,7 @@
       "roleId": "medical_director",
       "permissionId": "editHospitalSettings",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.353Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2969,7 +2877,7 @@
       "roleId": "infection_control",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.356Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2977,7 +2885,7 @@
       "roleId": "consultant",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.358Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2985,7 +2893,7 @@
       "roleId": "head_nurse",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.361Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -2993,7 +2901,7 @@
       "roleId": "audit_auditor",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.360Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3001,7 +2909,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.360Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3009,7 +2917,7 @@
       "roleId": "quality",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.362Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3017,7 +2925,7 @@
       "roleId": "admin",
       "permissionId": "viewSystemDatabase",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.363Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3025,7 +2933,7 @@
       "roleId": "it",
       "permissionId": "viewSystemDatabase",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.364Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3033,7 +2941,7 @@
       "roleId": "infection_control",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.365Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3041,7 +2949,7 @@
       "roleId": "medical_director",
       "permissionId": "viewSystemDatabase",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.365Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3049,7 +2957,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.364Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3057,7 +2965,7 @@
       "roleId": "consultant",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.367Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3065,7 +2973,7 @@
       "roleId": "head_nurse",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.380Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3073,7 +2981,7 @@
       "roleId": "audit_auditor",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.379Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3081,7 +2989,7 @@
       "roleId": "staff",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.380Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3089,7 +2997,7 @@
       "roleId": "president",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.382Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3097,7 +3005,7 @@
       "roleId": "head_nurse",
       "permissionId": "manageNarcotics",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.391Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3105,7 +3013,7 @@
       "roleId": "quality",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.392Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3113,7 +3021,7 @@
       "roleId": "president",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.392Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3121,7 +3029,7 @@
       "roleId": "quality",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.381Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3129,7 +3037,7 @@
       "roleId": "medical_director",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.397Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3137,7 +3045,7 @@
       "roleId": "consultant",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.409Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3145,7 +3053,7 @@
       "roleId": "hmo",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.410Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3153,7 +3061,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "overrideClinicalLimit",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.415Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3161,7 +3069,7 @@
       "roleId": "it",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.414Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3169,7 +3077,7 @@
       "roleId": "hmo",
       "permissionId": "overrideClinicalLimit",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.417Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3177,7 +3085,7 @@
       "roleId": "medical_director",
       "permissionId": "signMedicalOrders",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.425Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3185,7 +3093,7 @@
       "roleId": "infection_control",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.426Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3193,7 +3101,7 @@
       "roleId": "consultant",
       "permissionId": "signMedicalOrders",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.426Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3201,7 +3109,7 @@
       "roleId": "staff",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.429Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3209,7 +3117,7 @@
       "roleId": "audit_auditor",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.428Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3217,7 +3125,7 @@
       "roleId": "hmo",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.427Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3225,7 +3133,7 @@
       "roleId": "head_nurse",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.430Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3233,7 +3141,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.442Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3241,7 +3149,7 @@
       "roleId": "consultant",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.443Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3249,7 +3157,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.443Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3257,7 +3165,7 @@
       "roleId": "hmo",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.444Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3265,7 +3173,7 @@
       "roleId": "staff",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.446Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3273,7 +3181,7 @@
       "roleId": "admin",
       "permissionId": "mod_supervisor",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.448Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3281,7 +3189,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.444Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3289,7 +3197,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.445Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3297,7 +3205,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.449Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3305,7 +3213,7 @@
       "roleId": "it",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.448Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3313,7 +3221,7 @@
       "roleId": "hmo",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.452Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3321,7 +3229,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.453Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3329,7 +3237,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.452Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3337,7 +3245,7 @@
       "roleId": "president",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.455Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3345,7 +3253,7 @@
       "roleId": "admin",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.456Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3353,7 +3261,7 @@
       "roleId": "it",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.456Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3361,7 +3269,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_medication",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.459Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3369,7 +3277,7 @@
       "roleId": "consultant",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.468Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3377,7 +3285,7 @@
       "roleId": "hmo",
       "permissionId": "mod_forms_fill",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.469Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3385,7 +3293,7 @@
       "roleId": "president",
       "permissionId": "mod_forms_dist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.472Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3393,7 +3301,7 @@
       "roleId": "admin",
       "permissionId": "mod_forms_dist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.473Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3401,7 +3309,7 @@
       "roleId": "it",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.473Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3409,7 +3317,7 @@
       "roleId": "consultant",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.476Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3417,7 +3325,7 @@
       "roleId": "hmo",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.478Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3425,7 +3333,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.478Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3433,7 +3341,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.478Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3441,7 +3349,7 @@
       "roleId": "admin",
       "permissionId": "mod_roster_view",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.482Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3449,7 +3357,7 @@
       "roleId": "it",
       "permissionId": "mod_roster_view",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.482Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3457,7 +3365,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_roster_view",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.483Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3465,7 +3373,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_roster_view",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.484Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3473,7 +3381,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_roster_view",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.483Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3481,7 +3389,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.490Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3489,7 +3397,7 @@
       "roleId": "consultant",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.495Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3497,7 +3405,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.492Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3505,7 +3413,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_roster_config",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.491Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3513,7 +3421,7 @@
       "roleId": "hmo",
       "permissionId": "mod_roster_config",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.496Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3521,7 +3429,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.503Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3529,7 +3437,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.503Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3537,7 +3445,7 @@
       "roleId": "consultant",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.504Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3545,7 +3453,7 @@
       "roleId": "staff",
       "permissionId": "mod_transport",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.506Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3553,7 +3461,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_transport",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.507Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3561,7 +3469,7 @@
       "roleId": "quality",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.508Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3569,7 +3477,7 @@
       "roleId": "president",
       "permissionId": "mod_transport",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.509Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3577,7 +3485,7 @@
       "roleId": "quality",
       "permissionId": "mod_quality",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.517Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3585,7 +3493,7 @@
       "roleId": "president",
       "permissionId": "mod_quality",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.518Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3593,7 +3501,7 @@
       "roleId": "admin",
       "permissionId": "mod_quality",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.518Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3601,7 +3509,7 @@
       "roleId": "it",
       "permissionId": "mod_quality",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.518Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3609,7 +3517,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_quality",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.519Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3617,7 +3525,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_quality",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.519Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3625,7 +3533,7 @@
       "roleId": "hmo",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.530Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3633,7 +3541,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.530Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3641,7 +3549,7 @@
       "roleId": "staff",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.532Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3649,7 +3557,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.532Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3657,7 +3565,7 @@
       "roleId": "quality",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.533Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3665,7 +3573,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.538Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3673,7 +3581,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.540Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3681,7 +3589,7 @@
       "roleId": "consultant",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.540Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3689,7 +3597,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_wsd_console",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.539Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3697,7 +3605,7 @@
       "roleId": "consultant",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.550Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3705,7 +3613,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.552Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3713,7 +3621,7 @@
       "roleId": "hmo",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.551Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3721,7 +3629,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.552Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3729,7 +3637,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.554Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3737,7 +3645,7 @@
       "roleId": "president",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.555Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3745,7 +3653,7 @@
       "roleId": "staff",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.553Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3753,7 +3661,7 @@
       "roleId": "quality",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.554Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3761,7 +3669,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.578Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3769,7 +3677,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_evaluations",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.579Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3777,7 +3685,7 @@
       "roleId": "consultant",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.581Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3785,7 +3693,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.583Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3793,7 +3701,7 @@
       "roleId": "hmo",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.582Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3801,7 +3709,7 @@
       "roleId": "quality",
       "permissionId": "mod_infection_control",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.588Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3809,7 +3717,7 @@
       "roleId": "admin",
       "permissionId": "mod_infection_control",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.590Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3817,7 +3725,7 @@
       "roleId": "president",
       "permissionId": "mod_infection_control",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.589Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3825,7 +3733,7 @@
       "roleId": "it",
       "permissionId": "mod_infection_control",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.590Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3833,7 +3741,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_infection_control",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.595Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3841,7 +3749,7 @@
       "roleId": "staff",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.613Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3849,7 +3757,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_his",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.608Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3857,7 +3765,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.614Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3865,7 +3773,7 @@
       "roleId": "it",
       "permissionId": "mod_billing",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.661Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3873,7 +3781,7 @@
       "roleId": "admin",
       "permissionId": "mod_billing",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.661Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3881,7 +3789,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.662Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3889,7 +3797,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.663Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3897,7 +3805,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_billing",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.663Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3905,7 +3813,7 @@
       "roleId": "hmo",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.359Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3913,7 +3821,7 @@
       "roleId": "staff",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.361Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3921,7 +3829,7 @@
       "roleId": "president",
       "permissionId": "viewSystemDatabase",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.362Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3929,7 +3837,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_supervisor",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.446Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3937,7 +3845,7 @@
       "roleId": "quality",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.447Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3945,7 +3853,7 @@
       "roleId": "president",
       "permissionId": "mod_supervisor",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.447Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3953,7 +3861,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.474Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3961,7 +3869,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_forms_dist",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.475Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3969,7 +3877,7 @@
       "roleId": "consultant",
       "permissionId": "mod_roster_view",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.484Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3977,7 +3885,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_archives",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.528Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3985,7 +3893,7 @@
       "roleId": "consultant",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.529Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -3993,7 +3901,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.527Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4001,7 +3909,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.528Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4009,7 +3917,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.531Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4017,7 +3925,7 @@
       "roleId": "staff",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.564Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4025,7 +3933,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.564Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4033,7 +3941,7 @@
       "roleId": "quality",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.565Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4041,7 +3949,7 @@
       "roleId": "admin",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.568Z",
+      "updatedAt": "2026-07-17T09:02:55.102Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4049,7 +3957,7 @@
       "roleId": "it",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.568Z",
+      "updatedAt": "2026-07-17T09:02:55.102Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4057,7 +3965,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.569Z",
+      "updatedAt": "2026-07-17T09:02:55.102Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4065,7 +3973,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.571Z",
+      "updatedAt": "2026-07-17T09:02:55.102Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4073,7 +3981,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.570Z",
+      "updatedAt": "2026-07-17T09:02:55.102Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4081,7 +3989,7 @@
       "roleId": "consultant",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.571Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4089,7 +3997,7 @@
       "roleId": "it",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.578Z",
+      "updatedAt": "2026-07-17T09:02:55.103Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4097,7 +4005,7 @@
       "roleId": "hmo",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.639Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4105,7 +4013,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.640Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4113,7 +4021,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_ward",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.640Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4121,7 +4029,7 @@
       "roleId": "staff",
       "permissionId": "mod_ot",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.641Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4129,7 +4037,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_ot",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.642Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4137,7 +4045,7 @@
       "roleId": "it",
       "permissionId": "mod_ot",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.644Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4145,7 +4053,7 @@
       "roleId": "quality",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.642Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4153,7 +4061,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_ot",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.646Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4161,7 +4069,7 @@
       "roleId": "it",
       "permissionId": "manageRBAC",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.373Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4169,7 +4077,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.374Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4177,7 +4085,7 @@
       "roleId": "infection_control",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.376Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4185,7 +4093,7 @@
       "roleId": "consultant",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.377Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4193,7 +4101,7 @@
       "roleId": "hmo",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.378Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4201,7 +4109,7 @@
       "roleId": "admin",
       "permissionId": "bypassTwoFactor",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.382Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4209,7 +4117,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.379Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4217,7 +4125,7 @@
       "roleId": "it",
       "permissionId": "bypassTwoFactor",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.383Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4225,7 +4133,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.384Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4233,7 +4141,7 @@
       "roleId": "medical_director",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.385Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4241,7 +4149,7 @@
       "roleId": "infection_control",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.386Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4249,7 +4157,7 @@
       "roleId": "quality",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.438Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4257,7 +4165,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.442Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4265,7 +4173,7 @@
       "roleId": "it",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.441Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4273,7 +4181,7 @@
       "roleId": "president",
       "permissionId": "mod_nursing_admin",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.439Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4281,7 +4189,7 @@
       "roleId": "admin",
       "permissionId": "mod_nursing_admin",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.440Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4289,7 +4197,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_supervisor",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.450Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4297,7 +4205,7 @@
       "roleId": "president",
       "permissionId": "mod_roster_config",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.488Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4305,7 +4213,7 @@
       "roleId": "it",
       "permissionId": "mod_roster_config",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.490Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4313,7 +4221,7 @@
       "roleId": "admin",
       "permissionId": "mod_roster_config",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.489Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4321,7 +4229,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_quality",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.522Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4329,7 +4237,7 @@
       "roleId": "staff",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.523Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4337,7 +4245,7 @@
       "roleId": "president",
       "permissionId": "mod_archives",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.525Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4345,7 +4253,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.523Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4353,7 +4261,7 @@
       "roleId": "quality",
       "permissionId": "mod_archives",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.524Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4361,7 +4269,7 @@
       "roleId": "it",
       "permissionId": "mod_archives",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.526Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4369,7 +4277,7 @@
       "roleId": "admin",
       "permissionId": "mod_archives",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.526Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4377,7 +4285,7 @@
       "roleId": "president",
       "permissionId": "mod_messaging",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.566Z",
+      "updatedAt": "2026-07-17T09:02:55.102Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4385,7 +4293,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.579Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4393,7 +4301,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_emr",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.626Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4401,7 +4309,7 @@
       "roleId": "president",
       "permissionId": "mod_emr",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.627Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4409,7 +4317,7 @@
       "roleId": "quality",
       "permissionId": "mod_emr",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.627Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4417,7 +4325,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.650Z",
+      "updatedAt": "2026-07-17T09:02:55.106Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4425,7 +4333,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_pharmacy",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.655Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4433,7 +4341,7 @@
       "roleId": "hmo",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.672Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4441,7 +4349,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_ancillary",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.672Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4449,7 +4357,7 @@
       "roleId": "admin",
       "permissionId": "manageRBAC",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.372Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4457,7 +4365,7 @@
       "roleId": "president",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.372Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4465,7 +4373,7 @@
       "roleId": "medical_director",
       "permissionId": "manageRBAC",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.375Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4473,7 +4381,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.424Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4481,7 +4389,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "signMedicalOrders",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.428Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4489,7 +4397,7 @@
       "roleId": "quality",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.454Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4497,7 +4405,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_medication",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.454Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4505,7 +4413,7 @@
       "roleId": "quality",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.463Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4513,7 +4421,7 @@
       "roleId": "president",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.464Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4521,7 +4429,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.468Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4529,7 +4437,7 @@
       "roleId": "admin",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.465Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4537,7 +4445,7 @@
       "roleId": "hmo",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.504Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4545,7 +4453,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.506Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4553,7 +4461,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_meals",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.505Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4561,7 +4469,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_quality",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.516Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4569,7 +4477,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_quality",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.520Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4577,7 +4485,7 @@
       "roleId": "hmo",
       "permissionId": "mod_quality",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.521Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4585,7 +4493,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_quality",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.522Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4593,7 +4501,7 @@
       "roleId": "president",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.536Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4601,7 +4509,7 @@
       "roleId": "it",
       "permissionId": "mod_wsd_console",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.538Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4609,7 +4517,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_profile",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.549Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4617,7 +4525,7 @@
       "roleId": "it",
       "permissionId": "mod_medical_tools",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.556Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4625,7 +4533,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.559Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4633,7 +4541,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.559Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4641,7 +4549,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_medical_tools",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.560Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4649,7 +4557,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_medical_tools",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.562Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4657,7 +4565,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_medical_tools",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.563Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4665,7 +4573,7 @@
       "roleId": "hmo",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.562Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4673,7 +4581,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_evaluations",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.587Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4681,7 +4589,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_infection_control",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.592Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4689,7 +4597,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_infection_control",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.591Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4697,7 +4605,7 @@
       "roleId": "consultant",
       "permissionId": "mod_infection_control",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.593Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4705,7 +4613,7 @@
       "roleId": "hmo",
       "permissionId": "mod_infection_control",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.594Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4713,7 +4621,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_infection_control",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.594Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4721,7 +4629,7 @@
       "roleId": "medical_director",
       "permissionId": "mod_reception",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.620Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4729,7 +4637,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.620Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4737,7 +4645,7 @@
       "roleId": "consultant",
       "permissionId": "mod_reception",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.623Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4745,7 +4653,7 @@
       "roleId": "hmo",
       "permissionId": "mod_wsd_console",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.541Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4753,7 +4661,7 @@
       "roleId": "consultant",
       "permissionId": "bypassTwoFactor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.386Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4761,7 +4669,7 @@
       "roleId": "head_nurse",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.404Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4769,7 +4677,7 @@
       "roleId": "quality",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.404Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4777,7 +4685,7 @@
       "roleId": "president",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.405Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4785,7 +4693,7 @@
       "roleId": "admin",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.405Z",
+      "updatedAt": "2026-07-17T09:02:55.096Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4793,7 +4701,7 @@
       "roleId": "infection_control",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.408Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4801,7 +4709,7 @@
       "roleId": "president",
       "permissionId": "mod_billing",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.660Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4809,7 +4717,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "editHospitalSettings",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.351Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4817,7 +4725,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_infection_control",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.592Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4825,7 +4733,7 @@
       "roleId": "hmo",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.367Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4833,7 +4741,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.451Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4841,7 +4749,7 @@
       "roleId": "consultant",
       "permissionId": "mod_supervisor",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.451Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4849,7 +4757,7 @@
       "roleId": "audit_auditor",
       "permissionId": "mod_medication",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.462Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4857,7 +4765,7 @@
       "roleId": "staff",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.462Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4865,7 +4773,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_forms_fill",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.463Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4873,7 +4781,7 @@
       "roleId": "staff",
       "permissionId": "mod_medication",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.453Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4881,7 +4789,7 @@
       "roleId": "staff",
       "permissionId": "reportSentinel",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.403Z",
+      "updatedAt": "2026-07-17T09:02:55.115Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4889,7 +4797,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "mod_emr",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.632Z",
+      "updatedAt": "2026-07-17T09:02:55.105Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4897,7 +4805,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "accessPatientHpi",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.436Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4905,7 +4813,7 @@
       "roleId": "staff",
       "permissionId": "mod_nursing_admin",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.437Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4913,7 +4821,7 @@
       "roleId": "audit_auditor",
       "permissionId": "accessPatientHpi",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.436Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4921,7 +4829,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_nursing_admin",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.438Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4929,7 +4837,7 @@
       "roleId": "it",
       "permissionId": "mod_ancillary",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.669Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4937,7 +4845,7 @@
       "roleId": "infection_control",
       "permissionId": "mod_forms_dist",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.475Z",
+      "updatedAt": "2026-07-17T09:02:55.099Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4945,7 +4853,7 @@
       "roleId": "consultant",
       "permissionId": "mod_medical_tools",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.561Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4953,7 +4861,7 @@
       "roleId": "admin",
       "permissionId": "mod_wsd_console",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.537Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4961,7 +4869,7 @@
       "roleId": "staff",
       "permissionId": "mod_infection_control",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.587Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4969,7 +4877,7 @@
       "roleId": "head_nurse",
       "permissionId": "mod_infection_control",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.588Z",
+      "updatedAt": "2026-07-17T09:02:55.104Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4977,7 +4885,7 @@
       "roleId": "consultant",
       "permissionId": "mod_quality",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.520Z",
+      "updatedAt": "2026-07-17T09:02:55.100Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4985,7 +4893,7 @@
       "roleId": "admin",
       "permissionId": "mod_pharmacy",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.652Z",
+      "updatedAt": "2026-07-17T09:02:55.107Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -4993,7 +4901,7 @@
       "roleId": "chief_of_staff",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.368Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5001,7 +4909,7 @@
       "roleId": "quality",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.371Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5009,7 +4917,7 @@
       "roleId": "audit_auditor",
       "permissionId": "manageNarcotics",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.402Z",
+      "updatedAt": "2026-07-17T09:02:55.096Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5017,7 +4925,7 @@
       "roleId": "clinical_pharmacist",
       "permissionId": "mod_medication",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.456Z",
+      "updatedAt": "2026-07-17T09:02:55.098Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5025,7 +4933,7 @@
       "roleId": "audit_auditor",
       "permissionId": "viewSystemDatabase",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.369Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5033,7 +4941,7 @@
       "roleId": "head_nurse",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.370Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5041,7 +4949,7 @@
       "roleId": "medical_director",
       "permissionId": "overrideClinicalLimit",
       "enabled": true,
-      "updatedAt": "2026-07-17T03:51:45.415Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5049,7 +4957,7 @@
       "roleId": "admin",
       "permissionId": "mod_medical_tools",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.556Z",
+      "updatedAt": "2026-07-17T09:02:55.101Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5057,7 +4965,7 @@
       "roleId": "staff",
       "permissionId": "manageRBAC",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.370Z",
+      "updatedAt": "2026-07-17T09:02:55.114Z",
       "savedBy": "PostgreSQL_User"
     },
     {
@@ -5065,7 +4973,7 @@
       "roleId": "it",
       "permissionId": "signMedicalOrders",
       "enabled": false,
-      "updatedAt": "2026-07-17T03:51:45.423Z",
+      "updatedAt": "2026-07-17T09:02:55.097Z",
       "savedBy": "PostgreSQL_User"
     }
   ],

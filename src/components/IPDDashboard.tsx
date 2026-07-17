@@ -56,61 +56,61 @@ export default function IPDDashboard({ language, forceDepartmentId }: { language
   return (
     <div className="flex flex-col h-full bg-[#f8fafc]" dir={isAr ? "rtl" : "ltr"}>
       {/* Module Header - Enterprise Standard */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm z-30">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-col lg:flex-row lg:items-center justify-between shadow-sm z-30 gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-indigo-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
             <BedDouble className="w-7 h-7 text-white" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight truncate">
                 {isAr ? "الأقسام الداخلية (IPD)" : "Inpatient Department"}
               </h1>
-              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-full border border-indigo-100 uppercase">
-                Enterprise v2.0
+              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[9px] font-black rounded-full border border-indigo-100 uppercase shrink-0">
+                v2.0
               </span>
             </div>
-            <div className="flex items-center gap-3 mt-0.5">
+            <div className="flex flex-wrap items-center gap-3 mt-0.5">
               <select 
                 value={selectedWard}
                 onChange={(e) => setSelectedWard(e.target.value)}
-                className="text-sm font-bold text-slate-500 bg-transparent border-none p-0 focus:ring-0 cursor-pointer hover:text-indigo-600 transition-colors"
+                className="text-[10px] sm:text-sm font-bold text-slate-500 bg-transparent border-none p-0 focus:ring-0 cursor-pointer hover:text-indigo-600 transition-colors"
               >
                 {wardOptions.map(opt => (
                   <option key={opt.id} value={opt.id}>{isAr ? opt.nameAr : opt.nameEn}</option>
                 ))}
               </select>
-              <div className="w-1 h-1 bg-slate-300 rounded-full" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full" />
+              <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 {activeWardPatients.length} {isAr ? "مريض حالي" : "Active Patients"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative hidden md:block">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text"
-              placeholder={isAr ? "بحث سريع في الجناح..." : "Quick unit search..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64 transition-all focus:bg-white"
-            />
-          </div>
-          <button className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 rounded-xl transition-all shadow-sm">
-            <Printer className="w-5 h-5" />
-          </button>
-          <button className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">
-            <Plus className="w-5 h-5" />
-          </button>
+        <div className="flex items-center gap-2 sm:gap-3 w-full lg:w-auto">
+           <div className="relative flex-1 lg:flex-none">
+             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+             <input 
+               type="text"
+               placeholder={isAr ? "بحث..." : "Search..."}
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="w-full lg:w-48 pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+             />
+           </div>
+           <button className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 rounded-xl transition-all shadow-sm flex items-center justify-center">
+             <Printer className="w-4 h-4 sm:w-5 h-5" />
+           </button>
+           <button className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center">
+             <Plus className="w-4 h-4 sm:w-5 h-5" />
+           </button>
         </div>
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 overflow-x-auto no-scrollbar">
-        <div className="flex gap-1">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 overflow-x-auto no-scrollbar">
+         <div className="flex gap-1 min-w-max">
           {mainTabs.map(tab => (
             <button
               key={tab.id}
@@ -118,19 +118,19 @@ export default function IPDDashboard({ language, forceDepartmentId }: { language
                 setActiveMainTab(tab.id);
                 setSelectedPatientId(null);
               }}
-              className={`flex items-center gap-2 px-5 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-4 text-[10px] sm:text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap ${
                 activeMainTab === tab.id 
                   ? "border-indigo-600 text-indigo-700 bg-indigo-50/30" 
                   : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeMainTab === tab.id ? "text-indigo-600" : ""}`} />
+              <tab.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeMainTab === tab.id ? "text-indigo-600" : ""}`} />
               {isAr ? tab.ar : tab.en}
             </button>
           ))}
         </div>
         
-        <div className="flex items-center gap-4 text-slate-400">
+        <div className="hidden lg:flex items-center gap-4 text-slate-400">
            <div className="flex items-center gap-2">
              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
              <span className="text-[10px] font-black uppercase tracking-tighter">Live System Connection</span>

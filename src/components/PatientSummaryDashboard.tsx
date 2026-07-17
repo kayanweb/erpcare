@@ -37,40 +37,40 @@ export default function PatientSummaryDashboard({ language, onClose }: { languag
   return (
     <div className="space-y-8" dir={isAr ? 'rtl' : 'ltr'}>
        {/* Dashboard Header */}
-       <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
              <button 
                onClick={onClose}
-               className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group"
+               className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm group"
              >
-                <Zap className="w-6 h-6 rotate-45 group-hover:scale-110 transition-transform" />
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 rotate-45 group-hover:scale-110 transition-transform" />
              </button>
              <div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">{isAr ? "نظام الرصد المركزي لرحلة المريض" : "Central Patient Journey Monitor"}</h2>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">{isAr ? "تحليل الذكاء التشغيلي اللحظي" : "Real-time Operational Intelligence Analytics"}</p>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">{isAr ? "نظام الرصد المركزي لرحلة المريض" : "Central Patient Journey Monitor"}</h2>
+                <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-[0.1em] sm:tracking-[0.2em] mt-1">{isAr ? "تحليل الذكاء التشغيلي اللحظي" : "Real-time Operational Intelligence Analytics"}</p>
              </div>
           </div>
-          <div className="flex gap-3">
-             <button className="h-12 px-6 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 transition shadow-sm">
-                <Calendar className="w-4 h-4" />
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+             <button className="flex-1 sm:flex-none h-10 sm:h-12 px-4 sm:px-6 bg-white border border-slate-200 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-50 transition shadow-sm whitespace-nowrap">
+                <Calendar className="w-3.5 h-3.5 sm:w-4 h-4" />
                 {isAr ? "آخر 24 ساعة" : "Last 24 Hours"}
              </button>
-             <button className="h-12 px-6 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-black transition shadow-xl shadow-slate-100">
-                <TrendingUp className="w-4 h-4" />
+             <button className="flex-1 sm:flex-none h-10 sm:h-12 px-4 sm:px-6 bg-slate-900 text-white rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition shadow-xl shadow-slate-100 whitespace-nowrap">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 h-4" />
                 {isAr ? "تحليل الأداء" : "Performance Analytics"}
              </button>
           </div>
        </div>
 
        {/* Top Stats Grid */}
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map((stat, i) => (
             <motion.div 
               key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white border border-slate-100 rounded-[32px] p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
+              className="bg-white border border-slate-100 rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
             >
                <div className="flex items-center justify-between mb-6">
                   <div className={`p-3 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600`}>
@@ -91,12 +91,12 @@ export default function PatientSummaryDashboard({ language, onClose }: { languag
        </div>
 
        {/* Main Charts & Lists */}
-       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Journey Flow Analytics */}
-          <div className="lg:col-span-2 bg-white border border-slate-100 rounded-[40px] p-10 shadow-sm">
-             <div className="flex items-center justify-between mb-10">
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 flex items-center gap-3">
-                   <Map className="w-5 h-5 text-indigo-600" />
+          <div className="lg:col-span-2 bg-white border border-slate-100 rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 shadow-sm">
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10">
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-800 flex items-center gap-3">
+                   <Map className="w-4 h-4 sm:w-5 h-5 text-indigo-600" />
                    {isAr ? "تدفق المرضى عبر الأقسام" : "Patient Flow Distribution"}
                 </h3>
                 <div className="flex gap-2">
@@ -106,7 +106,7 @@ export default function PatientSummaryDashboard({ language, onClose }: { languag
                    </div>
                 </div>
              </div>
-             <div className="h-[350px]">
+             <div className="h-[250px] sm:h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
                    <BarChart data={occupancyData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
@@ -127,10 +127,10 @@ export default function PatientSummaryDashboard({ language, onClose }: { languag
           </div>
 
           {/* Critical Alerts & Notifications */}
-          <div className="bg-slate-900 rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
+          <div className="bg-slate-900 rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
              <div className="relative z-10 flex flex-col h-full">
-                <h3 className="text-sm font-black uppercase tracking-widest text-indigo-400 mb-8 flex items-center gap-3">
-                   <ShieldAlert className="w-5 h-5" />
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-indigo-400 mb-6 sm:mb-8 flex items-center gap-3">
+                   <ShieldAlert className="w-4 h-4 sm:w-5 h-5" />
                    {isAr ? "تنبيهات حرجة ونظام التحذير" : "Critical Command Alerts"}
                 </h3>
                 

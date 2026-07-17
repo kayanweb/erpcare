@@ -8265,7 +8265,7 @@ For premium ease of use, you can click the visual override button 'Modify & Choo
       )}
 
       <aside
-        className={`no-print ${(gatewaySystem as string) === "his" ? "hidden" : "flex"} ${!isSidebarOpen && "md:hidden"} fixed inset-y-0 ${language === "ar" ? "right-0 translate-x-full" : "left-0 -translate-x-full"} md:translate-x-0 z-50 md:relative w-[280px] md:w-64 bg-[#0d274e] text-white flex-col shrink-0 h-full overflow-y-auto transition-transform duration-300 ${isSidebarOpen ? "!translate-x-0 shadow-2xl md:shadow-none" : ""}`}
+        className={`no-print ${(gatewaySystem as string) === "his" ? "hidden" : "flex"} fixed md:relative inset-y-0 ${language === "ar" ? "right-0" : "left-0"} z-50 w-[280px] md:w-64 bg-[#0d274e] text-white flex-col shrink-0 h-full overflow-y-auto transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : language === "ar" ? "translate-x-full md:translate-x-0" : "-translate-x-full md:translate-x-0"} ${!isSidebarOpen && "md:hidden"}`}
       >
         <div className="h-14 flex items-center justify-between gap-3 px-4 sm:px-5 bg-[#0a1e3f] border-b border-[#042442] shrink-0">
           <div className="flex items-center gap-3">

@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
@@ -1409,6 +1408,7 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -1416,12 +1416,24 @@ The language of the response MUST be: ${lang === "ar" ? "Arabic" : "English"}.
     app.use(vite.middlewares);
     console.log("Vite dev middleware loaded.");
   } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-    console.log("Serving static files from dist.");
+    // On Vercel, the dist folder is included. 
+    // If bundled into dist/server.cjs, __dirname is dist.
+    const distPath = process.env.VERCEL 
+      ? path.join(process.cwd(), "dist")
+      : path.join(process.cwd(), "dist");
+    
+    if (fs.existsSync(distPath)) {
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+      console.log(`Serving static files from ${distPath}`);
+    } else {
+      console.warn(`Warning: dist folder not found at ${distPath}`);
+      app.get("*", (req, res) => {
+        res.status(404).send("Application dist folder not found. Please run build first.");
+      });
+    }
   }
 
   // --- Auto Seeding for PostgreSQL on Boot ---

@@ -5,7 +5,9 @@ import { IDatabaseAdapter } from "./adapter";
 import fs from "fs";
 import path from "path";
 
-const LOCAL_DB_PATH = path.join(process.cwd(), "local_database.json");
+const LOCAL_DB_PATH = process.env.VERCEL 
+  ? path.join("/tmp", "local_database.json")
+  : path.join(process.cwd(), "local_database.json");
 
 // Dynamic file-backed local storage helpers
 function readLocalDb(): Record<string, any[]> {
