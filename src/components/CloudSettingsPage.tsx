@@ -122,7 +122,8 @@ export default function CloudSettingsPage({
     APPWRITE: "standby",
     NULL_DB: "standby",
     POSTGRES_PRISMA: "standby",
-    POSTGRES_NEON: "standby"
+    POSTGRES_NEON: "standby",
+    GOOGLE_CLOUD_SQL: "standby"
   });
 
   // Advanced DB Settings state

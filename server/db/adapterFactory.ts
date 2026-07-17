@@ -11,6 +11,8 @@ let activeProvider = "POSTGRES";
 export function getAdapter(): IDatabaseAdapter {
   switch (activeProvider) {
     case "POSTGRES":
+    case "POSTGRES_NEON":
+    case "GOOGLE_CLOUD_SQL":
       return new PostgresAdapter();
     case "FIREBASE":
       return new FirebaseAdapter();

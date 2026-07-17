@@ -501,6 +501,8 @@ export function HISProvider({ children, isLoggedIn, language = "ar", currentUser
   );
 }
 
+export default HISProvider;
+
 export function useHIS() {
   const context = useContext(HISContext);
   if (context === undefined) {

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import HISProvider from "./context/HISContext";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { switchEnvironment } from "./lib/dbConfig";
@@ -193,7 +194,7 @@ import { ClinicalDesktop } from "./components/ClinicalDesktop";
 import { PatientChartModal } from "./components/PatientChartModal";
 import { EntityDetailModal } from "./components/EntityDetailModal";
 import GenericActionModal from "./components/GenericActionModal";
-import { HISProvider } from "./context/HISContext";
+import { ApplicationModals } from "./components/ApplicationModals";
 import {
   FORM_TEMPLATES,
   createNewRecord,
@@ -972,7 +973,7 @@ export default function App() {
 
 
   return (
-    <HISProvider isLoggedIn={isLoggedIn}>
+    <HISProvider isLoggedIn={isLoggedIn} language={hospitalSettings.language || "ar"} currentUser={currentUser}>
       <SystemSettingsContext.Provider
         value={{ hospitalSettings, setHospitalSettings }}
       >

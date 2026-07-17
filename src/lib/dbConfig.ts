@@ -1,14 +1,14 @@
 // dbConfig.ts
 
-export type DbProvider = "FIREBASE" | "SUPABASE" | "POCKETBASE" | "APPWRITE" | "LOCAL_HOST" | "MQTT" | "SOCKET_IO_REDIS" | "NULL_DB" | "POSTGRES_PRISMA" | "POSTGRES_NEON";
+export type DbProvider = "FIREBASE" | "SUPABASE" | "POCKETBASE" | "APPWRITE" | "LOCAL_HOST" | "MQTT" | "SOCKET_IO_REDIS" | "NULL_DB" | "POSTGRES_PRISMA" | "POSTGRES_NEON" | "GOOGLE_CLOUD_SQL";
 
 // Central dynamic provider setting
 let currentProvider: DbProvider = (() => {
   try {
     const saved = localStorage.getItem("active_db_provider");
-    return (saved as DbProvider) || "LOCAL_HOST";
+    return (saved as DbProvider) || "POSTGRES_NEON";
   } catch (e) {
-    return "LOCAL_HOST";
+    return "POSTGRES_NEON";
   }
 })();
 
@@ -108,6 +108,13 @@ export const DB_PROVIDERS_CONFIG = {
       nameEn: "PostgreSQL Neon Cloud",
       databaseUrl: "postgresql://user:password@endpoint.neon.tech/db",
       statusUrl: "https://console.neon.tech/api/v2"
+  },
+  GOOGLE_CLOUD_SQL: {
+      nameAr: "جوجل كلاود (Google Cloud SQL)",
+      nameEn: "Google Cloud SQL (PostgreSQL)",
+      databaseUrl: "postgresql://postgres:password@localhost:5432/his_db",
+      connectionName: "",
+      statusUrl: "https://console.cloud.google.com/sql"
   }
 };
 
@@ -123,7 +130,7 @@ Object.keys(DB_PROVIDERS_CONFIG).forEach(provider => {
 });
 
 export const switchEnvironment = (provider: DbProvider, newSettings: any = {}) => {
-  if (["FIREBASE", "SUPABASE", "POCKETBASE", "APPWRITE", "LOCAL_HOST", "MQTT", "SOCKET_IO_REDIS", "NULL_DB", "POSTGRES_PRISMA", "POSTGRES_NEON"].includes(provider)) {
+  if (["FIREBASE", "SUPABASE", "POCKETBASE", "APPWRITE", "LOCAL_HOST", "MQTT", "SOCKET_IO_REDIS", "NULL_DB", "POSTGRES_PRISMA", "POSTGRES_NEON", "GOOGLE_CLOUD_SQL"].includes(provider)) {
     setActiveDbProvider(provider);
     if (newSettings && Object.keys(newSettings).length > 0) {
       const targetConfig: any = DB_PROVIDERS_CONFIG[provider];
