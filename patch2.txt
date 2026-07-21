@@ -1,0 +1,31 @@
+/                    ) : field.type === "select" ? (/c\
+                    ) : field.type === "select" ? (\
+                      <div className="space-y-1">\
+                      <select\
+                        value={formData[field.key] || ""}\
+                        onChange={(e) => handleChange(field.key, e.target.value)}\
+                        className={`w-full border rounded-lg px-3 py-1.5 text-xs outline-none transition focus:ring-1 focus:ring-pink-500 ${\
+                          isRequired \
+                             ? "bg-pink-50/20 border-pink-100 font-bold" \
+                             : "bg-white border-slate-200"\
+                        }`}\
+                      >\
+                        <option value="">{isAr ? "اختر..." : "Choose..."}</option>\
+                        {(field.options || []).map((opt) => (\
+                          <option key={opt} value={opt}>\
+                            {opt}\
+                          </option>\
+                        ))}\
+                      </select>\
+                      {(formData[field.key] === "OTHER" || formData[field.key] === "Other") && (\
+                        <input\
+                          type="text"\
+                          required\
+                          placeholder={isAr ? "يرجى التحديد..." : "Please specify..."}\
+                          value={formData[`${field.key}Other`] || ""}\
+                          onChange={(e) => handleChange(`${field.key}Other`, e.target.value)}\
+                          className="w-full border rounded-lg px-3 py-1.5 text-xs outline-none transition focus:ring-1 focus:ring-pink-500 bg-pink-50/20 border-pink-100 font-bold"\
+                        />\
+                      )}\
+                      </div>
+/                      <div className="space-y-1">/,/                      )}/d

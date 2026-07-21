@@ -1,0 +1,4 @@
+/{\/\* Header Banner \*\/}/i\
+      {!hideHeader && (
+/{\/\* Tabs and Filtering Control \*\/}/i\
+      )}

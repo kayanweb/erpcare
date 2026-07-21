@@ -1,0 +1,1 @@
+    setChatMessages([...chatMessages, { role: 'user', content: chatInput }, { role: 'bot', content: 'شكراً لاستفسارك. يتم حالياً البحث في معايير الجودة والسياسات الخاصة ب�  const [pedWeight, setPedWeight] = useState("");

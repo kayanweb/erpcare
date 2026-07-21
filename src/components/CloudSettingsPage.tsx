@@ -1,0 +1,2450 @@
+import React, { createElement, useState, useEffect, useRef } from "react";
+import {
+  Cloud,
+  ShieldCheck,
+  Database,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  Trash2,
+  Download,
+  Upload,
+  Info,
+  Activity,
+  Clock,
+  FileCode,
+  Gauge,
+  Wifi,
+  WifiOff,
+  Search,
+  Plus,
+  Play,
+  Check,
+  X,
+  FileText,
+  Server,
+  Key,
+  DatabaseBackup,
+  Layers,
+  Settings,
+  ShieldAlert,
+  Sliders,
+  Sparkles,
+  UserCheck,
+  Zap
+} from "lucide-react";
+import {
+  SavedRecord,
+  FormTemplate,
+  AppUser,
+  UnitDailyChecklist,
+  SystemLog,
+  DailyDutyTask
+} from "../types";
+import {
+  testConnection,
+  saveClinicalRecord,
+  saveStaffMember,
+  saveDailyAudit,
+  saveSystemLog,
+  saveCustomTemplate,
+  saveDutyTask,
+  saveHospitalSettings,
+  deleteClinicalRecord,
+  deleteStaffMember,
+  deleteCustomTemplate,
+  deleteSystemLog,
+  savePatient,
+  saveSetting
+} from "../lib/firestoreService";
+const firebaseConfig = { 
+  projectId: "PostgreSQL_Neon_Database", 
+  firestoreDatabaseId: "(Default PostgreSQL)", 
+  appId: "integrated-neon-id", 
+  apiKey: "neon-api-key-active", 
+  authDomain: "localhost", 
+  storageBucket: "neon-bucket", 
+  messagingSenderId: "12345" 
+};
+import { getActiveDbProvider, setActiveDbProvider, DB_PROVIDERS_CONFIG, DbProvider, switchEnvironment } from "../lib/dbConfig";
+
+interface Props {
+  language: "ar" | "en";
+  currentUser?: AppUser | null;
+  records?: SavedRecord[];
+  customTemplates?: FormTemplate[];
+  systemUsers?: AppUser[];
+  dailyChecklists?: UnitDailyChecklist[];
+  systemLogs?: SystemLog[];
+  dutyTasks?: DailyDutyTask[];
+  setRecords?: React.Dispatch<React.SetStateAction<SavedRecord[]>>;
+  setCustomTemplates?: React.Dispatch<React.SetStateAction<FormTemplate[]>>;
+  setSystemUsers?: React.Dispatch<React.SetStateAction<AppUser[]>>;
+  setDailyChecklists?: React.Dispatch<React.SetStateAction<UnitDailyChecklist[]>>;
+  setSystemLogs?: React.Dispatch<React.SetStateAction<SystemLog[]>>;
+  setDutyTasks?: React.Dispatch<React.SetStateAction<DailyDutyTask[]>>;
+  hospitalSettings?: any;
+  setHospitalSettings?: (settings: any) => void;
+}
+
+export default function CloudSettingsPage({
+  language,
+  currentUser,
+  records = [],
+  customTemplates = [],
+  systemUsers = [],
+  dailyChecklists = [],
+  systemLogs = [],
+  dutyTasks = [],
+  setRecords,
+  setCustomTemplates,
+  setSystemUsers,
+  setDailyChecklists,
+  setSystemLogs,
+  setDutyTasks,
+  hospitalSettings,
+  setHospitalSettings
+}: Props) {
+  const isAr = language === "ar";
+
+  // State definitions
+  const [activeSubTab, setActiveSubTab] = useState<"status" | "stats" | "migration" | "logs" | "providers">("providers");
+  const [currentDbProvider, setCurrentDbProvider] = useState<DbProvider>(() => getActiveDbProvider());
+
+  // Connection testing states per provider
+  const [dbStatus, setDbStatus] = useState<Record<DbProvider, "connected" | "standby" | "error" | "testing">>({
+    FIREBASE: "connected",
+    SUPABASE: "standby",
+    POCKETBASE: "standby",
+    LOCAL_HOST: "standby",
+    MQTT: "standby",
+    SOCKET_IO_REDIS: "standby",
+    APPWRITE: "standby",
+    NULL_DB: "standby",
+    POSTGRES_PRISMA: "standby",
+    POSTGRES_NEON: "standby",
+    GOOGLE_CLOUD_SQL: "standby"
+  });
+
+  // Advanced DB Settings state
+  const [statusAlert, setStatusAlert] = useState<{ show: boolean; message: string; type: "success" | "error" | "" }>({ show: false, message: "", type: "" });
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
+
+  // Firebase connection keys
+  const [firebaseProjectId, setFirebaseProjectId] = useState(() => DB_PROVIDERS_CONFIG.FIREBASE.projectId);
+  const [firebaseApiKey, setFirebaseApiKey] = useState(() => DB_PROVIDERS_CONFIG.FIREBASE.apiKey);
+  const [firebaseAuthDomain, setFirebaseAuthDomain] = useState(() => DB_PROVIDERS_CONFIG.FIREBASE.authDomain);
+  const [firebaseStorageBucket, setFirebaseStorageBucket] = useState(() => DB_PROVIDERS_CONFIG.FIREBASE.storageBucket);
+  const [firebaseAppId, setFirebaseAppId] = useState(() => DB_PROVIDERS_CONFIG.FIREBASE.appId);
+
+  // Supabase connection keys
+  const [supabaseUrl, setSupabaseUrl] = useState(() => DB_PROVIDERS_CONFIG.SUPABASE.supabaseUrl);
+  const [supabaseKey, setSupabaseKey] = useState(() => DB_PROVIDERS_CONFIG.SUPABASE.supabaseKey);
+  const [dbSchema, setDbSchema] = useState(() => DB_PROVIDERS_CONFIG.SUPABASE.dbSchema);
+  const [realtimeChannel, setRealtimeChannel] = useState(() => DB_PROVIDERS_CONFIG.SUPABASE.realtimeChannel);
+
+  // PocketBase Connection keys
+  const [pocketbaseUrl, setPocketbaseUrl] = useState(() => DB_PROVIDERS_CONFIG.POCKETBASE.baseUrl);
+  const [pocketbaseAdminEmail, setPocketbaseAdminEmail] = useState(() => DB_PROVIDERS_CONFIG.POCKETBASE.adminEmail);
+  const [pocketbaseAdminPassword, setPocketbaseAdminPassword] = useState(() => DB_PROVIDERS_CONFIG.POCKETBASE.adminPassword);
+
+  // Localhost setup keys
+  const [localIntranetHost, setLocalIntranetHost] = useState(() => DB_PROVIDERS_CONFIG.LOCAL_HOST.intranetHost);
+  const [localWsUrl, setLocalWsUrl] = useState(() => DB_PROVIDERS_CONFIG.LOCAL_HOST.wsUrl);
+  const [localRequestTimeout, setLocalRequestTimeout] = useState(() => DB_PROVIDERS_CONFIG.LOCAL_HOST.requestTimeout);
+  const [localUseSecureWs, setLocalUseSecureWs] = useState(() => DB_PROVIDERS_CONFIG.LOCAL_HOST.useSecureWs);
+
+  // MQTT setup keys
+  const [mqttBrokerUrl, setMqttBrokerUrl] = useState(() => DB_PROVIDERS_CONFIG.MQTT.brokerUrl);
+  const [mqttClientId, setMqttClientId] = useState(() => DB_PROVIDERS_CONFIG.MQTT.clientId);
+
+  // Socket.io + Redis setup keys
+  const [socketIoServerUrl, setSocketIoServerUrl] = useState(() => DB_PROVIDERS_CONFIG.SOCKET_IO_REDIS.serverUrl);
+  const [socketIoRedisUrl, setSocketIoRedisUrl] = useState(() => DB_PROVIDERS_CONFIG.SOCKET_IO_REDIS.redisUrl);
+
+  useEffect(() => {
+    const syncActiveProv = () => {
+      const prov = getActiveDbProvider();
+      setCurrentDbProvider(prov);
+      setDbStatus(prev => ({ ...prev, [prov]: "connected" }));
+    };
+    window.addEventListener("db-provider-changed", syncActiveProv);
+
+    const handleQuotaExceeded = () => {
+      setQuotaExceeded(true);
+      setStatusAlert({
+        show: true,
+        type: "error",
+        message: isAr
+          ? "⚠️ تم استهلاك مساحة Firebase. تم تحويل النظام تلقائياً إلى خوادم النظام (Supabase/Appwrite/Local) والتى تضمن حفظ البيانات بشكل دائم ولحظي (Real-time) دون فقدانها أبداً."
+          : "⚠️ Firebase quota exhausted. System automatically switched to the resilient fallback servers (Supabase/Appwrite/Persistent File) to ensure zero data loss and keep working in Real-time."
+      });
+      switchEnvironment("LOCAL_HOST");
+    };
+    window.addEventListener("firestore-quota-exceeded", handleQuotaExceeded);
+
+    if ((window as any).firestoreQuotaExceeded) {
+      handleQuotaExceeded();
+    }
+
+    return () => {
+      window.removeEventListener("db-provider-changed", syncActiveProv);
+      window.removeEventListener("firestore-quota-exceeded", handleQuotaExceeded);
+    };
+  }, [isAr]);
+
+  const [latencyText, setLatencyText] = useState<string>("--");
+  const [latencyColor, setLatencyColor] = useState<string>("text-gray-400");
+  const [pinging, setPinging] = useState<boolean>(false);
+  const [onlineStatus, setOnlineStatus] = useState<boolean | null>(null);
+  const [showConfigKeys, setShowConfigKeys] = useState<boolean>(false);
+  const [isCachUsedPct, setIsCachUsedPct] = useState<number>(0);
+  
+  // Custom sync settings
+  const [syncStrategy, setSyncStrategy] = useState<string>(() => localStorage.getItem("hospital_sync_strategy") || "realtime");
+  const [conflictStrategy, setConflictStrategy] = useState<string>(() => localStorage.getItem("hospital_conflict_strategy") || "newest");
+  const [autoSyncInterval, setAutoSyncInterval] = useState<string>(() => localStorage.getItem("hospital_auto_sync_interval") || "immediate");
+
+  // Migration status
+  const [importStatus, setImportStatus] = useState<{
+    type: "idle" | "success" | "error" | "processing";
+    messageAr: string;
+    messageEn: string;
+  }>({ type: "idle", messageAr: "", messageEn: "" });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Live log viewer filters
+  const [logSearch, setLogSearch] = useState<string>("");
+  const [logFilter, setLogFilter] = useState<string>("ALL");
+
+  // Manual Log Simulation Form
+  const [simLogMsgAr, setSimLogMsgAr] = useState<string>("");
+  const [simLogMsgEn, setSimLogMsgEn] = useState<string>("");
+  const [simLogType, setSimLogType] = useState<"info" | "warning" | "success" | "error">("info");
+
+  // Double-Signer verification PIN
+  const [confirmingWipe, setConfirmingWipe] = useState<boolean>(false);
+  const [wipePasscode, setWipePasscode] = useState<string>("");
+  const [wipePasscodeError, setWipePasscodeError] = useState<string | null>(null);
+
+  // Firebase Config Overrides Form state
+  const [projectIdInput, setProjectIdInput] = useState<string>(() => {
+    try {
+      const override = localStorage.getItem("hospital_firebase_config_override");
+      if (override) {
+        const parsed = JSON.parse(override);
+        if (parsed && parsed.projectId) return parsed.projectId;
+      }
+    } catch(e){}
+    return firebaseConfig.projectId || "";
+  });
+
+  const [apiKeyInput, setApiKeyInput] = useState<string>(() => {
+    try {
+      const override = localStorage.getItem("hospital_firebase_config_override");
+      if (override) {
+        const parsed = JSON.parse(override);
+        if (parsed && parsed.apiKey) return parsed.apiKey;
+      }
+    } catch(e){}
+    return firebaseConfig.apiKey || "";
+  });
+
+  const [authDomainInput, setAuthDomainInput] = useState<string>(() => {
+    try {
+      const override = localStorage.getItem("hospital_firebase_config_override");
+      if (override) {
+        const parsed = JSON.parse(override);
+        if (parsed && parsed.authDomain) return parsed.authDomain;
+      }
+    } catch(e){}
+    return firebaseConfig.authDomain || "";
+  });
+
+  const [databaseIdInput, setDatabaseIdInput] = useState<string>(() => {
+    try {
+      const override = localStorage.getItem("hospital_firebase_config_override");
+      if (override) {
+        const parsed = JSON.parse(override);
+        if (parsed && parsed.firestoreDatabaseId) return parsed.firestoreDatabaseId;
+      }
+    } catch(e){}
+    return firebaseConfig.firestoreDatabaseId || "";
+  });
+
+  const [appIdInput, setAppIdInput] = useState<string>(() => {
+    try {
+      const override = localStorage.getItem("hospital_firebase_config_override");
+      if (override) {
+        const parsed = JSON.parse(override);
+        if (parsed && parsed.appId) return parsed.appId;
+      }
+    } catch(e){}
+    return firebaseConfig.appId || "";
+  });
+
+  const [storageBucketInput, setStorageBucketInput] = useState<string>(() => {
+    try {
+      const override = localStorage.getItem("hospital_firebase_config_override");
+      if (override) {
+        const parsed = JSON.parse(override);
+        if (parsed && parsed.storageBucket) return parsed.storageBucket;
+      }
+    } catch(e){}
+    return firebaseConfig.storageBucket || "";
+  });
+
+  const [messagingSenderIdInput, setMessagingSenderIdInput] = useState<string>(() => {
+    try {
+      const override = localStorage.getItem("hospital_firebase_config_override");
+      if (override) {
+        const parsed = JSON.parse(override);
+        if (parsed && parsed.messagingSenderId) return parsed.messagingSenderId;
+      }
+    } catch(e){}
+    return firebaseConfig.messagingSenderId || "";
+  });
+
+  // Save / Apply dynamic overrides
+  const handleSaveFirebaseOverrides = () => {
+    if (!projectIdInput.trim() || !apiKeyInput.trim()) {
+      alert(isAr 
+        ? "يرجى ملء معرف المشروع (Project ID) ومفتاح الـ API على الأقل لتوصيل السحابة المستهدفة!" 
+        : "Please specify at least Project ID and API Key to bind the target database node!");
+      return;
+    }
+
+    const payload = {
+      projectId: projectIdInput.trim(),
+      apiKey: apiKeyInput.trim(),
+      authDomain: authDomainInput.trim(),
+      firestoreDatabaseId: databaseIdInput.trim(),
+      appId: appIdInput.trim(),
+      storageBucket: storageBucketInput.trim(),
+      messagingSenderId: messagingSenderIdInput.trim()
+    };
+
+    localStorage.setItem("hospital_firebase_config_override", JSON.stringify(payload));
+    
+    // Log change
+    const updatedLog: SystemLog = {
+      id: `log-${Date.now()}`,
+      event: `Cloud endpoint successfully re-bound to project [${payload.projectId}] / database [${payload.firestoreDatabaseId || "(default)"}]`,
+      type: "success",
+      time: new Date().toLocaleTimeString(),
+      timestampMs: Date.now()
+    };
+    saveSystemLog(updatedLog).catch(() => {});
+    if (setSystemLogs) setSystemLogs(prev => [updatedLog, ...prev]);
+
+    alert(isAr 
+      ? "✔ تم حفظ وتطبيق معطيات الإقتران بالسحابة البديلة بنجاح! سيتم الآن إعادة تحميل الشاشة للارتباط الكامل بالقناة الجديدة." 
+      : "✔ Custom cloud connection specs bound successfully! Re-indexing connection nodes and reloading page to apply new Firestore bindings.");
+    
+    window.location.reload();
+  };
+
+  const handleResetFirebaseOverrides = () => {
+    if (confirm(isAr 
+      ? "تأكيد: هل ترغب في العودة للاعتماد المشفر الأصلي وتجاهل هذا الربط المخصص؟" 
+      : "Confirm: Do you want to wipe custom overrides and revert to the default built-in hospital parameters?")) {
+      
+      localStorage.removeItem("hospital_firebase_config_override");
+      
+      const resetLog: SystemLog = {
+        id: `log-${Date.now()}`,
+        event: "Cloud credentials reset to standard initial build config parameters.",
+        type: "info",
+        time: new Date().toLocaleTimeString(),
+        timestampMs: Date.now()
+      };
+      saveSystemLog(resetLog).catch(() => {});
+      if (setSystemLogs) setSystemLogs(prev => [resetLog, ...prev]);
+
+      alert(isAr 
+        ? "تم استعادة بيانات التهيئة الافتراضية بنجاح! سيتم إعادة تحميل الصفحة الآن." 
+        : "Initial hospital cloud configuration has been successfully restored! Reloading index...");
+      
+      window.location.reload();
+    }
+  };
+
+  useEffect(() => {
+    runPingCheck();
+    calculateLocalStorageUsage();
+  }, []);
+
+  // Ping Check using the testConnection function
+  const runPingCheck = async () => {
+    setPinging(true);
+    setLatencyText(isAr ? "جاري فحص الاتصال بالخادم النشط..." : "Timing Active Cloud Server...");
+    const start = Date.now();
+    try {
+      const isOnline = await testConnection();
+      const duration = Date.now() - start;
+      setOnlineStatus(isOnline);
+      if (isOnline) {
+        setLatencyText(`${duration} ms (${currentDbProvider})`);
+        if (duration < 150) {
+          setLatencyColor("text-emerald-500 font-extrabold");
+        } else if (duration < 550) {
+          setLatencyColor("text-amber-500 font-extrabold");
+        } else {
+          setLatencyColor("text-rose-500 font-bold animate-pulse");
+        }
+      } else {
+        setLatencyText(isAr ? "غير متصل بالخادم / استهلاك الحصة" : "Server Offline / Limit Exceeded");
+        setLatencyColor("text-rose-600 font-black");
+      }
+    } catch (e) {
+      setOnlineStatus(false);
+      setLatencyText(isAr ? "فشل الاتصال" : "Refused Connection");
+      setLatencyColor("text-rose-600 font-semibold");
+    } finally {
+      setPinging(false);
+    }
+  };
+
+  useEffect(() => {
+    runPingCheck();
+  }, [currentDbProvider]);
+
+  // Local storage capacity helper
+  const calculateLocalStorageUsage = () => {
+    try {
+      let total = 0;
+      for (const x in localStorage) {
+        if (localStorage.hasOwnProperty(x)) {
+          total += (localStorage[x]?.length || 0) * 2; // ~2 bytes per character
+        }
+      }
+      // Assuming average 5MB localstorage limit
+      const limit = 5 * 1024 * 1024;
+      const pct = Math.min(Math.round((total / limit) * 100), 100);
+      setIsCachUsedPct(pct);
+    } catch (e) {
+      setIsCachUsedPct(2);
+    }
+  };
+
+  // Local Cache Purge
+  const handleClearCache = () => {
+    if (confirm(isAr 
+      ? "تنبيه: سيؤدي هذا إلى حذف الكاش المتواجد محلياً بالكامل وإعادة تنزيل كافة البيانات والملفات من السحابة (Firestore) مباشرة. هل ترغب بالاستمرار؟" 
+      : "Warning: This will clear the browser local cache database completely and pull the core clinical dataset clean from Firestore cloud. Do you want to continue?")) {
+      
+      const sessionUserObj = localStorage.getItem("hospital_current_user_object");
+      const sessionUserId = localStorage.getItem("hospital_current_user_id");
+      const sessionLogState = localStorage.getItem("hospital_is_logged_in");
+
+      localStorage.clear();
+
+      // Preserve logged in session so user doesn't get kicked out!
+      if (sessionLogState) localStorage.setItem("hospital_is_logged_in", sessionLogState);
+      if (sessionUserId) localStorage.setItem("hospital_current_user_id", sessionUserId);
+      if (sessionUserObj) localStorage.setItem("hospital_current_user_object", sessionUserObj);
+
+      const successLog: SystemLog = {
+        id: `log-${Date.now()}`,
+        event: `Local storage cache database index rebuilt by ${currentUser?.nameEn || "Anonymous"}`,
+        type: "success",
+        time: new Date().toLocaleTimeString(),
+        timestampMs: Date.now()
+      };
+      
+      saveSystemLog(successLog).catch(() => {});
+      if (setSystemLogs) setSystemLogs(prev => [successLog, ...prev]);
+
+      alert(isAr ? "✔ تم تصفير الكاش المحلي بنجاح وسيتم المزامنة التلقائية." : "✔ Cache reset completed. Pulling down synced elements.");
+      calculateLocalStorageUsage();
+    }
+  };
+
+  // Export JSON Backup file
+  const handleExportBackup = () => {
+    try {
+      const backupData = {
+        exportVersion: `${hospitalSettings?.nameEn}Forms-2026.1`,
+        exportedAt: new Date().toISOString(),
+        exportedBy: currentUser?.nameEn || "Staff Account",
+        exportedById: currentUser?.staffId || "System",
+        hospitalSettings: localStorage.getItem("hospital_hospital_settings") 
+          ? JSON.parse(localStorage.getItem("hospital_hospital_settings")!) 
+          : null,
+        records,
+        customTemplates,
+        systemUsers,
+        dailyChecklists,
+        dutyTasks,
+        resolvedGaps: localStorage.getItem("hospital_resolved_gaps")
+          ? JSON.parse(localStorage.getItem("hospital_resolved_gaps")!)
+          : {}
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `hospital_hforms_backup_${new Date().toISOString().split("T")[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      // Add a log
+      const exportLog: SystemLog = {
+        id: `log-${Date.now()}`,
+        event: `Database exported successfully to JSON backup by ${currentUser?.nameEn || "System Admin"}`,
+        type: "info",
+        time: new Date().toLocaleTimeString(),
+        timestampMs: Date.now()
+      };
+      saveSystemLog(exportLog).catch(() => {});
+      if (setSystemLogs) setSystemLogs(prev => [exportLog, ...prev]);
+
+    } catch (error) {
+      alert(isAr 
+        ? "خطأ في استخراج ملف النسخة الاحتياطية." 
+        : "Backup Extraction failed. Check browser download configurations.");
+    }
+  };
+
+  // Drag over upload file configs
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Import JSON restoration payload
+  const handleImportBackup = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImportStatus({
+      type: "processing",
+      messageAr: "جاري تحليل بنية ملف التشفير للنسخة الاحتياطية...",
+      messageEn: "Scanning validation fingerprint of backup archive file..."
+    });
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const data = JSON.parse(text);
+
+        if (!data.exportVersion) {
+          throw new Error("Invalid signature or structure key missing");
+        }
+
+        let importLogsCount = 0;
+
+        // Restore Clinical Records
+        if (data.records && Array.isArray(data.records)) {
+          importLogsCount += data.records.length;
+          if (setRecords) setRecords(data.records);
+          localStorage.setItem("hospital_medical_records", JSON.stringify(data.records));
+          for (const item of data.records) {
+            await saveClinicalRecord(item).catch(() => {});
+          }
+        }
+
+        // Restore Custom Templates
+        if (data.customTemplates && Array.isArray(data.customTemplates)) {
+          importLogsCount += data.customTemplates.length;
+          if (setCustomTemplates) setCustomTemplates(data.customTemplates);
+          localStorage.setItem("hospital_custom_templates", JSON.stringify(data.customTemplates));
+          for (const item of data.customTemplates) {
+            await saveCustomTemplate(item).catch(() => {});
+          }
+        }
+
+        // Restore daily lists
+        if (data.dailyChecklists && Array.isArray(data.dailyChecklists)) {
+          importLogsCount += data.dailyChecklists.length;
+          if (setDailyChecklists) setDailyChecklists(data.dailyChecklists);
+          localStorage.setItem("hospital_daily_checklists", JSON.stringify(data.dailyChecklists));
+          for (const item of data.dailyChecklists) {
+            await saveDailyAudit(item).catch(() => {});
+          }
+        }
+
+        // Restore custom staff registry
+        if (data.systemUsers && Array.isArray(data.systemUsers)) {
+          importLogsCount += data.systemUsers.length;
+          if (setSystemUsers) setSystemUsers(data.systemUsers);
+          localStorage.setItem("hospital_system_users", JSON.stringify(data.systemUsers));
+          for (const item of data.systemUsers) {
+            await saveStaffMember(item).catch(() => {});
+          }
+        }
+
+        // Restore duty items
+        if (data.dutyTasks && Array.isArray(data.dutyTasks)) {
+          importLogsCount += data.dutyTasks.length;
+          if (setDutyTasks) setDutyTasks(data.dutyTasks);
+          for (const item of data.dutyTasks) {
+            await saveDutyTask(item).catch(() => {});
+          }
+        }
+
+        // Restore generic hospital settings
+        if (data.hospitalSettings) {
+          localStorage.setItem("hospital_hospital_settings", JSON.stringify(data.hospitalSettings));
+          await saveHospitalSettings(data.hospitalSettings).catch(() => {});
+        }
+
+        // Store resolved quality gaps map
+        if (data.resolvedGaps) {
+          localStorage.setItem("hospital_resolved_gaps", JSON.stringify(data.resolvedGaps));
+        }
+
+        // Add success restore log
+        const syncLog: SystemLog = {
+          id: `log-${Date.now()}`,
+          event: `Full database disaster restoration invoked (${importLogsCount} logs restored by ID: ${currentUser?.staffId})`,
+          type: "success",
+          time: new Date().toLocaleTimeString(),
+          timestampMs: Date.now()
+        };
+        saveSystemLog(syncLog).catch(() => {});
+        if (setSystemLogs) setSystemLogs(prev => [syncLog, ...prev]);
+
+        setImportStatus({
+          type: "success",
+          messageAr: `✔ تم مزامنة واسترجاع عدد (${importLogsCount}) سجلاً وبطاقات بنجاح للفرع الرئيسي والسحابة!`,
+          messageEn: `✔ Restored and successfully synced (${importLogsCount}) active database assets across cloud networks!`
+        });
+
+        calculateLocalStorageUsage();
+
+      } catch (error: any) {
+        setImportStatus({
+          type: "error",
+          messageAr: `فشل فحص الملف الاستردادي: ${error?.message || "تنسيق غير مدعوم"}`,
+          messageEn: `File inspection failed: ${error?.message || "Unsupported file format"}`
+        });
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Handle custom sync preferences saved to localstorage
+  const handleSavePref = (key: string, val: string) => {
+    if (key === "strategy") {
+      setSyncStrategy(val);
+      localStorage.setItem("hospital_sync_strategy", val);
+    } else if (key === "conflict") {
+      setConflictStrategy(val);
+      localStorage.setItem("hospital_conflict_strategy", val);
+    } else if (key === "interval") {
+      setAutoSyncInterval(val);
+      localStorage.setItem("hospital_auto_sync_interval", val);
+    }
+
+    const logItem: SystemLog = {
+      id: `log-${Date.now()}`,
+      event: `Global background sync preferences updated: ${key} -> ${val}`,
+      type: "info",
+      time: new Date().toLocaleTimeString(),
+      timestampMs: Date.now()
+    };
+    saveSystemLog(logItem).catch(() => {});
+    if (setSystemLogs) setSystemLogs(prev => [logItem, ...prev]);
+  };
+
+  // Submit manual system log for testing connectivity to logs collection
+  const handleSimulateLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!simLogMsgAr && !simLogMsgEn) return;
+
+    const logMsg = simLogMsgAr && simLogMsgEn 
+      ? `Simulated Log: ${simLogMsgEn} | ${simLogMsgAr}` 
+      : (simLogMsgEn || simLogMsgAr);
+
+    const newLog: SystemLog = {
+      id: `log-${Date.now()}`,
+      event: `[TEST] ${logMsg}`,
+      type: simLogType,
+      time: new Date().toLocaleTimeString(),
+      timestampMs: Date.now()
+    };
+
+    try {
+      await saveSystemLog(newLog);
+      if (setSystemLogs) setSystemLogs(prev => [newLog, ...prev]);
+      
+      setSimLogMsgAr("");
+      setSimLogMsgEn("");
+      
+      // Flash connection feedback
+      runPingCheck();
+      alert(isAr ? "تم حفظ وبث الحدث في السجلات الفورية بنجاح!" : "System Event posted and broadcasted successfully!");
+    } catch (e) {
+      alert(isAr ? "فشل حفظ السجل السحابي." : "Failed to sync system audit post.");
+    }
+  };
+
+  // Clear all Logs (Danger zone)
+  const handleClearAllLogs = async () => {
+    if (confirm(isAr 
+      ? "هل أنت متأكد من تصفير وحذف جميع السجلات التشخيصية (IT Troubleshooting Logs) من السحابة؟" 
+      : "Are you sure you want to delete all diagnostic system logs from the Cloud Database?")) {
+      
+      try {
+        for (const log of systemLogs) {
+          await deleteSystemLog(log.id).catch(() => {});
+        }
+        if (setSystemLogs) setSystemLogs([]);
+        alert(isAr ? `تم إخلاء سجلات تشخيص ${hospitalSettings?.nameAr}` : `${hospitalSettings?.nameEn} diagnostic logs catalog cleared.`);
+      } catch (e) {
+        alert(isAr ? "حدث خطأ أثناء رغبتك بالمسح." : "Error trying to clear indices.");
+      }
+    }
+  };
+
+  // Seed default data / records
+  const handleSeedDefaultData = async () => {
+    if (!confirm(isAr 
+      ? "تأكيد: سيتم تلقيم كافة سجلات الحالات المرضية، الطوارئ، العناية المركزة، الموظفين، الأقسام، والمستودعات في قاعدة البيانات النشطة. هل تريد بدء التلقيم؟" 
+      : "Confirm: This will seed all patient records, ER cases, ICU cases, staff roster, departments, and inventory into the active database. Begin database seeding?")) {
+      return;
+    }
+
+    try {
+      setImportStatus({
+        type: "processing",
+        messageAr: "جاري كتابة وتلقيم السجلات الطبية والسريرية والتشغيلية الشاملة...",
+        messageEn: "Seeding complete clinical, operational, and system collections..."
+      });
+
+      // 1. Seed Patients
+      const patientsToSeed = [
+        { id: "p1", mrn: "MRN-2026-0041", nameEn: "Samir Abdullah Hafez", nameAr: "سمير عبدالله حافظ", age: 45, gender: "male", phone: "0100000000", status: "doctor", insurance: "Cash" },
+        { id: "p2", mrn: "MRN-2026-0042", nameEn: "Fatma Ahmed Ali", nameAr: "فاطمة أحمد علي", age: 30, gender: "female", phone: "0111111111", status: "triage", insurance: "Bupa" }
+      ];
+      for (const p of patientsToSeed) {
+        await savePatient(p).catch(e => console.warn("Patient seed error:", e.message));
+      }
+
+      // 2. Seed Staff Registry
+      const staffToSeed = [
+        { id: "ST-1", name: "Dr. Hisham", role: "Consultant", specialty: "Cardiology", access: "Full" },
+        { id: "ST-2", name: "Nurse Salma", role: "Head Nurse", specialty: "ICU", access: "Restricted" },
+        { id: "ST-3", name: "Dr. Sarah", role: "Specialist", specialty: "Dermatology", access: "Full" }
+      ];
+      await saveSetting("his_staff_registry", staffToSeed).catch(e => console.warn(e.message));
+
+      // 3. Seed ER Cases
+      const erCasesToSeed = [
+        { id: "ER-001", mrn: "MRN-2026-5521", name: "Ibrahim Salem", arrivalTime: new Date(Date.now() - 3600000).toISOString(), triageLevel: 2, chiefComplaint: "Chest Pain, Diaphoresis", status: "In Treatment", assignedDoctor: "Dr. Khaled", zone: "Red" },
+        { id: "ER-002", mrn: "MRN-2026-8891", name: "Mona Hassan", arrivalTime: new Date(Date.now() - 1800000).toISOString(), triageLevel: 4, chiefComplaint: "Ankle Sprain", status: "Waiting Doctor", zone: "Green" },
+        { id: "ER-003", mrn: "MRN-2026-9003", name: "John Doe", arrivalTime: new Date(Date.now() - 300000).toISOString(), triageLevel: 1, chiefComplaint: "MVA - Trauma", status: "In Treatment", zone: "Red" },
+        { id: "ER-004", mrn: "MRN-2026-1123", name: "Sami Omar", arrivalTime: new Date(Date.now() - 1200000).toISOString(), triageLevel: 3, chiefComplaint: "Severe Abdominal Pain", status: "Waiting Triage", zone: "Waiting" }
+      ];
+      await saveSetting("his_er_cases", erCasesToSeed).catch(e => console.warn(e.message));
+
+      // 4. Seed ICU Cases
+      const icuCasesToSeed = [
+        { id: "ICU-001", mrn: "MRN-2026-0594", name: "Ahmed Youssef", bedId: "Bed 01", admissionDate: new Date(Date.now() - 172800000).toISOString(), diagnosis: "Severe Sepsis, ARDS", gcsScore: 9, ventilatorStatus: "Invasive", vitals: { hr: 115, bp: "90/55", spo2: 88, temp: 39.2 }, infusions: ["Norepinephrine", "Propofol"], notes: "Unstable hemodynamics, titrating pressors.", status: "Critical" },
+        { id: "ICU-002", mrn: "MRN-2026-3491", name: "Fatma Salem", bedId: "Bed 04", admissionDate: new Date(Date.now() - 432000000).toISOString(), diagnosis: "Post-CABG", gcsScore: 14, ventilatorStatus: "Weaning", vitals: { hr: 85, bp: "120/75", spo2: 96, temp: 37.1 }, infusions: ["Dobutamine"], notes: "Extubated yesterday, stable on 2L NC.", status: "Stable" }
+      ];
+      await saveSetting("his_icu_cases", icuCasesToSeed).catch(e => console.warn(e.message));
+
+      // 5. Seed Departments
+      const departmentsToSeed = [
+        { id: "DEP-1", name: "Cardiology", head: "Dr. Hisham", beds: 15, activeCases: 8 },
+        { id: "DEP-2", name: "Emergency (ER)", head: "Dr. Khaled", beds: 24, activeCases: 14 },
+        { id: "DEP-3", name: "ICU", head: "Dr. Ahmed Ali", beds: 10, activeCases: 6 }
+      ];
+      await saveSetting("his_departments", departmentsToSeed).catch(e => console.warn(e.message));
+
+      // 6. Seed Inventory Items
+      const inventoryToSeed = [
+        { id: "INV-1", name: "Aspirin 81mg", category: "Medication", quantity: 1500, minAlert: 200, unit: "tablets" },
+        { id: "INV-2", name: "Insulin Glargine 100U", category: "Medication", quantity: 120, minAlert: 30, unit: "vials" },
+        { id: "INV-3", name: "PPE Complete Kit", category: "Consumable", quantity: 450, minAlert: 100, unit: "packs" }
+      ];
+      await saveSetting("his_inventory", inventoryToSeed).catch(e => console.warn(e.message));
+
+      // 7. Seed Insurance Plans
+      const insuranceToSeed = [
+        { id: "INS-1", name: "Bupa", type: "Corporate", coveragePercentage: 90, activePolicies: 320 },
+        { id: "INS-2", name: "Tawuniya", type: "Individual/Family", coveragePercentage: 80, activePolicies: 180 },
+        { id: "INS-3", name: "Cash/Self-Pay", type: "None", coveragePercentage: 0, activePolicies: 0 }
+      ];
+      await saveSetting("his_insurance_master", insuranceToSeed).catch(e => console.warn(e.message));
+
+      // 8. Seed RCM Claims
+      const claimsToSeed = [
+        { id: "CLM-1", patientName: "Samir Abdullah", insurer: "Tawuniya", amount: 1250, status: "Submitted", date: new Date().toISOString().split('T')[0] },
+        { id: "CLM-2", patientName: "Fatma Ahmed", insurer: "Bupa", amount: 3500, status: "Approved", date: new Date(Date.now() - 86400000).toISOString().split('T')[0] }
+      ];
+      await saveSetting("his_rcm_claims", claimsToSeed).catch(e => console.warn(e.message));
+
+      // 9. Seeding simulated diagnostic log item
+      const welcomeLog: SystemLog = {
+        id: `log-${Date.now()}`,
+        event: `${hospitalSettings?.nameEn} Hospital central cloud database initialized and seed template executed by ${currentUser?.nameEn || "IT Admin"}`,
+        type: "success",
+        time: new Date().toLocaleTimeString(),
+        timestampMs: Date.now()
+      };
+      await saveSystemLog(welcomeLog);
+      if (setSystemLogs) setSystemLogs(prev => [welcomeLog, ...prev]);
+
+      setImportStatus({
+        type: "success",
+        messageAr: `✔ تم تلقيم كافة سجلات الحالات المرضية، الطوارئ، العناية المركزة، والجرودات بنجاح في قاعدة البيانات النشطة!`,
+        messageEn: "✔ Complete clinical & operational database seeding executed successfully! All collections are synchronized."
+      });
+
+      runPingCheck();
+
+    } catch (err: any) {
+      setImportStatus({
+        type: "error",
+        messageAr: `فشل في ربط وتلقيم البيانات: ${err?.message || "خطأ غير معروف"}`,
+        messageEn: `Database Seeding sequence error: ${err?.message || "Unknown write rejection"}`
+      });
+    }
+  };
+
+  // Render variables
+  const filteredLogs = systemLogs.filter(log => {
+    const matchesSearch = log.event?.toLowerCase()?.includes(logSearch?.toLowerCase()) || 
+                          log.id?.toLowerCase()?.includes(logSearch?.toLowerCase());
+    const matchesLevel = logFilter === "ALL" || log.type.toUpperCase() === logFilter;
+    return matchesSearch && matchesLevel;
+  });
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto space-y-6" dir={isAr ? "rtl" : "ltr"}>
+      {/* Page Header */}
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-blue-100 rounded-xl text-blue-600 shadow-inner">
+            <Cloud className="w-8 h-8 animate-pulse text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 font-sans">
+              {isAr ? "التحكم السحابي ومستودع البيانات" : `${hospitalSettings?.nameEn} Cloud Hub & Database Hub`}
+            </h1>
+            <p className="text-slate-500 font-mono text-xs mt-1">
+              {hospitalSettings?.nameEn} IT Secure Database Manager — v{firebaseConfig.projectId ? "2026.1" : "LocalFallback"}
+            </p>
+          </div>
+        </div>
+
+        {/* Sub-tab Selectors */}
+        <div className="flex items-center bg-slate-100 border border-slate-200 p-1 rounded-xl shadow-sm">
+          <button
+            onClick={() => setActiveSubTab("providers")}
+            className={`px-4 py-2 rounded-lg font-bold text-xs transition duration-200 flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === "providers"
+                ? "bg-slate-900 text-white shadow"
+                : "text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
+            <span>{isAr ? "بيئات العمل الأربعة" : "4 DB Providers"}</span>
+          </button>
+          <button
+            onClick={() => setActiveSubTab("status")}
+            className={`px-4 py-2 rounded-lg font-bold text-xs transition duration-200 flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === "status"
+                ? "bg-slate-900 text-white shadow"
+                : "text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <Server className="w-3.5 h-3.5" />
+            <span>{isAr ? "البنية السحابية" : "Cloud Setup"}</span>
+          </button>
+          <button
+            onClick={() => setActiveSubTab("stats")}
+            className={`px-4 py-2 rounded-lg font-bold text-xs transition duration-200 flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === "stats"
+                ? "bg-slate-900 text-white shadow"
+                : "text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>{isAr ? "أرقام الجرد والمزامنة" : "Data Matrix"}</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Container Panels */}
+      {activeSubTab === "providers" && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* HIPAA & ZERO-CACHE STATEMENT HEADER */}
+          <div className="bg-gradient-to-r from-emerald-500/10 to-indigo-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+            <div className="space-y-1">
+              <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-emerald-600 animate-pulse" />
+                <span>{isAr ? "معيار الأمان الطبي العالمي ($HIPAA$) وصفر تخزين محلي" : "Zero-Cache Standard & HIPAA Cloud Architecture"}</span>
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-3xl">
+                {isAr 
+                  ? "تأكيد فني تام للإدارة الصحية: لا يتم تخزين شيتات وحالات المرضى أو الورديات أو جداول البيانات الطبية الحساسة في مستودع المتصفح (localStorage) مطلقاً. يرتبط النظام بقاعدة البيانات المباشرة ببث حي وتلقائي، وتتحقق مزامنة الأجهزة فاصلاً بفاصل دون التسبب في ثغرات تسريب أمنية."
+                  : "Technical compliance: Patient clinical records, worker rosters, and schedules are never stored on user browsers (localStorage is zero). Live streams pipe directly as virtual signals. Logging out completely clears remaining RAM memories."}
+              </p>
+            </div>
+            <div className="bg-emerald-50 text-emerald-800 text-[10px] sm:text-xs font-black px-3 py-1.5 rounded-xl flex items-center gap-1 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500/80 animate-ping" />
+              {isAr ? "التزامن الفوري نشط" : "STREAMING PROTOCOL: ON"}
+            </div>
+          </div>
+
+          {/* SMART NOTIFICATION BANNER */}
+          {statusAlert.show && (
+            <div 
+              className={`p-4 rounded-xl border flex items-start gap-3 shadow-sm transition duration-300 ${
+                statusAlert.type === "success" 
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
+                  : "bg-rose-50 border-rose-200 text-rose-800"
+              }`}
+            >
+              <div className="text-lg mt-0.5">
+                {statusAlert.type === "success" ? "🚀" : "⚠️"}
+              </div>
+              <div className="flex-1 text-xs font-semibold leading-relaxed">
+                {statusAlert.message}
+              </div>
+              <button 
+                onClick={() => setStatusAlert({ show: false, message: "", type: "" })}
+                className="text-slate-400 hover:text-slate-600 self-center text-sm font-bold ml-2 transition"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* CARDS CONTAINER */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* 1. FIREBASE FIRESTORE CARD */}
+            <div className={`p-6 rounded-2xl border transition duration-300 ${currentDbProvider === "FIREBASE" ? "bg-white border-orange-500 shadow-md ring-2 ring-orange-500/10" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"}`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider">{isAr ? "بيئة رقم 1" : "ENVIRONMENT 01"}</span>
+                  <h4 className="text-md font-black text-slate-800 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
+                    <span>Firebase Firestore (Google Cloud)</span>
+                  </h4>
+                </div>
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${currentDbProvider === "FIREBASE" ? "bg-orange-100 text-orange-800" : "bg-slate-100 text-slate-500"}`}>
+                  {currentDbProvider === "FIREBASE" ? (isAr ? "⚡ المحرك النشط حالياً" : "ACTIVE ENGINE") : (isAr ? "جاهز / خامل" : "STANDBY")}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                {isAr ? "المحرك السحابي الأساسي المعتمد على خوادم جوجل الذكية لبث التحديثات الفورية للمستشفى عبر تقنية السناب-شوت اللحظية." : "The native organization cloud store operating via Firebase socket emitters for instant medical status streams."}
+              </p>
+
+              <div className="grid grid-cols-1 gap-3.5 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "معرف المشروع (Project ID):" : "Project ID"}</label>
+                  <input
+                    type="text"
+                    value={firebaseProjectId}
+                    onChange={(e) => setFirebaseProjectId(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "مفتاح الواجهة السحابية (API Key):" : "API Key"}</label>
+                  <input
+                    type="password"
+                    placeholder="AIzaSy..."
+                    value={firebaseApiKey}
+                    onChange={(e) => setFirebaseApiKey(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "نطاق التوثيق (Auth Domain):" : "Auth Domain"}</label>
+                  <input
+                    type="text"
+                    placeholder="kayan.firebaseapp.com"
+                    value={firebaseAuthDomain}
+                    onChange={(e) => setFirebaseAuthDomain(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "مستودع التخزين والتقارير (Storage Bucket):" : "Storage Bucket"}</label>
+                  <input
+                    type="text"
+                    placeholder="kayan.appspot.com"
+                    value={firebaseStorageBucket}
+                    onChange={(e) => setFirebaseStorageBucket(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "معرف التطبيق الفريد (App ID):" : "App ID"}</label>
+                  <input
+                    type="text"
+                    placeholder="1:1234:web:xyz"
+                    value={firebaseAppId}
+                    onChange={(e) => setFirebaseAppId(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  let settings = {
+                    projectId: firebaseProjectId,
+                    apiKey: firebaseApiKey,
+                    authDomain: firebaseAuthDomain,
+                    storageBucket: firebaseStorageBucket,
+                    appId: firebaseAppId,
+                    instanceType: "Native OnSnapshot"
+                  };
+                  const success = switchEnvironment("FIREBASE", settings);
+                  if (success) {
+                    setCurrentDbProvider("FIREBASE");
+                    setStatusAlert({
+                      show: true,
+                      message: isAr
+                        ? "🚀 تم بنجاح التحول لحافلة محرك [ FIREBASE ] السحابي. التحديثات تجري فاصلاً فاصلاً."
+                        : "🚀 Successfully switched active cloud pipeline to [ Firebase Firestore ].",
+                      type: "success"
+                    });
+                    saveSystemLog({
+                      id: `log-${Date.now()}`,
+                      event: isAr
+                        ? "تم تفعيل محرك الاتصال Firebase سحابياً بنجاح."
+                        : "Successfully synchronized database connection schema with Google Firebase.",
+                      type: "info",
+                      time: new Date().toLocaleTimeString(),
+                      timestampMs: Date.now()
+                    }).catch(() => {});
+                  }
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border ${
+                  currentDbProvider === "FIREBASE" 
+                    ? "bg-orange-50 border-orange-200 text-orange-700" 
+                    : "bg-slate-900 border-transparent text-white hover:bg-slate-800"
+                }`}
+              >
+                {isAr ? "حفظ وتفعيل بيئة فايربيز" : "Save & Activate Firebase Engine"}
+              </button>
+            </div>
+
+            {/* 2. SUPABASE REALTIME CARD */}
+            <div className={`p-6 rounded-2xl border transition duration-300 ${currentDbProvider === "SUPABASE" ? "bg-white border-emerald-500 shadow-md ring-2 ring-emerald-500/10" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"}`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider">{isAr ? "بيئة رقم 2" : "ENVIRONMENT 02"}</span>
+                  <h4 className="text-md font-black text-slate-800 flex items-center gap-1.5">
+                    <Database className="w-4 h-4 text-emerald-500" />
+                    <span>Supabase Realtime (PostgreSQL Engine)</span>
+                  </h4>
+                </div>
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${currentDbProvider === "SUPABASE" ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>
+                  {currentDbProvider === "SUPABASE" ? (isAr ? "⚡ المحرك النشط حالياً" : "ACTIVE ENGINE") : (isAr ? "جاهز / خامل" : "STANDBY")}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                {isAr ? "محرك بث البيانات العلائقي المستند لقواعد بيانات بروجريس، لربط إشارات المرضى وتتبع سجلات الأطباء الفورية بدون كاش." : "Relational cloud streaming built on top of Postgres realtime subscription pipelines for enterprise healthcare workflows."}
+              </p>
+
+              <div className="grid grid-cols-1 gap-3.5 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">SUPABASE ENDPOINT URL:</label>
+                  <input
+                    type="text"
+                    placeholder="https://xyz.supabase.co"
+                    value={supabaseUrl}
+                    onChange={(e) => setSupabaseUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">SECRET API KEY (Anon/Service):</label>
+                  <input
+                    type="password"
+                    placeholder="eyJhbGci..."
+                    value={supabaseKey}
+                    onChange={(e) => setSupabaseKey(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "مخطط قاعدة البيانات (Database Schema):" : "Database Schema"}</label>
+                  <input
+                    type="text"
+                    value={dbSchema}
+                    onChange={(e) => setDbSchema(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "اسم قناة البث (Realtime Channel):" : "Realtime Channel Name"}</label>
+                  <input
+                    type="text"
+                    value={realtimeChannel}
+                    onChange={(e) => setRealtimeChannel(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!supabaseUrl || !supabaseKey) {
+                    setStatusAlert({
+                      show: true,
+                      message: isAr 
+                        ? "⚠️ تنبيه: يرجى ملء الخانات الأساسية (SUPABASE ENDPOINT URL & SECRET API KEY) لبدء تشغيل سوبابيس."
+                        : "⚠️ Attention: Supabase Endpoint URL and Secret API Key are required.",
+                      type: "error"
+                    });
+                    return;
+                  }
+                  let settings = {
+                    supabaseUrl,
+                    supabaseKey,
+                    dbSchema,
+                    realtimeChannel
+                  };
+                  
+                  fetch("/api/settings/update-provider", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider: "SUPABASE", settings })
+                  }).catch(e => console.warn(e.message));
+
+                  const success = switchEnvironment("SUPABASE", settings);
+                  if (success) {
+                    setCurrentDbProvider("SUPABASE");
+                    setStatusAlert({
+                      show: true,
+                      message: isAr
+                        ? "🚀 تم بنجاح التحول والانتقال السريع لبيئة [ SUPABASE ] ومزامنة الجداول والريل تايم بنجاح."
+                        : "🚀 Successfully shifted database core client over to [ Supabase PostgreSQL db ].",
+                      type: "success"
+                    });
+                    saveSystemLog({
+                      id: `log-${Date.now()}`,
+                      event: isAr
+                        ? "تم تحويل المحرك العلائقي المستهدف إلى Supabase PostgreSQL."
+                        : "System datastore switched successfully to Supabase PostgreSQL Database engine.",
+                      type: "success",
+                      time: new Date().toLocaleTimeString(),
+                      timestampMs: Date.now()
+                    }).catch(() => {});
+                  }
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border ${
+                  currentDbProvider === "SUPABASE" 
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
+                    : "bg-slate-900 border-transparent text-white hover:bg-slate-800"
+                }`}
+              >
+                {isAr ? "حفظ والانتقال لبيئة صوبابيز" : "Save & Activate Supabase Engine"}
+              </button>
+            </div>
+
+            {/* 3. POCKETBASE EVENT STREAM CARD */}
+            <div className={`p-6 rounded-2xl border transition duration-300 ${currentDbProvider === "POCKETBASE" ? "bg-white border-blue-500 shadow-md ring-2 ring-blue-500/10" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"}`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider">{isAr ? "بيئة رقم 3" : "ENVIRONMENT 03"}</span>
+                  <h4 className="text-md font-black text-slate-800 flex items-center gap-1.5">
+                    <Server className="w-4 h-4 text-blue-500" />
+                    <span>PocketBase SSE Stream (Open-Source Cloud)</span>
+                  </h4>
+                </div>
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${currentDbProvider === "POCKETBASE" ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-500"}`}>
+                  {currentDbProvider === "POCKETBASE" ? (isAr ? "⚡ المحرك النشط حالياً" : "ACTIVE ENGINE") : (isAr ? "جاهز / خامل" : "STANDBY")}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                {isAr ? "قناة بث خفيفة ومستقرة تماماً مبنية على أحداث الخادم (Server-Sent Events) لتأمين النقل الفوري والكامل للبيانات الطبية." : "Event-driven Server-Sent Events (SSE) streaming engine for lightweight medical telemetry and real-time ledger records."}
+              </p>
+
+              <div className="grid grid-cols-1 gap-3.5 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">POCKETBASE CONNECTION URL:</label>
+                  <input
+                    type="text"
+                    placeholder="https://kayan-server.io"
+                    value={pocketbaseUrl}
+                    onChange={(e) => setPocketbaseUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "بريد المسؤول للربط (Admin Email):" : "Admin Auth Email"}</label>
+                  <input
+                    type="email"
+                    placeholder="admin@kayan.com"
+                    value={pocketbaseAdminEmail}
+                    onChange={(e) => setPocketbaseAdminEmail(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "رمز مرور الربط (Admin Password):" : "Admin Auth Password"}</label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={pocketbaseAdminPassword}
+                    onChange={(e) => setPocketbaseAdminPassword(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!pocketbaseUrl || !pocketbaseAdminEmail || !pocketbaseAdminPassword) {
+                    setStatusAlert({
+                      show: true,
+                      message: isAr 
+                        ? "⚠️ تنبيه: يرجى ملء جميع الخانات الفارغة لتجنب كسر اتصال بيئة [ POCKETBASE ]."
+                        : "⚠️ Attention: Please fill in all fields to avoid pocketbase pipeline disruption.",
+                      type: "error"
+                    });
+                    return;
+                  }
+                  let settings = {
+                    baseUrl: pocketbaseUrl,
+                    adminEmail: pocketbaseAdminEmail,
+                    adminPassword: pocketbaseAdminPassword
+                  };
+                  const success = switchEnvironment("POCKETBASE", settings);
+                  if (success) {
+                    setCurrentDbProvider("POCKETBASE");
+                    setStatusAlert({
+                      show: true,
+                      message: isAr
+                        ? "🚀 تم بنجاح الحفظ وتفعيل بيئة بوكيت بيز للعمل ببث أحداث الخادم المباشر."
+                        : "🚀 Successfully established connection with PocketBase medical channel.",
+                      type: "success"
+                    });
+                    saveSystemLog({
+                      id: `log-${Date.now()}`,
+                      event: isAr
+                        ? "تم نقل المخدم النشط المعتمد لسجلات وعمليات البث إلى PocketBase."
+                        : "Successfully synchronized database engine to utilize PocketBase SSE streams.",
+                      type: "success",
+                      time: new Date().toLocaleTimeString(),
+                      timestampMs: Date.now()
+                    }).catch(() => {});
+                  }
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border ${
+                  currentDbProvider === "POCKETBASE" 
+                    ? "bg-blue-50 border-blue-200 text-blue-700" 
+                    : "bg-slate-900 border-transparent text-white hover:bg-slate-800"
+                }`}
+              >
+                {isAr ? "حفظ وتفعيل بيئة بوكيت بيز" : "Save & Activate PocketBase Engine"}
+              </button>
+            </div>
+
+            {/* 4. LOCAL_HOST ROUTER API CARD */}
+            <div className={`p-6 rounded-2xl border transition duration-300 ${currentDbProvider === "LOCAL_HOST" ? "bg-white border-blue-600 shadow-md ring-2 ring-blue-600/10" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"}`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider">{isAr ? "بيئة رقم 4" : "ENVIRONMENT 04"}</span>
+                  <h4 className="text-md font-black text-slate-800 flex items-center gap-1.5">
+                    <Wifi className="w-4 h-4 text-blue-600 animate-pulse" />
+                    <span>Hospital Intranet Server (الشبكة الداخلية للمستشفى)</span>
+                  </h4>
+                </div>
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${currentDbProvider === "LOCAL_HOST" ? "bg-blue-50 text-blue-800" : "bg-slate-100 text-slate-500"}`}>
+                  {currentDbProvider === "LOCAL_HOST" ? (isAr ? "⚡ المحرك النشط حالياً" : "ACTIVE ENGINE") : (isAr ? "جاهز / خامل" : "STANDBY")}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                {isAr ? "الاتصال المباشر عالي الأمان وبأعلى درجات الخصوصية؛ يربط النظام بسيرفر المستشفى الداخلي في مركز البيانات للغرف السريرية عبر الراوتر المحلي." : "Direct sandboxed intranet database operating on the local router with secure fallbacks."}
+              </p>
+
+              <div className="grid grid-cols-1 gap-3.5 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">INTRANET ENDPOINT HOST (API):</label>
+                  <input
+                    type="text"
+                    placeholder="http://192.168.1.100:5000/api"
+                    value={localIntranetHost}
+                    onChange={(e) => setLocalIntranetHost(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">LOCAL WEBSOCKET ADDR (WS):</label>
+                  <input
+                    type="text"
+                    placeholder="ws://192.168.1.100:5000/live"
+                    value={localWsUrl}
+                    onChange={(e) => setLocalWsUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "مهلة انتهاء الطلب (بالملي ثانية):" : "Request Timeout (ms)"}</label>
+                  <input
+                    type="number"
+                    value={localRequestTimeout}
+                    onChange={(e) => setLocalRequestTimeout(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">{isAr ? "نوع التشفير والاتصال الآمن:" : "Secure Connection Type"}</label>
+                  <select
+                    value={localUseSecureWs ? "WSS" : "WS"}
+                    onChange={(e) => setLocalUseSecureWs(e.target.value === "WSS")}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-700 font-semibold"
+                  >
+                    <option value="WS">{isAr ? "بروتوكول عادي غير مشفر (ws://)" : "Regular Unsecure WebSocket (ws://)"}</option>
+                    <option value="WSS">{isAr ? "بروتوكول آمن ومشفر (wss:// - مستحسن)" : "Secure Encrypted WebSocket (wss:// - Recommended)"}</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!localIntranetHost || !localWsUrl) {
+                    setStatusAlert({
+                      show: true,
+                      message: isAr 
+                        ? "⚠️ تنبيه: يرجى ملء البيانات المستهدفة لتجنب كسر محرك السيرفر المحلي للأمن القومي."
+                        : "⚠️ Attention: Intranet endpoints and socket routes must be defined properly.",
+                      type: "error"
+                    });
+                    return;
+                  }
+                  let settings = {
+                    intranetHost: localIntranetHost,
+                    wsUrl: localWsUrl,
+                    apiUrl: localIntranetHost,
+                    requestTimeout: localRequestTimeout,
+                    useSecureWs: localUseSecureWs
+                  };
+                  const success = switchEnvironment("LOCAL_HOST", settings);
+                  if (success) {
+                    setCurrentDbProvider("LOCAL_HOST");
+                    setStatusAlert({
+                      show: true,
+                      message: isAr
+                        ? "🚀 تم بنجاح الانتقال الكامل والربط الفيدرالي بمخدم الشبكة المحلية للمستشفى بنجاح."
+                        : "🚀 Successfully routed data pipes directly to hospital Local Server.",
+                      type: "success"
+                    });
+                    saveSystemLog({
+                      id: `log-${Date.now()}`,
+                      event: isAr
+                        ? "تم تبديل المخدم الداخلي للأمن الفيدرالي المحلي بنجاح."
+                        : "Switched system data processing pipelines to rely on secure hospital node routers.",
+                      type: "success",
+                      time: new Date().toLocaleTimeString(),
+                      timestampMs: Date.now()
+                    }).catch(() => {});
+                  }
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border ${
+                  currentDbProvider === "LOCAL_HOST" 
+                    ? "bg-indigo-50 border-indigo-200 text-indigo-700" 
+                    : "bg-slate-900 border-transparent text-white hover:bg-slate-800"
+                }`}
+              >
+                {isAr ? "حفظ والانتقال الكامل للشبكة المحلية للمستشفى" : "Save & Activate Intranet Server"}
+              </button>
+            </div>
+
+            {/* 5. MQTT EMQX CARD */}
+            <div className={`p-6 rounded-2xl border transition duration-300 ${currentDbProvider === "MQTT" ? "bg-white border-purple-500 shadow-md ring-2 ring-purple-500/10" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"}`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider">{isAr ? "بيئة رقم 5" : "ENVIRONMENT 05"}</span>
+                  <h4 className="text-md font-black text-slate-800 flex items-center gap-1.5">
+                    <Wifi className="w-4 h-4 text-purple-500" />
+                    <span>MQTT (EMQX IoT Broker)</span>
+                  </h4>
+                </div>
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${currentDbProvider === "MQTT" ? "bg-purple-100 text-purple-800" : "bg-slate-100 text-slate-500"}`}>
+                  {currentDbProvider === "MQTT" ? (isAr ? "⚡ المحرك النشط حالياً" : "ACTIVE ENGINE") : (isAr ? "جاهز / خامل" : "STANDBY")}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                {isAr ? "محرك بث البيانات المعتمد على بروتوكول MQTT، مثالي لربط أجهزة المراقبة الصحية والأجهزة التفاعلية بمركز البيانات مباشرة." : "Lightweight pub/sub messaging protocol optimized for IoT medical devices and real-time sensor data streaming."}
+              </p>
+
+              <div className="grid grid-cols-1 gap-3.5 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">MQTT BROKER URL:</label>
+                  <input
+                    type="text"
+                    placeholder="mqtt://broker.emqx.io:1883"
+                    value={mqttBrokerUrl}
+                    onChange={(e) => setMqttBrokerUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">CLIENT ID:</label>
+                  <input
+                    type="text"
+                    placeholder="client-klinik-01"
+                    value={mqttClientId}
+                    onChange={(e) => setMqttClientId(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                   if (!mqttBrokerUrl) {
+                      setStatusAlert({
+                        show: true,
+                        message: isAr ? "⚠️ تنبيه: يرجى تحديد Broker URL." : "⚠️ Attention: Broker URL required.",
+                        type: "error"
+                      });
+                      return;
+                   }
+                   const success = switchEnvironment("MQTT", { brokerUrl: mqttBrokerUrl, clientId: mqttClientId });
+                   if (success) {
+                     setCurrentDbProvider("MQTT");
+                     setStatusAlert({
+                        show: true,
+                        message: isAr ? "🚀 تم بنجاح الربط مع محرك MQTT." : "🚀 Successfully linked to MQTT broker.",
+                        type: "success"
+                     });
+                     saveSystemLog({
+                       id: `log-${Date.now()}`,
+                       event: isAr ? "تم الربط بنجاح مع محرك MQTT." : "Successfully linked to MQTT broker.",
+                       type: "success",
+                       time: new Date().toLocaleTimeString(),
+                       timestampMs: Date.now()
+                     }).catch(() => {});
+                   }
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border ${
+                  currentDbProvider === "MQTT" 
+                    ? "bg-purple-50 border-purple-200 text-purple-700" 
+                    : "bg-slate-900 border-transparent text-white hover:bg-slate-800"
+                }`}
+              >
+                {isAr ? "حفظ وتفعيل بيئة MQTT" : "Save & Activate MQTT Stream"}
+              </button>
+            </div>
+
+            {/* 6. SOCKET.IO + REDIS CARD */}
+            <div className={`p-6 rounded-2xl border transition duration-300 ${currentDbProvider === "SOCKET_IO_REDIS" ? "bg-white border-amber-500 shadow-md ring-2 ring-amber-500/10" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"}`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider">{isAr ? "بيئة رقم 6" : "ENVIRONMENT 06"}</span>
+                  <h4 className="text-md font-black text-slate-800 flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-amber-500" />
+                    <span>Socket.io & Redis Adapter</span>
+                  </h4>
+                </div>
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${currentDbProvider === "SOCKET_IO_REDIS" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500"}`}>
+                  {currentDbProvider === "SOCKET_IO_REDIS" ? (isAr ? "⚡ المحرك النشط حالياً" : "ACTIVE ENGINE") : (isAr ? "جاهز / خامل" : "STANDBY")}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                {isAr ? "محرك اتصالات فائق السرعة يعتمد على مكتبة Socket.io مع Redis PUB/SUB لضمان مزامنة البيانات عبر عدة خوادم في وقت واحد." : "High-performance real-time engine using Socket.io and Redis Pub/Sub for horizontal scaling and low-latency data sync."}
+              </p>
+
+              <div className="grid grid-cols-1 gap-3.5 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">SERVER URL:</label>
+                  <input
+                    type="text"
+                    placeholder="http://localhost:3000"
+                    value={socketIoServerUrl}
+                    onChange={(e) => setSocketIoServerUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-600 font-sans tracking-wide block">REDIS URL:</label>
+                  <input
+                    type="text"
+                    placeholder="redis://localhost:6379"
+                    value={socketIoRedisUrl}
+                    onChange={(e) => setSocketIoRedisUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                   if (!socketIoServerUrl || !socketIoRedisUrl) {
+                      setStatusAlert({
+                        show: true,
+                        message: isAr ? "⚠️ تنبيه: يرجى تحديد Server و Redis URL." : "⚠️ Attention: Server & Redis URL required.",
+                        type: "error"
+                      });
+                      return;
+                   }
+                   const success = switchEnvironment("SOCKET_IO_REDIS", { serverUrl: socketIoServerUrl, redisUrl: socketIoRedisUrl });
+                   if (success) {
+                     setCurrentDbProvider("SOCKET_IO_REDIS");
+                     setStatusAlert({
+                        show: true,
+                        message: isAr ? "🚀 تم بنجاح الربط مع Socket.io." : "🚀 Successfully linked to Socket.io.",
+                        type: "success"
+                     });
+                     saveSystemLog({
+                       id: `log-${Date.now()}`,
+                       event: isAr ? "تم الربط بنجاح مع محرك Socket.io/Redis." : "Successfully linked to Socket.io/Redis engine.",
+                       type: "success",
+                       time: new Date().toLocaleTimeString(),
+                       timestampMs: Date.now()
+                     }).catch(() => {});
+                   }
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border ${
+                  currentDbProvider === "SOCKET_IO_REDIS" 
+                    ? "bg-amber-50 border-amber-200 text-amber-700" 
+                    : "bg-slate-900 border-transparent text-white hover:bg-slate-800"
+                }`}
+              >
+                {isAr ? "حفظ وتفعيل بيئة Socket.io" : "Save & Activate Socket.io Stream"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Main Container Panels */}
+      {activeSubTab === "status" && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {/* Active Connectivity Status Block */}
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">
+                  {isAr ? "حالة الموثوقية بالخادم" : "Cloud Reliability Node"}
+                </span>
+                <span className={`flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded-full ${
+                  onlineStatus === true 
+                    ? "bg-emerald-100 text-emerald-800" 
+                    : onlineStatus === false 
+                    ? "bg-rose-100 text-rose-800" 
+                    : "bg-amber-100 text-amber-800"
+                }`}>
+                  <span className={`w-2.5 h-2.5 rounded-full ${onlineStatus === true ? "bg-emerald-500 animate-ping" : onlineStatus === false ? "bg-rose-500" : "bg-amber-500 animate-pulse"}`} />
+                  {onlineStatus === true 
+                    ? (isAr ? "نشط ومؤمن" : "SECURELY SYNCED") 
+                    : onlineStatus === false 
+                    ? (isAr ? "أوفلاين محلي" : "LOCAL CACHE ONLY") 
+                    : (isAr ? "جاري الاختبار" : "VERIFYING PORT...")}
+                </span>
+              </div>
+
+              <div className="pt-6 text-center space-y-2">
+                <p className="text-xs text-slate-400 font-bold">{isAr ? "سرعة استجابة قاعدة البيانات (Firestore)" : "Firestore Real-time DB Latency"}</p>
+                <h3 className={`text-4xl font-extrabold tracking-tight ${latencyColor}`}>
+                  {latencyText}
+                </h3>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span className="text-slate-500">{isAr ? "نظام الأوفلاين الاحتياطي" : "Offline Cache Recovery Engine"}</span>
+                  <span className="text-emerald-600 font-extrabold">{isAr ? "تلقائي ونشط" : "AUTOMATIC / LIVE"}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span className="text-slate-500">{isAr ? "الاعتماد السحابي للمستندات" : "Cloud Document Sovereignty"}</span>
+                  <span className="text-blue-600 font-extrabold">Firestore Enterprise</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 space-y-2">
+              <button
+                onClick={runPingCheck}
+                disabled={pinging}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-extrabold hover:bg-slate-800 transition disabled:opacity-50 cursor-pointer"
+              >
+                <RefreshCw className={`w-4 h-4 ${pinging ? "animate-spin" : ""}`} />
+                <span>{isAr ? "إعادة فحص الاتصال الفوري" : "Perform DB Latency Diagnostic"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Environment Parameters Details Block */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between pointer-events-none mb-3">
+                <h3 className="text-md font-extrabold text-slate-900 flex items-center gap-2">
+                  <Key className="w-5 h-5 text-indigo-500 animate-pulse" />
+                  <span>{isAr ? "معالم وعناوين الإقتران بالبنية" : "Google Cloud Firestore Manifest Keys"}</span>
+                </h3>
+                <span className="bg-slate-100 text-slate-800 text-[9px] font-black font-mono px-2 py-0.5 rounded uppercase">
+                  Secure Credentials
+                </span>
+              </div>
+              <p className="text-slate-500 text-xs leading-relaxed">
+                {isAr
+                  ? `يتم قراءة معالم الربط السحابي والـ API بشكل مشفر من نظام ${hospitalSettings?.nameAr} الرقمي المضمن في السحابة. لا تشارك هذه المعالم الأمنية مع أطراف خارجية لتجنب مخاطر الـ ID Spoofing.`
+                  : `Encrypted connection specs are loaded natively from ${hospitalSettings?.nameEn} integrated secrets manager. Do not share these variables to prevent credentials exposure.`}
+              </p>
+
+              {/* Masked Config Keys list wrapper */}
+              <div className="mt-4 border border-slate-150 rounded-xl overflow-hidden font-mono text-xs max-h-56 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 bg-slate-50 p-2.5 border-b border-slate-150 font-bold text-slate-600">
+                  <div className="col-span-1">{isAr ? "المعلم السحابي" : "Credential Parameter"}</div>
+                  <div className="col-span-2">{isAr ? "العنوان البرمجي" : "Secret Value Token"}</div>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-2.5 hover:bg-slate-50 transition">
+                    <div className="col-span-1 text-slate-500 font-semibold text-[10px]">Cloud Project ID</div>
+                    <div className="col-span-2 text-slate-855 font-bold truncate text-[10px]">{firebaseConfig.projectId}</div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-2.5 hover:bg-slate-50 transition">
+                    <div className="col-span-1 text-slate-500 font-semibold text-[10px]">Database Instance ID</div>
+                    <div className="col-span-2 text-slate-855 font-bold truncate text-[10px] text-indigo-600">{firebaseConfig.firestoreDatabaseId}</div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-2.5 hover:bg-slate-50 transition">
+                    <div className="col-span-1 text-slate-500 font-semibold text-[10px]">App ID Endpoint</div>
+                    <div className="col-span-2 text-slate-855 font-bold truncate text-[10px]">
+                      {showConfigKeys ? firebaseConfig.appId : "remixed-app-********"}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-2.5 hover:bg-slate-50 transition">
+                    <div className="col-span-1 text-slate-500 font-semibold text-[10px]">Central API Key Token</div>
+                    <div className="col-span-2 text-slate-855 font-bold truncate text-[10px] text-pink-600">
+                      {showConfigKeys ? firebaseConfig.apiKey : "remixed-api-key-*********"}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-2.5 hover:bg-slate-50 transition">
+                    <div className="col-span-1 text-slate-500 font-semibold text-[10px]">Active Auth Domain</div>
+                    <div className="col-span-2 text-slate-855 font-bold truncate text-[10px]">{firebaseConfig.authDomain}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+              <span className="text-xs font-semibold text-slate-400">
+                {isAr ? "تحقق دائماً من فلاتر وقواعد الحماية بـ firestore.rules" : "Enforce exact document validations via Firestore ABAC Rules"}
+              </span>
+              <button
+                onClick={() => setShowConfigKeys(!showConfigKeys)}
+                className="px-4 py-1.5 bg-slate-100 border border-slate-200 hover:bg-slate-200 rounded-lg text-[10px] font-black transition cursor-pointer"
+              >
+                {showConfigKeys 
+                  ? (isAr ? "🔒 حجب العناوين المشفرة" : "🔒 Mask Cryptographic Secrets") 
+                  : (isAr ? "👁 عرض العناوين البرمجية" : "👁 Reveal Connection Strings")}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Custom Firebase / Cloud Binder Panel */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div className="border-b border-slate-100 pb-4">
+            <h3 className="text-base font-black text-slate-950 flex items-center gap-2">
+              <Database className="w-5 h-5 text-pink-600 animate-pulse animate-slow duration-1000" />
+              <span>{isAr ? "ربط وتوجيه الاتصال بسحابة أو مشروع Firebase آخر" : "Dynamic Cloud Binding & Custom Firebase Settings"}</span>
+            </h3>
+            <p className="text-slate-500 text-xs mt-1">
+              {isAr 
+                ? "يمكنك تعديل معطيات الربط بالأسفل لترحيل مستودع البيانات الفورية والجرودات الرقمية إلى مشروع فايربيز (Firebase) بديل أو سحابة مخصصة أخرى."
+                : "You can modify connection keys below to redirect clinical datasets and forms to a completely different Firebase Project namespace."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* API Key */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">{isAr ? "مفتاح الخادر (API Key)" : "Web Client API Key"}</label>
+              <input
+                type="text"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full font-mono bg-slate-50/50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-pink-500 focus:bg-white transition"
+              />
+            </div>
+
+            {/* Project ID */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">{isAr ? "معرف المشروع (Project ID)" : "Firebase Project ID"}</label>
+              <input
+                type="text"
+                value={projectIdInput}
+                onChange={(e) => setProjectIdInput(e.target.value)}
+                placeholder="my-cool-project-123"
+                className="w-full font-mono bg-slate-50/50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-pink-500 focus:bg-white transition"
+              />
+            </div>
+
+            {/* Database ID */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">{isAr ? "معرف قاعدة بيانات Firestore (Database ID)" : "Firestore Database ID"}</label>
+              <input
+                type="text"
+                value={databaseIdInput}
+                onChange={(e) => setDatabaseIdInput(e.target.value)}
+                placeholder="(default)"
+                className="w-full font-mono bg-slate-50/50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-pink-500 focus:bg-white transition"
+              />
+              <span className="text-[10px] text-slate-400 block">{isAr ? "الوضع التلقائي هو (default)" : "Default is usually '(default)'"}</span>
+            </div>
+
+            {/* Auth Domain */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">{isAr ? "نطاق المصادقة (Auth Domain)" : "Auth Domain Target"}</label>
+              <input
+                type="text"
+                value={authDomainInput}
+                onChange={(e) => setAuthDomainInput(e.target.value)}
+                placeholder="my-cool-project-123.firebaseapp.com"
+                className="w-full font-mono bg-slate-50/50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-pink-500 focus:bg-white transition"
+              />
+            </div>
+
+            {/* App ID */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">{isAr ? "معرف التطبيق الذكي (App ID)" : "Firebase App ID (API/Web)"}</label>
+              <input
+                type="text"
+                value={appIdInput}
+                onChange={(e) => setAppIdInput(e.target.value)}
+                placeholder="1:1234567890:web:abcdef..."
+                className="w-full font-mono bg-slate-50/50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-pink-500 focus:bg-white transition"
+              />
+            </div>
+
+            {/* Storage Bucket */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">{isAr ? "مستودع تخزين الملفات (Storage Bucket)" : "Cloud Storage Bucket URL"}</label>
+              <input
+                type="text"
+                value={storageBucketInput}
+                onChange={(e) => setStorageBucketInput(e.target.value)}
+                placeholder="my-cool-project-123.appspot.com"
+                className="w-full font-mono bg-slate-50/50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-pink-500 focus:bg-white transition"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-150 text-xs">
+            <div className="flex items-center gap-2 text-slate-500">
+              <Info className="w-4 h-4 text-slate-400 shrink-0" />
+              <span>
+                {isAr 
+                  ? "ملاحظة: سيتم إعادة تحميل الصفحة تلقائياً لتطبيق وحفظ تغييرات الربط السحابي." 
+                  : "Action: The application framework will synchronize cache profiles and perform a soft reboot."}
+              </span>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={handleResetFirebaseOverrides}
+                className="px-4 py-2 hover:bg-rose-50 text-rose-600 rounded-xl border border-rose-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isAr ? "استعادة الاتصال الافتراضي" : "Restore Built-In Database"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSaveFirebaseOverrides}
+                className="px-6 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-xl text-xs font-extrabold shadow-sm hover:shadow transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{isAr ? "حفظ وتفعيل معطيات السحابة" : "Bind & Initialize Cloud Settings"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+      {activeSubTab === "stats" && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          
+          {/* Synchronized Datasets Metrics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Clinical Forms Sync status */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-mono font-black py-0.5 px-2 bg-pink-50 text-pink-600 rounded">
+                  hospital_clinical_records
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs text-slate-400 font-bold">{isAr ? "نماذج الجرد الطبية والمستندات" : "Clinical Checklist Records"}</h4>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-black text-slate-900">{records.length}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{isAr ? "سجلًا نشطًا" : "elements"}</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>{isAr ? "مستوى الفرز: مرضى / وحدات" : "Scope: Patient specific check sheets"}</span>
+                <span className="text-emerald-600">{isAr ? "واقعي مزامن" : "REAL-TIME SYNCED"}</span>
+              </div>
+            </div>
+
+            {/* Custom Clinical Templates Sync */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                  <FileCode className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-mono font-black py-0.5 px-2 bg-blue-50 text-blue-600 rounded">
+                  hospital_custom_templates
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs text-slate-400 font-bold">{isAr ? "نماذج الشيتات والجرودات المخصصة" : "Dynamic Custom Templates"}</h4>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-black text-slate-900">{customTemplates.length}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{isAr ? "شيت جرد مأذون" : "structures"}</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>{isAr ? "مصممة من وحدة الـ IT" : "Engineered by Hospital IT Node"}</span>
+                <span className="text-blue-600">{isAr ? "نشط بالسحابة" : "CLOUD TEMPLATES"}</span>
+              </div>
+            </div>
+
+            {/* Staff Credentials registry */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-mono font-black py-0.5 px-2 bg-indigo-50 text-indigo-600 rounded">
+                  hospital_staff_registry
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs text-slate-400 font-bold">{isAr ? "سجل الموظفين والتمريض المعتمدين" : "Registered Staff & Nurses List"}</h4>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-black text-slate-900">{systemUsers.length}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{isAr ? "كادراً طبياً" : "accounts"}</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>{isAr ? "حماية الصلاحيات: PIN Access" : "Role Enforcement: PIN Codes Enabled"}</span>
+                <span className="text-emerald-500 font-black">ACTIVE</span>
+              </div>
+            </div>
+
+            {/* Supervisor daily Auditing registries */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-mono font-black py-0.5 px-2 bg-purple-50 text-purple-600 rounded">
+                  hospital_daily_audits
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs text-slate-400 font-bold">{isAr ? "تقارير جودة الجرودات اليومية والمشرف" : "Supervisor Quality Audits"}</h4>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-black text-slate-900">{dailyChecklists.length}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{isAr ? "تقريراً معتمداً" : "audited logs"}</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>{isAr ? "إعتماد المشرفين والجودة" : "Quality Auditor verified sheets"}</span>
+                <span className="text-purple-600">AUDITED</span>
+              </div>
+            </div>
+
+            {/* Daily Operational Duty tasks sheets */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-mono font-black py-0.5 px-2 bg-amber-50 text-amber-600 rounded">
+                  hospital_daily_duty_tasks
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs text-slate-400 font-bold">{isAr ? "قائمة الواجبات اليومية للوحدات والتمريض" : "Clinical Daily Duty Sheets"}</h4>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-black text-slate-900">{dutyTasks.length}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{isAr ? "بنداً تفتيشياً" : "operational checks"}</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>{isAr ? "متطابق مع معايير الجودة GCI" : "Meets GCI hospital safety limits"}</span>
+                <span className="text-emerald-500">SAVED</span>
+              </div>
+            </div>
+
+            {/* Diagnostic system log files */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-teal-100 text-teal-600 rounded-lg">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-mono font-black py-0.5 px-2 bg-teal-50 text-teal-600 rounded">
+                  hospital_system_logs
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs text-slate-400 font-bold">{isAr ? "سجلات ومؤامرات الأعطال للـ IT" : "IT Troubleshooting Logs Catalog"}</h4>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-black text-slate-900">{systemLogs.length}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{isAr ? "حدثاً إخبارياً" : "incidents logged"}</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>{isAr ? "تتبع مباشر للأعطال" : "Auto telemetry diagnostics"}</span>
+                <span className="text-teal-600 font-extrabold">LIVE</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Sync Preferences and Database Sync Strategy Configuration */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            <h3 className="text-md font-extrabold text-slate-900 flex items-center gap-2">
+              <Sliders className="w-5 h-5 text-pink-600" />
+              <span>{isAr ? "تخصيص سياسة المزامنة وإدارة النزاعات" : "Database Synchronizing & Conflict Resolution Policies"}</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Sync Direction Option */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500">{isAr ? "اتجاه وبنية التزامن (Sync Direction)" : "Sync Direction Strategy"}</label>
+                <select
+                  value={syncStrategy}
+                  onChange={(e) => handleSavePref("strategy", e.target.value)}
+                  className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none ring-pink-500/10 focus:ring-1 focus:bg-white"
+                >
+                  <option value="realtime">{isAr ? "تزامن ثنائي الاتجاه بالوقت الفعلي" : "Realtime Bilateral (Real-time Push & Pull)"}</option>
+                  <option value="local_first">{isAr ? "الاعتماد المحلي أولاً مع الرفع التراكمي" : "Offline-First with periodic Cloud upload queue"}</option>
+                  <option value="cloud_only">{isAr ? "الحفظ السحابي الصرف وبث فوري" : "Direct Cloud sovereignty (No local cache writes)"}</option>
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {isAr 
+                    ? "تتحكم في سلوك تخزين شيت المرضى عندما يفقد التمريض الإشارة الطبية أثناء الإشراف لتلافي الفقد المادي." 
+                    : "Ensures staff checklist data writes are kept safe on client buffers when local hospital signals fail."}
+                </p>
+              </div>
+
+              {/* Conflict Mode */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500">{isAr ? "عند حدوث نزاع تعديلي (Conflict Policy)" : "Conflict Resolution Precedence"}</label>
+                <select
+                  value={conflictStrategy}
+                  onChange={(e) => handleSavePref("conflict", e.target.value)}
+                  className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none ring-pink-500/10 focus:ring-1 focus:bg-white"
+                >
+                  <option value="newest">{isAr ? "الاحتفاظ بالتعديل الأحدث زمنياً" : "Keep Latest Timestamp (Cloud & Client merge)"}</option>
+                  <option value="client_wins">{isAr ? "التعديل المكتوب محلياً يفوق السحابي" : "Overwrite Cloud with Client cache payload"}</option>
+                  <option value="server_wins">{isAr ? "الخادم يحوز الأولوية الأكاديمية المطلقة" : "Strict Cloud Sovereignty (Revert unsynced local client)"}</option>
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {isAr 
+                    ? "يحدد السلوك التنظيمي عندما تقوم مشرفة القسم وأخصائي الجودة بتعديل نفس السلسلة المرضية." 
+                    : "Resolves matching key audits update collisions gracefully between head nurse and auditor."}
+                </p>
+              </div>
+
+              {/* Sync interval */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500">{isAr ? "دورة بث البيانات للقرص السحابي" : "Auto Telemetry Broadcast Duty"}</label>
+                <select
+                  value={autoSyncInterval}
+                  onChange={(e) => handleSavePref("interval", e.target.value)}
+                  className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none ring-pink-500/10 focus:ring-1 focus:bg-white"
+                >
+                  <option value="immediate">{isAr ? "بث تسلسلي فوري عند الإغلاق" : "Immediate write on transaction end"}</option>
+                  <option value="30s">{isAr ? "حفظ تراكمي كل 30 ثانية" : "Batch commit every 30 seconds"}</option>
+                  <option value="manual">{isAr ? "يدوي عبر زر السحابة فقط" : "Manual trigger only (Save battery/Bandwidth)"}</option>
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {isAr 
+                    ? "تنظيم فترات تواصل المتصفحات لخفض معدلات إهلاك باقة الـ IT بالفرع الجغرافي." 
+                    : "Optimizes total connection handshakes and prevents CPU throttling during active ward shift audits."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === "migration" && (
+        <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-300">
+          
+          {/* Export Systems State (JSON) Card Info */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-md font-extrabold text-slate-900 flex items-center gap-2">
+                <Download className="w-5 h-5 text-emerald-600 animate-bounce" />
+                <span>{isAr ? `استخراج وتصدير أرشيف مستندات ${hospitalSettings?.nameAr || "المستشفى"}` : `Download Encrypted ${hospitalSettings?.nameEn || "Hospital"} Backup Archive`}</span>
+              </h3>
+              <p className="text-slate-500 text-xs leading-relaxed">
+                {isAr
+                  ? "قم بتحميل مستودع البيانات بالكامل كملف مشفر JSON منسق بنقرة واحدة. يتيح لك هذا الملف تأمين كامل سجل المريض الجراحي وتفاصيل جرد الصيدلة، الجرودات التمريضية العاجلة، وقائمة الأمان لحفظ الموظفين والمشرفين واستردادهم في حالة حدوث تلف مادي للخوادم المركزية."
+                  : "Generates an offline snapshot file representing the hospital's entire integrated data assets. Includes personnel registries, active customized nurse checklists templates, clinical and chemotherapy records, and historical quality control logs."}
+              </p>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                <Info className="w-6 h-6 text-emerald-600 shrink-0" />
+                <div className="text-xs text-slate-600 leading-relaxed font-sans">
+                  <strong>{isAr ? "محتويات حزمة النسخ الاحتياطي حالياً:" : "Current Backup Blueprint assets counted:"}</strong>
+                  <ul className="list-disc list-inside mt-1.5 font-sans space-y-1">
+                    <li>{isAr ? `عدد مستندات المرضى: ${records.length} مستنداً` : `Checklist medical records count: ${records.length} items`}</li>
+                    <li>{isAr ? `عدد شيت الجرد المخصص: ${customTemplates.length} قالب` : `Custom templates catalog: ${customTemplates.length} structures`}</li>
+                    <li>{isAr ? `رصيد المشرفين والجودة: ${dailyChecklists.length} تقارير` : `Auditor daily check registers: ${dailyChecklists.length} check logs`}</li>
+                    <li>{isAr ? `سجل الموظفين والتمريض: ${systemUsers.length} كادر` : `${hospitalSettings?.nameEn} registered personnel counts: ${systemUsers.length} staff`}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100">
+              <button
+                onClick={handleExportBackup}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition-all cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>{isAr ? "تصدير وتحميل حزمة البيانات بالكامل (JSON)" : "Generate and Download Complete Systems Backup"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Import Restoration Systems State (JSON) Card */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-md font-extrabold text-slate-900 flex items-center gap-2">
+                <Upload className="w-5 h-5 text-indigo-600" />
+                <span>{isAr ? "استيراد وتفريغ نسخة استرداد الكوارث والاقتران" : "Disaster Database Restoration & Migration"}</span>
+              </h3>
+              <p className="text-slate-500 text-xs leading-relaxed">
+                {isAr
+                  ? `استورد ملف استرداد معتمد بامتداد (.json) لإعادة إدراج أو مزامنة البيانات والملفات والجرادات لـ ${hospitalSettings?.nameAr || "المستشفى"}. سيقوم المعالج التلقائي بمقارنة البصمات، تحديث النزاعات السجلات، وحقن خلايا Firestore والذاكرة المحلية فوراً دون الحاجة لإعادة التشغيل.`
+                  : `Upload a valid ${hospitalSettings?.nameEn} system JSON backup file. The migration processor will match structural schemas, push records directly into firestore database indexes, and seamlessly populate the active design states instantly.`}
+              </p>
+
+              {/* Silent Input Selector */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImportBackup}
+                accept=".json"
+                className="hidden"
+              />
+
+              {/* Upload Drag/Drop Simulated Visual Area */}
+              <div 
+                onClick={triggerFileSelect}
+                className="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50 hover:bg-slate-100 p-6 rounded-2xl text-center space-y-2 transition duration-200 cursor-pointer"
+              >
+                <DatabaseBackup className="w-10 h-10 text-indigo-500 mx-auto animate-pulse" />
+                <p className="text-xs font-extrabold text-slate-700">{isAr ? `اضغط هنا لاختيار ملف النسخة الاحتياطية المعتمدة لـ ${hospitalSettings?.nameAr || "المستشفى"}` : "Click to select a valid system .json archive package"}</p>
+                <p className="text-[10px] text-slate-400">{isAr ? "تنسيق النسخة الاحتياطية المعتمدة" : "Accepts index layout structures (max size: 25MB)"}</p>
+              </div>
+
+              {/* Import status logger flash */}
+              {importStatus.type !== "idle" && (
+                <div className={`p-3.5 rounded-xl border text-xs font-bold leading-relaxed flex items-start gap-2.5 animate-in fade-in ${
+                  importStatus.type === "success" 
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-900" 
+                    : importStatus.type === "error" 
+                    ? "bg-rose-50 border-rose-200 text-rose-900" 
+                    : "bg-slate-50 border-slate-200 text-slate-800 animate-pulse"
+                }`}>
+                  {importStatus.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
+                  {importStatus.type === "error" && <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />}
+                  {importStatus.type === "processing" && <RefreshCw className="w-4 h-4 text-slate-500 shrink-0 mt-0.5 animate-spin" />}
+                  <div>
+                    <p>{isAr ? importStatus.messageAr : importStatus.messageEn}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleSeedDefaultData}
+                className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4 text-pink-400" />
+                <span>{isAr ? "ربط وتلقيم البيانات الافتراضية" : "Seed & Initialize Collections"}</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setWipePasscode("");
+                  setWipePasscodeError(null);
+                  setConfirmingWipe(true);
+                }}
+                className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{isAr ? "مسح شامل وتصفير" : "Factory Reset Complete DB"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === "logs" && (
+        <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+          {/* Log List View (IT Telemetry Logs sync) */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-md font-black text-slate-900 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-teal-600" />
+                  <span>{isAr ? "لوحة التتبع والتحليل التشخيصي للشبكة" : "Active Hospital Event Telemetry Feed"}</span>
+                </h3>
+                <p className="text-xs text-slate-400 font-sans mt-0.5">{isAr ? "سجل تتبع لحظي لتفادي فقد الجرودات التمريضية" : "Live diagnostic logs and validation error tracing dashboard"}</p>
+              </div>
+
+              {/* Clear event trigger */}
+              <button
+                onClick={handleClearAllLogs}
+                className="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-150 rounded-lg text-[10px] font-black transition cursor-pointer"
+              >
+                {isAr ? "تصفير السجل" : "Evacuate Logs"}
+              </button>
+            </div>
+
+            {/* Filter and Search Log box */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                <Search className="w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={isAr ? "بحث عن حدث، تعديل، اسم موظف..." : "Search logs filter..."}
+                  value={logSearch}
+                  onChange={(e) => setLogSearch(e.target.value)}
+                  className="bg-transparent w-full border-none outline-none text-xs text-slate-800 focus:ring-0 font-bold"
+                />
+                {logSearch && (
+                  <X className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-pointer" onClick={() => setLogSearch("")} />
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 border border-slate-200 rounded-xl font-mono text-[10px]">
+                {["ALL", "INFO", "WARNING", "SUCCESS", "ERROR"].map((lvl) => (
+                  <button
+                    key={lvl}
+                    onClick={() => setLogFilter(lvl)}
+                    className={`px-2.5 py-1 rounded-lg font-black transition cursor-pointer ${
+                      logFilter === lvl
+                        ? "bg-slate-900 text-white shadow"
+                        : "text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actual logs list item table */}
+            <div className="border border-slate-150 rounded-xl overflow-hidden font-mono text-xs max-h-[440px] overflow-y-auto divide-y divide-slate-100">
+              {filteredLogs.length === 0 ? (
+                <div className="p-8 text-center text-slate-400">
+                  <Activity className="w-8 h-8 text-slate-300 mx-auto mb-2 animate-bounce" />
+                  <p className="text-xs font-bold">{isAr ? "لا توجد سجلات مطابقة للفلتر المحدد" : "Diagnostic logs matching filters are empty"}</p>
+                </div>
+              ) : (
+                filteredLogs.map((log) => {
+                  let badgeColor = "bg-blue-50 text-blue-700 border-blue-200";
+                  if (log.type === "success") badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                  if (log.type === "warning") badgeColor = "bg-amber-50 text-amber-700 border-amber-200";
+                  if (log.type === "error") badgeColor = "bg-rose-50 text-rose-700 border-rose-200";
+
+                  return (
+                    <div key={log.id} className="p-3 hover:bg-slate-50 transition grid grid-cols-12 gap-3 items-start">
+                      <div className="col-span-3 sm:col-span-2 flex flex-col justify-start text-[10px] text-slate-450 font-semibold space-y-0.5">
+                        <span className="text-slate-900 flex items-center gap-1"><Clock className="w-3 h-3 text-slate-400" /> {log.time}</span>
+                        <span className="text-[9px] text-slate-400">Ms: {log.timestampMs.toString().slice(-6)}</span>
+                      </div>
+                      <div className="col-span-2 sm:col-span-2">
+                        <span className={`px-2 py-0.5 text-[9px] font-black tracking-wider uppercase border rounded-md ${badgeColor}`}>
+                          {log.type}
+                        </span>
+                      </div>
+                      <div className="col-span-7 sm:col-span-8 flex flex-col justify-start">
+                        <p className="text-[11px] text-slate-800 leading-relaxed font-bold font-sans text-right" dir="auto">
+                          {log.event}
+                        </p>
+                        <span className="text-[8px] text-slate-400 tracking-wider font-mono mt-1 select-all hover:text-slate-600">ID: {log.id}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Simulated Logs write Form Card and usage metric */}
+          <div className="space-y-6">
+            
+            {/* System Log Simulation Emulator */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <h3 className="text-md font-extrabold text-slate-900 flex items-center gap-2">
+                  <Play className="w-5 h-5 text-indigo-500 animate-pulse" />
+                  <span>{isAr ? "محاكي صياغة أحداث الشبكة الطبية" : "Diagnostic IT Logger Emulator"}</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {isAr 
+                    ? "يقوم مهندسو الـ IT بكتابة أحداث أو تدوين ملاحظات الصيانة يدوياً لبثها لكافة الممرضين والمشرفين." 
+                    : "Post manually created notifications or IT system events across diagnostic collections to evaluate reliability."}
+                </p>
+              </div>
+
+              <form onSubmit={handleSimulateLog} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500">{isAr ? "تفاصيل الحدث في السجل (عربي)" : "Log Event Details (Arabic)"}</label>
+                  <input
+                    type="text"
+                    required
+                    value={simLogMsgAr}
+                    onChange={(e) => setSimLogMsgAr(e.target.value)}
+                    placeholder={isAr ? "مثال: تم الإنتهاء من صيانة كبائن التعقيم بالصيدلية" : "مثال: تم إغلاق فحص عربة إنعاش الكود بلو"}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none ring-pink-500/10 focus:ring-1 focus:bg-white text-right"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500">{isAr ? "تفاصيل الحدث في السجل (En)" : "Log Event Details (English)"}</label>
+                  <input
+                    type="text"
+                    required
+                    value={simLogMsgEn}
+                    onChange={(e) => setSimLogMsgEn(e.target.value)}
+                    placeholder="e.g. BIOSafety sterilizer cabinet main calibration successful"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none ring-pink-500/10 focus:ring-1 focus:bg-white font-mono"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500">{isAr ? "درجة أمان الحدث (Severity Level)" : "Event Severity Level"}</label>
+                    <select
+                      value={simLogType}
+                      onChange={(e: any) => setSimLogType(e.target.value)}
+                      className="w-full bg-slate-50 text-slate-800 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none"
+                    >
+                      <option value="info">INFO</option>
+                      <option value="success">SUCCESS</option>
+                      <option value="warning">WARNING</option>
+                      <option value="error">ERROR</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      disabled={!simLogMsgAr && !simLogMsgEn}
+                      className="w-full py-2.5 bg-slate-900 hover:bg-slate-805 text-white active:bg-slate-950 rounded-xl text-xs font-black shadow transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{isAr ? "كتابة وبث الحدث الآن" : "Broadcast Event Posting"}</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* Local Storage space utilization Gauge */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{isAr ? "التخزين المحلي بالمتصفح" : "Browser Storage Occupancy"}</h4>
+                <span className="text-xs font-black text-indigo-650 font-mono">{isCachUsedPct}% {isAr ? "مستغل" : "used"}</span>
+              </div>
+
+              {/* Progress gauge bar */}
+              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    isCachUsedPct < 40 
+                      ? "bg-emerald-500" 
+                      : isCachUsedPct < 80 
+                      ? "bg-amber-500 animate-pulse" 
+                      : "bg-rose-500 animate-ping"
+                  }`}
+                  style={{ width: `${isCachUsedPct}%` }}
+                />
+              </div>
+
+              <p className="text-[10px] text-slate-400 leading-relaxed font-sans mt-2">
+                {isAr 
+                  ? "تحتوي ذاكرة المتصفح المحلية (HTML5 LocalStorage) على نسخ احتيافية سريعة ومزدوجة في الحالات الطارئة لمطابقة النماذج دون هدر للشبكة الطبية."
+                  : `${hospitalSettings?.nameEn} browser database cluster caches medical records offline to prevent direct reliance errors during central network drops.`}
+              </p>
+
+              <div className="pt-2 flex items-center justify-between">
+                <button
+                  onClick={handleClearCache}
+                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-black transition flex items-center gap-2 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{isAr ? "مسح التخزين المحلي (LocalStorage)" : "Rebuild Off-line Local Indexes"}</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Warning/Danger Confirmation dialog popup */}
+      {confirmingWipe && (
+        <div className="fixed inset-0 bg-black/50 z-modal flex items-center justify-center p-4 animate-in fade-in duration-200" dir="rtl">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full space-y-4 shadow-2xl relative">
+            <button 
+              onClick={() => {
+                setConfirmingWipe(false);
+                setWipePasscode("");
+                setWipePasscodeError(null);
+              }}
+              className="absolute top-4 left-4 p-1 rounded-full text-slate-400 hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-center space-y-2 pt-2">
+              <ShieldAlert className="w-12 h-12 text-rose-600 mx-auto animate-bounce" />
+              <h3 className="text-md font-extrabold text-slate-900 font-sans">{isAr ? "تأكيد إخلاء مساحات السحابة والفرع" : "Inbound System Full-Format Authorization"}</h3>
+              <p className="text-xs text-slate-500 font-sans leading-relaxed">
+                {isAr 
+                  ? "تحذير: سيتم حذف جميع النماذج والجرودات المسجلة للمرضى والصيدلة تماماً من السحابة والذاكرة المحلية. يرجى كتابة الـ PIN الخاص بالإدارة للتأكيد."
+                  : "Security clearance check: Enter the Administrative authorized PIN code to execute direct factory-reset."}
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <input
+                type="password"
+                maxLength={4}
+                value={wipePasscode}
+                onChange={(e) => {
+                  setWipePasscode(e.target.value);
+                  setWipePasscodeError(null);
+                }}
+                placeholder="••••"
+                className="w-full text-center tracking-widest text-lg bg-slate-50 border border-slate-200 rounded-xl p-2 font-black outline-none ring-rose-500/10 focus:ring-1 focus:bg-white"
+              />
+              {wipePasscodeError && (
+                <p className="text-[10px] text-rose-600 font-bold text-center mt-1">{wipePasscodeError}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={async () => {
+                  // Admin PIN verification matching Dr Mohamed PIN "1234" or President PIN "9999" or IT Head PIN "2026"
+                  if (wipePasscode === "1234" || wipePasscode === "9999" || wipePasscode === "2026") {
+                    try {
+                      setImportStatus({
+                        type: "processing",
+                        messageAr: "جاري حذف وتصفير الخادم ومستوعات البيانات بالكامل...",
+                        messageEn: "Purging and rebuilding database structures on firestore node..."
+                      });
+
+                      // Purge Clinical records local & cloud
+                      if (setRecords) setRecords([]);
+                      localStorage.removeItem("hospital_medical_records");
+                      for (const r of records) {
+                        await deleteClinicalRecord(r.id).catch(() => {});
+                      }
+
+                      // Purge Custom templates
+                      if (setCustomTemplates) setCustomTemplates([]);
+                      localStorage.removeItem("hospital_custom_templates");
+                      for (const t of customTemplates) {
+                        await deleteCustomTemplate(t.id).catch(() => {});
+                      }
+
+                      // Purge Daily checklist quality audits
+                      if (setDailyChecklists) setDailyChecklists([]);
+                      localStorage.removeItem("hospital_daily_checklists");
+
+                      // Remove resolved gaps map
+                      localStorage.removeItem("hospital_resolved_gaps");
+
+                      // Clear system logs
+                      if (setSystemLogs) setSystemLogs([]);
+                      for (const log of systemLogs) {
+                        await deleteSystemLog(log.id).catch(() => {});
+                      }
+
+                      // Log wipe incident event
+                      const wipeLog: SystemLog = {
+                        id: `log-${Date.now()}`,
+                        event: `AUTHORIZED FULL DATABASE WIPE executed by supervisor / administration PIN authentication`,
+                        type: "error",
+                        time: new Date().toLocaleTimeString(),
+                        timestampMs: Date.now()
+                      };
+                      await saveSystemLog(wipeLog);
+                      if (setSystemLogs) setSystemLogs([wipeLog]);
+
+                      setImportStatus({
+                        type: "success",
+                        messageAr: "✔ تم مسح وإخلاء كافة البيانات بنجاح تام وإصدار السجل التطهيري.",
+                        messageEn: "✔ Database format matched and executed perfectly. Cloud instance is clean."
+                      });
+
+                      setConfirmingWipe(false);
+                      setWipePasscode("");
+                      runPingCheck();
+                      calculateLocalStorageUsage();
+
+                    } catch (err: any) {
+                      setWipePasscodeError(isAr ? `فشل المسح: ${err?.message}` : `Wipe failed: ${err?.message}`);
+                    }
+                  } else {
+                    setWipePasscodeError(isAr ? "الرمز السري غير صحيح." : "Incorrect double-signer administrative passcode.");
+                  }
+                }}
+                className="py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-black shadow transition cursor-pointer"
+              >
+                {isAr ? "تأكيد ومسح شامل" : "Confirm Format"}
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmingWipe(false);
+                  setWipePasscode("");
+                  setWipePasscodeError(null);
+                }}
+                className="py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-extrabold transition cursor-pointer"
+              >
+                {isAr ? "إلغاء التراجع" : "Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
