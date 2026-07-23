@@ -1,0 +1,8 @@
+{
+  "name": "Kayan HIS - كيان",
+  "description": "Enterprise Hospital Information System with event-driven routing, dynamic forms, and collaborative EMR.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
