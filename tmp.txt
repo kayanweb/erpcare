@@ -1,2 +1,0 @@
-120:  syncClinicalRecords,
-748:  const [records, setRecords] = useFirestoreSync<SavedRecord>(syncClinicalRecords, []);

@@ -1,9 +1,0 @@
-/    const newId = "p" + Date.now();/i\
-    // Override "OTHER" fields with their custom text\
-    const finalData = { ...formData };\
-    Object.keys(finalData).forEach(key => {\
-      if ((finalData[key] === "OTHER" || finalData[key] === "Other") && finalData[`${key}Other`]) {\
-        finalData[key] = finalData[`${key}Other`];\
-      }\
-    });
-s/      \.\.\.formData/      ...finalData/
